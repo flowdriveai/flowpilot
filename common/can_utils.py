@@ -5,7 +5,7 @@ def can_list_to_can_capnp(can_msgs, msgtype='can', valid=True):
   dat = log.Event.new_message()
   dat.init(msgtype, len(can_msgs))
   dat.valid = True
-  dat.logMonoTime = sec_since_boot() * 1e9
+  dat.logMonoTime = int(sec_since_boot())
 
   for i, can_msg in enumerate(can_msgs):
     if msgtype == 'sendcan':

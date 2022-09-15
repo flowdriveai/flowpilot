@@ -13,7 +13,7 @@ def create_mqb_steering_control(packer, bus, apply_steer, idx, lkas_enabled):
     "SET_ME_0XFE": 0xFE,
     "SET_ME_0X07": 0x07,
   }
-  return packer.make_can_msg("HCA_01", bus, values, idx)
+  return packer.make_can_msg("HCA_01", bus, values)
 
 def create_mqb_hud_control(packer, bus, enabled, steering_pressed, hud_alert, left_lane_visible, right_lane_visible,
                            ldw_stock_values, left_lane_depart, right_lane_depart):
@@ -46,4 +46,4 @@ def create_mqb_acc_buttons_control(packer, bus, buttonStatesToSend, CS, idx):
     "GRA_Tip_Stufe_2": CS.graTipStufe2,
     "GRA_ButtonTypeInfo": CS.graButtonTypeInfo
   }
-  return packer.make_can_msg("GRA_ACC_01", bus, values, idx)
+  return packer.make_can_msg("GRA_ACC_01", bus, values)
