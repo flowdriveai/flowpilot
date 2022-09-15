@@ -8,8 +8,6 @@ def install_local(dep_path):
 def get_requirements():
    subprocess.check_call(["pip", "install", "-r", "requirements.txt"])
 
-get_requirements()
-
 setup(name="flowpilot",
       packages=find_packages(),
       py_modules=["controlsd", "plannerd", "calibrationd", "logmessaged", "flowinit"],
