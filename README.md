@@ -1,4 +1,4 @@
-<img src="https://i.ibb.co/160T9xV/Screenshot-from-2022-09x09-17-24-30.png" alt="table" width="1270" />
+<img src="https://i.ibb.co/LZtKvfB/Screenshot-from-2022-09-15-22-15-14.png" alt="table" width="1270" />
 
 # What is Flowpilot?
 
