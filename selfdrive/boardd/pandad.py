@@ -87,7 +87,7 @@ def is_panda(usb_fd):
 
 def main_android_no_root() -> NoReturn:
   # android termux-usb implementation.
-  cloudlog.warning(f"Running pandad is no-root mode")
+  cloudlog.warning(f"Running pandad in no-root mode")
 
   print("listing usb devices.. if this hangs here, restart termux.")
   while True:
