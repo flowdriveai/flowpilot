@@ -415,13 +415,6 @@ std::optional<bool> send_panda_states(PubMaster *pm, const std::vector<Panda *> 
 }
 
 void send_peripheral_state(PubMaster *pm, Panda *panda) {
-  auto pandaState_opt = panda->get_state();
-  if (!pandaState_opt) {
-    return;
-  }
-
-  health_t pandaState = *pandaState_opt;
-
   // build msg
   MessageBuilder msg;
   auto evt = msg.initEvent();
@@ -439,7 +432,6 @@ void send_peripheral_state(PubMaster *pm, Panda *panda) {
   }
 
   uint16_t fan_speed_rpm = panda->get_fan_speed();
-  ps.setUsbPowerMode(cereal::PeripheralState::UsbPowerMode(pandaState.usb_power_mode_pkt));
   ps.setFanSpeedRpm(fan_speed_rpm);
 
   pm->send("peripheralState", msg);
