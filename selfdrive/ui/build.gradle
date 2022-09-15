@@ -1,0 +1,39 @@
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-core'
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['java']
+		}
+		resources {
+			srcDirs = ['resources']
+		}
+	}
+}
+
+dependencies {
+	api "com.badlogicgames.gdx:gdx:$gdxVersion"
+	implementation project(":messaging")
+	implementation project(':definitions')
+	implementation project(':vision')
+	implementation project(":sensord")
+	implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
+	implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
+			{
+				exclude ((HashMap) [group: 'org.bytedeco', module: 'openblas-platform'])
+				exclude ((HashMap) [group: 'org.bytedeco', module: 'mkl-platform'])
+				exclude ((HashMap) [group: 'org.nd4j', module: 'nd4j-native'])
+			}
+	implementation "org.bytedeco:javacpp:$rootProject.javacpp_version"
+	implementation "org.bytedeco:javacpp:$rootProject.javacpp_version:$rootProject.javacpp_platform_suffix"
+	implementation "org.nd4j:nd4j-native:$rootProject.nd4j_version"
+	implementation "org.nd4j:nd4j-native:$rootProject.nd4j_version:$rootProject.javacpp_platform_suffix"
+	implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version"
+	implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version:$rootProject.javacpp_platform_suffix"
+	implementation 'org.capnproto:runtime:0.1.13'
+	implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+	implementation project(path: ':common')
+    implementation project(path: ':launcher')
+    implementation project(path: ':calibration')
+}

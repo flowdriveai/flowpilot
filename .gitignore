@@ -1,0 +1,130 @@
+.gradle
+backup
+build/
+run.sh
+__pycache__
+.cxx/
+*.log
+.classpath
+.settings
+.vscode
+.project
+data
+*.egg-info
+*/gradlew
+*/gradle-wrapper
+*/gradle
+c_generated_code/
+acados_ocp_lat.json
+acados_ocp_long.json
+Definitions.java
+CarDefinitions.java
+.flowpilot_db
+android/release
+libs/capnpc-java/capnproto-java/
+!libs/capnpc-java/*
+bin
+.clang-format
+.DS_Store
+.tags
+.ipynb_checkpoints
+.idea
+.overlay_init
+.overlay_consistent
+.sconsign.dblite
+.vscode*
+model2.png
+a.out
+.hypothesis
+
+*.dylib
+*.DSYM
+*.d
+*.pyc
+*.pyo
+.*.swp
+.*.swo
+.*.un~
+*.tmp
+*.o
+*.o-*
+*.os
+*.os-*
+*.so
+*.a
+*.clb
+*.class
+*.pyxbldc
+*.vcd
+*.qm
+
+# binaries
+selfdrive/boardd/boardd
+libs/capnpc-java/capnproto-java/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache
+
+## Android:
+android/gen/
+local.properties
+com_crashlytics_export_strings.xml
+
+## IntelliJ, Android Studio:
+.idea
+*.ipr
+*.iws
+out/
+
+## OS Specific
+.DS_Store
+
+######## Python
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+!**/.gitkeep

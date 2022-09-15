@@ -1,0 +1,165 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion 31
+	ndkVersion "21.1.6352462"
+	sourceSets {
+		main {
+			manifest.srcFile 'AndroidManifest.xml'
+			java.srcDirs = ['src/main/java']
+			res.srcDirs = ['res']
+			assets.srcDirs = ['../assets']
+			jniLibs.srcDirs = ['libs']
+			// exclude onnx models from apk.
+			sourceSets.main.res.filter.exclude '**/supercombo_simple.onnx'
+		}
+	}
+	packagingOptions {
+		// Preventing from license violations (more or less):
+		pickFirst 'META-INF/LICENSE.txt'
+		pickFirst 'META-INF/LICENSE'
+		exclude 'META-INF/native-image/**'
+		exclude '**/supercombo_simple.onnx'
+		pickFirst '**/nd4j-native.properties'
+		pickFirst '**/libc++_shared.so'
+		pickFirst 'services.yaml'
+		// Excluding unnecessary meta-data:
+		exclude 'META-INF/DEPENDENCIES.txt'
+		exclude 'META-INF/DEPENDENCIES'
+		exclude 'META-INF/dependencies.txt'
+	}
+
+	defaultConfig {
+		applicationId 'ai.flow.android'
+		minSdkVersion 21
+		targetSdkVersion 30
+		versionCode 1
+		versionName "1.0"
+		multiDexEnabled true
+
+		externalNativeBuild {
+			cmake {
+				cppFlags "-std=c++11"
+				arguments "-DANDROID_STL=c++_shared"
+			}
+		}
+	}
+
+
+	compileOptions {
+		sourceCompatibility "8.0"
+		targetCompatibility "8.0"
+		coreLibraryDesugaringEnabled true
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+		}
+	}
+
+	externalNativeBuild {
+		cmake {
+			path "src/main/cpp/CMakeLists.txt"
+			version "3.10.2"
+		}
+	}
+}
+
+repositories {
+	google()
+	flatDir {
+		dirs 'libs'
+	}
+}
+
+configurations { natives }
+
+dependencies {
+	implementation project(path: ':definitions')
+	implementation project(path: ':messaging')
+	coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    implementation project(path: ':launcher')
+	implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+	implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+	implementation project(":messaging")
+	implementation project(":common")
+	implementation project(":sensord")
+	implementation project(':ui')
+	implementation project(':vision')
+	def camerax_version = "1.1.0-beta02"
+	implementation "androidx.camera:camera-camera2:$camerax_version"
+	implementation "androidx.camera:camera-lifecycle:$camerax_version"
+	implementation "androidx.camera:camera-view:$camerax_version"
+	implementation "androidx.camera:camera-video:$camerax_version"
+	implementation "androidx.appcompat:appcompat:1.4.1"
+	implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
+
+	implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
+			{
+				exclude ((HashMap) [group: 'org.bytedeco', module: 'openblas-platform'])
+				exclude ((HashMap) [group: 'org.bytedeco', module: 'mkl-platform'])
+				exclude ((HashMap) [group: 'org.nd4j', module: 'nd4j-native'])
+			}
+	implementation "org.bytedeco:javacpp:$rootProject.javacpp_version"
+	implementation "org.bytedeco:javacpp:$rootProject.javacpp_version:android-arm64"
+	implementation "org.nd4j:nd4j-native:$rootProject.nd4j_version"
+	implementation "org.nd4j:nd4j-native:$rootProject.nd4j_version:android-arm64"
+	implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version"
+	implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version:android-arm64"
+	implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+	implementation(name: 'snpe-release', ext:'aar')
+	implementation "org.capnproto:runtime:0.1.13"
+
+	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
+}
+
+// Called every time gradle gets executed, takes the native dependencies of
+// the natives configuration, and extracts them to the proper libs/ folders
+// so they get packed with the APK.
+task copyAndroidNatives() {
+	doFirst {
+		file("libs/arm64-v8a/").mkdirs()
+
+		configurations.getByName("natives").copy().files.each { jar ->
+			def outputDir = null
+			if(jar.name.endsWith("natives-arm64-v8a.jar")) outputDir = file("libs/arm64-v8a")
+			if(outputDir != null) {
+				copy {
+					from zipTree(jar)
+					into outputDir
+					include "*.so"
+				}
+			}
+		}
+	}
+}
+
+tasks.whenTaskAdded { packageTask ->
+	if (packageTask.name.contains("package")) {
+		packageTask.dependsOn 'copyAndroidNatives'
+	}
+}
+
+task run(type: Exec) {
+	def path
+	def localProperties = project.file("../local.properties")
+	if (localProperties.exists()) {
+		Properties properties = new Properties()
+		localProperties.withInputStream { instr ->
+			properties.load(instr)
+		}
+		def sdkDir = properties.getProperty('sdk.dir')
+		if (sdkDir) {
+			path = sdkDir
+		} else {
+			path = "$System.env.ANDROID_HOME"
+		}
+	} else {
+		path = "$System.env.ANDROID_HOME"
+	}
+
+	def adb = path + "/platform-tools/adb"
+	commandLine "$adb", 'shell', 'am', 'start', '-n', 'ai.flow.android/ai.flow.android.AndroidLauncher'
+}

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Headless" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="ai.flow.app.headless.HeadlessLauncher" />
+    <module name="flow-pilot.headless.main" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/assets" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

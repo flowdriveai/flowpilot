@@ -1,0 +1,77 @@
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		google()
+		gradlePluginPortal()
+		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+	}
+	dependencies {
+		classpath "com.android.tools.build:gradle:$androidPluginVersion"
+	}
+}
+
+allprojects {
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+}
+
+String javacpp_platform_suffix;
+String os = System.getProperty('os.name').toLowerCase().split(' ')[0]
+String arch = System.getProperty('os.arch').toLowerCase().split(' ')[0]
+switch(os) {
+	case 'windows':
+		javacpp_platform_suffix = 'windows'
+		break
+	case 'linux':
+		javacpp_platform_suffix = 'linux'
+		break
+	default:
+		project.logger.lifecycle("[WARNING]: $os is not a supported platform for flow-pilot, \
+								  you may still build for android.")
+		javacpp_platform_suffix = 'android-arm64'
+}
+
+switch(arch) {
+	case 'amd64':
+		javacpp_platform_suffix += '-x86_64'
+		break
+	case 'aarch64':
+		javacpp_platform_suffix += '-arm64'
+		break
+	default:
+		project.logger.lifecycle("[WARNING]: $arch is not a supported platform for flow-pilot, \
+								  you may still build for android.")
+		javacpp_platform_suffix = 'android-arm64'
+}
+
+
+// exclude all other platform binaries in apk.
+if (project.hasProperty("androidSlim")) {
+	javacpp_platform_suffix = 'android-arm64'
+}
+
+project.ext.set("javacpp_platform_suffix", javacpp_platform_suffix)
+project.ext.set("nd4j_version", '1.0.0-M1.1')
+project.ext.set("javacpp_version", '1.5.7')
+project.ext.set("openblas_version", '0.3.19')
+
+configure(subprojects - project(':android')) {
+	apply plugin: 'java-library'
+	sourceCompatibility = 8.0
+	compileJava {
+		options.incremental = true
+	}
+}
+
+subprojects {
+	version = '0.0.1'
+	ext.appName = 'flow-pilot'
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		gradlePluginPortal()
+		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+		maven { url 'https://jitpack.io' }
+	}
+}

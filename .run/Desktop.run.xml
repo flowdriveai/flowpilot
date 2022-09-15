@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Desktop" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="ai.flow.app.lwjgl3.Lwjgl3Launcher" />
+    <module name="flow-pilot.desktop.main" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/assets" />
+    <method v="2" />
+  </configuration>
+</component>

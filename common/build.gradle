@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['java']
+        }
+        resources {
+            srcDirs = ['resources']
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.deephacks.lmdbjni:lmdbjni-linux64:0.4.6'
+    implementation files("$rootProject.projectDir/libs/zmq.jar")
+    implementation project(":messaging")
+}
