@@ -115,8 +115,16 @@ public class CalibrateScreen extends ScreenAdapter {
         sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
         frameData = msgFrameData.deserialize().getFrameData();
         if (imgBuffer == null){
-            imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
+            if (frameData.getNativeImageAddr() != 0)
+                imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
+            else
+                imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
             imageMat = new Mat(874, 1164, CvType.CV_8UC3, imgBuffer);
+        }
+        else {
+            if (frameData.getNativeImageAddr() == 0)
+                imgBuffer.put(frameData.getImage().asByteBuffer());
+            imgBuffer.rewind();
         }
         currFrameID = frameData.getFrameId();
         pixelMap.setPixels(imgBuffer);

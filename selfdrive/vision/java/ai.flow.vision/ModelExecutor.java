@@ -208,9 +208,14 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
                 warmup(session, container, warmupIters);
             }
 
+            ByteBuffer imgBuffer;
             sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
             frameData = msgFrameData.deserialize().getFrameData();
-            Mat imageCurr = new Mat(874, 1164, CvType.CV_8UC3, MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr()));
+            if (frameData.getNativeImageAddr() != 0)
+                imgBuffer = MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
+            else
+                imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
+            Mat imageCurr = new Mat(874, 1164, CvType.CV_8UC3, imgBuffer);
             updateCameraMatrix();
             deviceToCalibTransform = Preprocess.deviceToCalibratedFrame(1.22f, new float[]{874.0f, 1164.0f}, cameraIntrinsics, medmodel_intrinsics, augmentRot, augmentTrans);
             lastFrameID = frameData.getFrameId();
@@ -225,6 +230,10 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
 
                 sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
                 frameData = msgFrameData.deserialize().getFrameData();
+                if (frameData.getNativeImageAddr() == 0) {
+                    imgBuffer.put(frameData.getImage().asByteBuffer());
+                    imgBuffer.rewind();
+                }
 
                 start = System.currentTimeMillis();
                 if (sh.updated("pulseDesire")){
