@@ -1,4 +1,4 @@
-![](https://i.ibb.co/160T9xV/Screenshot-from-2022-09-09-17-24-30.png)
+<img src="https://i.ibb.co/160T9xV/Screenshot-from-2022-09x09-17-24-30.png" alt="table" width="1270" />
 
 # What is Flowpilot?
 
