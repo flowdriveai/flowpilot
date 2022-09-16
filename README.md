@@ -14,7 +14,7 @@ For running flowpilot on your car, you need:
  - One of the [200+ supported cars](https://github.com/commaai/openpilot/blob/master/docs/CARS.md). The community supports Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run flowpilot.
  
 # Installation:
-See the [installation wiki](https://gitlab.com/selfdrive/flow-pilot/-/wikis/Installation).
+See the [installation wiki](https://github.com/flowdriveai/flowpilot/wiki/Installation).
 
 # Running With a Virtual Car
 
@@ -22,7 +22,7 @@ It is recommended to develop on a virtual car / simulation before jumping onto t
 
 # Community
 
-Flowpilot's core community lives on the official flowdrive [discord server](https://discord.gg/mH8AUATafP) . Check the pinned messages or search history through messages to see if your issues or question has been discussed earlier. You may also join [other awesome](https://linktr.ee/flowdrive) openpilot discord communities. 
+Flowpilot's core community lives on the official flowdrive [discord server](https://discord.gg/mH8AUATafP). Check the pinned messages or search history through messages to see if your issues or question has been discussed earlier. You may also join [more awesome](https://linktr.ee/flowdrive) openpilot discord communities. 
 
 We also push frequent updates on our [twitter handle](https://twitter.com/flowdrive_ai).
 
