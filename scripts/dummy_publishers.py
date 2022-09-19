@@ -2,7 +2,7 @@ import cereal.messaging as messaging
 from cereal import log
 import threading
 from opendbc.can.packer import CANPacker
-from common.can_utils import can_list_to_can_capnp
+from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car import crc8_pedal
 from common.realtime import DT_DMON
 from selfdrive.car.honda.values import CruiseButtons

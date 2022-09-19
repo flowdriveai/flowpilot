@@ -90,6 +90,7 @@ env = Environment(
     "#libs",
     "#opendbc/can/",
     "#common",
+    "#selfdrive/boardd"
   ],
 
   RPATH=rpath,

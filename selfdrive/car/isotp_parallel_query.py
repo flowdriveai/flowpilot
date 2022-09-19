@@ -6,7 +6,7 @@ from typing import Optional
 import cereal.messaging as messaging
 from cereal import log
 from panda.python.uds import CanClient, IsoTpMessage, FUNCTIONAL_ADDRS, get_rx_addr_for_tx_addr
-from common.can_utils import can_list_to_can_capnp
+from selfdrive.boardd.boardd import can_list_to_can_capnp
 
 
 class IsoTpParallelQuery:

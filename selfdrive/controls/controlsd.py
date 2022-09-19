@@ -24,7 +24,7 @@ from selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from selfdrive.controls.lib.events import Events, ET, EVENT_NAME, EVENTS
 from selfdrive.controls.lib.alertmanager import AlertManager, set_offroad_alert
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from common.can_utils import can_list_to_can_capnp
+from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.calibration.calibrationd import Calibration
 
 
