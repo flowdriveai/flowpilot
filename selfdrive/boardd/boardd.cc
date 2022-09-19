@@ -108,7 +108,7 @@ void sync_time(Panda *panda, SyncTimeDir dir) {
 }
 
 bool safety_setter_thread(std::vector<Panda *> pandas) {
-  LOGD("Starting safety setter thread");
+  LOGW("Starting safety setter thread");
 
   // there should be at least one panda connected
   if (pandas.size() == 0) {
@@ -129,6 +129,7 @@ bool safety_setter_thread(std::vector<Panda *> pandas) {
       return false;
     }
 
+    LOGW("getting car vin");
     std::string value_vin = p.get("CarVin");
     if (value_vin.size() > 0) {
       // sanity check VIN format
@@ -447,7 +448,7 @@ void panda_state_thread(PubMaster *pm, std::vector<Panda *> pandas, bool spoofin
   bool ignition_last = false;
   std::future<bool> safety_future;
 
-  LOGD("start panda state thread");
+  LOGW("start panda state thread");
 
   // run at 2hz
   while (!do_exit && check_all_connected(pandas)) {
@@ -473,6 +474,7 @@ void panda_state_thread(PubMaster *pm, std::vector<Panda *> pandas, bool spoofin
 
     // clear ignition-based params and set new safety on car start
     if (ignition && !ignition_last) {
+      LOGW("params cleared");
       params.clearAll(CLEAR_ON_IGNITION_ON);
       if (!safety_future.valid() || safety_future.wait_for(0ms) == std::future_status::ready) {
         safety_future = std::async(std::launch::async, safety_setter_thread, pandas);
@@ -533,6 +535,7 @@ void peripheral_control_thread(Panda *panda) {
 
     // Other pandas don't have fan/IR to control
     if (panda->hw_type != cereal::PandaState::PandaType::UNO && panda->hw_type != cereal::PandaState::PandaType::DOS) continue;
+    
     if (sm.updated("deviceState")) {
       // Fan speed
       uint16_t fan_speed = sm["deviceState"].getDeviceState().getFanSpeedPercentDesired();
@@ -666,7 +669,7 @@ void boardd_main_thread(std::vector<std::string> serials) {
     threads.emplace_back(pigeon_thread, peripheral_panda);
 
     threads.emplace_back(can_send_thread, pandas, getenv("FAKESEND") != nullptr);
-    threads.emplace_back(can_recv_thread, pandas);
+    //threads.emplace_back(can_recv_thread, pandas);
 
     for (auto &t : threads) t.join();
   }
