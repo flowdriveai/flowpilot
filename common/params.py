@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/common/params.py
 from common.params_pyx import Params, ParamKeyType, UnknownKeyName, put_nonblocking, put_bool_nonblocking # pylint: disable=no-name-in-module, import-error
 assert Params
 assert ParamKeyType

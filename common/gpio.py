@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/common/gpio.py
 def gpio_init(pin: int, output: bool) -> None:
   try:
     with open(f"/sys/class/gpio/gpio{pin}/direction", 'wb') as f:
