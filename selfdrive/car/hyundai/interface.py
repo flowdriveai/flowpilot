@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/hyundai/interface.py
 from cereal import car
 from panda import Panda
 from common.params import Params

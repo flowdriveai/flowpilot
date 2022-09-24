@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/mazda/values.py
 from selfdrive.car import dbc_dict
 from cereal import car
 Ecu = car.CarParams.Ecu

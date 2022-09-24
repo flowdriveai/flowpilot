@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/gm/gmcan.py
 from selfdrive.car import make_can_msg
 
 def create_steering_control(packer, bus, apply_steer, idx, lkas_active):

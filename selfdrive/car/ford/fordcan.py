@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/ford/fordcan.py
 from common.numpy_fast import clip
 from selfdrive.car.ford.values import MAX_ANGLE
 

@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/controls/lib/lateral_planner.py
 import numpy as np
 from common.realtime import sec_since_boot, DT_MDL
 from common.numpy_fast import interp

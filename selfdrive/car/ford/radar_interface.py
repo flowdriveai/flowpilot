@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/ford/radar_interface.py
 from cereal import car
 from common.conversions import Conversions as CV
 from opendbc.can.parser import CANParser

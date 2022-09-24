@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/controls/lib/vehicle_model.py
 """
 Dynamic bicycle model from "The Science of Vehicle Dynamics (2014), M. Guiggiani"
 

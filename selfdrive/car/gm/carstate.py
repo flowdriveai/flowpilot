@@ -1,3 +1,4 @@
+# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/gm/carstate.py
 from cereal import car
 from common.numpy_fast import mean
 from opendbc.can.can_define import CANDefine
