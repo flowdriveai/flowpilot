@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ParsedOutputs {
-    public ArrayList<float[]> position;
-    public ArrayList<float[]> orientation;
-    public ArrayList<float[]> velocity;
-    public ArrayList<float[]> orientationRate;
-    public ArrayList<float[]> acceleration;
+    public ArrayList<float[]> position; // path
+    public ArrayList<float[]> orientation; // path
+    public ArrayList<float[]> velocity; // path
+    public ArrayList<float[]> orientationRate; // path
+    public ArrayList<float[]> acceleration; // path
 
     public ArrayList<ArrayList<float[]>> laneLines;
     public ArrayList<float[]> laneLineStds;

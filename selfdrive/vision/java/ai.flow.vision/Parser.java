@@ -66,13 +66,6 @@ public class Parser {
     public float[] transStd = parsed.transStd;
     public float[] rot = parsed.rot;
     public float[] rotStd = parsed.rotStd;
-
-    public ArrayList<float[]> position = parsed.position;
-    public ArrayList<float[]> orientation = parsed.orientation;
-    public ArrayList<float[]> velocity = parsed.velocity;
-    public ArrayList<float[]> orientationRate = parsed.orientationRate;
-    public ArrayList<float[]> acceleration = parsed.acceleration;
-
     public float[] laneLineProbs = parsed.laneLineProbs;
     public ArrayList<float[]> laneLineStds = parsed.laneLineStds;
     public ArrayList<ArrayList<float[]>> laneLines = parsed.laneLines;

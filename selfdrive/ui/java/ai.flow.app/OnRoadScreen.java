@@ -426,8 +426,8 @@ public class OnRoadScreen extends ScreenAdapter {
             edge1 = Draw.getLaneCameraFrame(parsed.roadEdges.get(1), K, Rt, 0.3f);
 
             lead1s = Draw.getTriangleCameraFrame(parsed.leads.get(0), K, Rt, leadDrawScale);
-            lead2s = Draw.getTriangleCameraFrame(parsed.leads.get(0), K, Rt, leadDrawScale);
-            lead3s = Draw.getTriangleCameraFrame(parsed.leads.get(0), K, Rt, leadDrawScale);
+            lead2s = Draw.getTriangleCameraFrame(parsed.leads.get(1), K, Rt, leadDrawScale);
+            lead3s = Draw.getTriangleCameraFrame(parsed.leads.get(2), K, Rt, leadDrawScale);
         }
     }
 
@@ -511,8 +511,8 @@ public class OnRoadScreen extends ScreenAdapter {
         }
 
         drawLeadTriangle(lead1s, colorLead, parsed.leads.get(0).prob);
-        drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
-        drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
+        //drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
+        //drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
         appContext.shapeRenderer.end();
 
         Gdx.gl.glDisable(Gdx.gl.GL_BLEND);

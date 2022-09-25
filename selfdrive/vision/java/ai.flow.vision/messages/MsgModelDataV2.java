@@ -323,18 +323,20 @@ public class MsgModelDataV2 extends MessageBase {
         }
 
         for (int i = 0; i < 4; i++) {
-            parsed.leads.get(0).xyva[i] = xyva1.get(i);
-            parsed.leads.get(1).xyva[i] = xyva2.get(i);
-            parsed.leads.get(2).xyva[i] = xyva3.get(i);
+            parsed.leads.get(0).xyva[i] = msg.getLeads().get(0).getXyva().get(i);
+            parsed.leads.get(1).xyva[i] = msg.getLeads().get(1).getXyva().get(i);
+            parsed.leads.get(2).xyva[i] = msg.getLeads().get(2).getXyva().get(i);
 
-            parsed.leads.get(0).xyvaStd[i] = xyvaStd1.get(i);
-            parsed.leads.get(1).xyvaStd[i] = xyvaStd2.get(i);
-            parsed.leads.get(2).xyvaStd[i] = xyvaStd3.get(i);
+            parsed.leads.get(0).xyvaStd[i] = msg.getLeads().get(0).getXyvaStd().get(i);
+            parsed.leads.get(1).xyvaStd[i] = msg.getLeads().get(1).getXyvaStd().get(i);
+            parsed.leads.get(2).xyvaStd[i] = msg.getLeads().get(2).getXyvaStd().get(i);
         }
 
-        parsed.leads.get(0).prob = leads1.getProb();
-        parsed.leads.get(1).prob = leads2.getProb();
-        parsed.leads.get(2).prob = leads3.getProb();
+        parsed.leads.get(0).prob = msg.getLeads().get(0).getProb();
+        parsed.leads.get(1).prob = msg.getLeads().get(1).getProb();
+        parsed.leads.get(2).prob = msg.getLeads().get(2).getProb();
+
+
 
         if (full) {
 
