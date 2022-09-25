@@ -263,8 +263,9 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
 		                     outs = parser.parser(netOutputs[0]);
 		                 }
 		        }
-
-		        for (int i=0; i<outs.metaData.desireState.length; i++){
+                
+                pulseDesire[0][0] = 1.0f;
+		        for (int i=1; i<outs.metaData.desireState.length; i++){
                     if (outs.metaData.desireState[i] - prevDesire[0][i] > 0.99f)
                         pulseDesire[0][i] = outs.metaData.desireState[i];
                     else

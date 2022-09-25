@@ -1,6 +1,7 @@
 package ai.flow.app;
 
 import ai.flow.vision.LeadDataV2;
+import ai.flow.vision.LeadDataV3;
 import ai.flow.vision.Parser;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -38,12 +39,11 @@ public class Draw {
         return projected.get(NDArrayIndex.all(), NDArrayIndex.interval(0,2)); // drop W column
     }
 
-    public static INDArray getTriangleCameraFrame(LeadDataV2 leadXYVA, INDArray K, INDArray Rt, float scale) {
-        float[][] lead_pos_buffer = {{leadXYVA.xyva[1] * LEAD_Y_SCALE, 1.32f, leadXYVA.xyva[0] * LEAD_X_SCALE, 1f},
-                                     {leadXYVA.xyva[1] * LEAD_Y_SCALE - scale, 1.32f + scale, leadXYVA.xyva[0] * LEAD_X_SCALE, 1f},
-                                     {leadXYVA.xyva[1] * LEAD_Y_SCALE + scale, 1.32f + scale, leadXYVA.xyva[0] * LEAD_X_SCALE, 1f}};
+    public static INDArray getTriangleCameraFrame(LeadDataV3 lead, INDArray K, INDArray Rt, float scale) {
+        float[][] lead_pos_buffer = {{lead.y[0] * LEAD_Y_SCALE, 1.32f, lead.x[0] * LEAD_X_SCALE, 1f},
+                {lead.y[0] * LEAD_Y_SCALE - scale, 1.32f + scale, lead.x[0] * LEAD_X_SCALE, 1f},
+                {lead.y[0] * LEAD_Y_SCALE + scale, 1.32f + scale, lead.x[0] * LEAD_X_SCALE, 1f}};
         INDArray lead_pos = Nd4j.createFromArray(lead_pos_buffer).transpose();
         return projectToCamera(lead_pos, K, Rt);
     }
-
 }

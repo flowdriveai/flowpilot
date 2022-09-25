@@ -1,6 +1,8 @@
 package ai.flow.vision;
 
 // Core java classes
+import ai.flow.definitions.Definitions;
+
 import java.lang.Math;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -8,40 +10,48 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Parser {
-
-    public static final float MAX_DISTANCE = 140f;
-    public static final float MAX_REL_V = 10f;
-    public static final int LEAD_X_SCALE = 10;
-    public static final int LEAD_Y_SCALE = 10;
-    public static final int DESIRE_PRED_SIZE = 32;
-    public static final int LEAD_V_SCALE = 1;
-    public static final int OTHER_META_SIZE = 4;
     public static final int DESIRE_LEN = 8;
     public static final int TRAJECTORY_SIZE = 33;
-    public static final int MODEL_WIDTH = 512;
-    public static final int MODEL_HEIGHT = 256;
-    public static final float MODEL_FRAME_SIZE = (MODEL_WIDTH * MODEL_HEIGHT * 3.0f / 2.0f);
+
+    public static final int DESIRE_PRED_SIZE = 32;
+    public static final int OTHER_META_SIZE = 32;
+    public static final int NUM_META_INTERVALS = 5;
+    public static final int META_STRIDE = 6;
+
     public static final int PLAN_MHP_N = 5;
-    public static final int PLAN_MHP_COLUMNS = 30;
-    public static final int PLAN_MHP_VALS = 30*33;
+    public static final int PLAN_MHP_COLUMNS = 15;
+    public static final int PLAN_MHP_VALS = 15*33;
     public static final int PLAN_MHP_SELECTION = 1;
     public static final int PLAN_MHP_GROUP_SIZE =  (2*PLAN_MHP_VALS + PLAN_MHP_SELECTION);
+
     public static final int LEAD_MHP_N = 5;
-    public static final int LEAD_MHP_VALS = 4;
+    public static final int LEAD_TRAJ_LEN = 6;
+    public static final int LEAD_PRED_DIM = 4;
+    public static final int LEAD_MHP_VALS = LEAD_PRED_DIM * LEAD_TRAJ_LEN;
     public static final int LEAD_MHP_SELECTION = 3;
     public static final int LEAD_MHP_GROUP_SIZE = (2*LEAD_MHP_VALS + LEAD_MHP_SELECTION);
+
     public static final int POSE_SIZE = 12;
+
     public static final int PLAN_IDX = 0;
-    public static final int LL_IDX = PLAN_IDX + PLAN_MHP_N*PLAN_MHP_GROUP_SIZE;
+    public static final int LL_IDX = PLAN_IDX + PLAN_MHP_N * PLAN_MHP_GROUP_SIZE;
     public static final int LL_PROB_IDX = LL_IDX + 4*2*2*33;
-    public static final int RE_IDX = LL_PROB_IDX + 4;
+    public static final int RE_IDX = LL_PROB_IDX + 8;
     public static final int LEAD_IDX = RE_IDX + 2*2*2*33;
-    public static final int LEAD_PROB_IDX = LEAD_IDX + LEAD_MHP_N*(LEAD_MHP_GROUP_SIZE);
+    public static final int LEAD_PROB_IDX = LEAD_IDX + LEAD_MHP_N * LEAD_MHP_GROUP_SIZE;
     public static final int DESIRE_STATE_IDX = LEAD_PROB_IDX + 3;
     public static final int META_IDX = DESIRE_STATE_IDX + DESIRE_LEN;
     public static final int POSE_IDX = META_IDX + OTHER_META_SIZE + DESIRE_PRED_SIZE;
     public static final int OUTPUT_SIZE =  POSE_IDX + POSE_SIZE;
     public static final int TEMPORAL_SIZE = 512;
+
+    public static final float FCW_THRESHOLD_5MS2_HIGH = 0.15f;
+    public static final float FCW_THRESHOLD_5MS2_LOW = 0.05f;
+    public static final float FCW_THRESHOLD_3MS2 = 0.7f;
+
+    public static final float[] prev_brake_5ms2_probs = {0f, 0f, 0f, 0f, 0f};
+    public static final float[] prev_brake_3ms2_probs = {0f, 0f, 0f};
+
     public static final  float[] T_IDXS = {0.f, 0.00976562f, 0.0390625f, 0.08789062f, 0.15625f, 0.24414062f,  0.3515625f,  0.47851562f,
         0.625f, 0.79101562f, 0.9765625f, 1.18164062f,  1.40625f,  1.65039062f,  1.9140625f,
         2.19726562f, 2.5f, 2.82226562f, 3.1640625f, 3.52539062f, 3.90625f, 4.30664062f, 4.7265625f, 5.16601562f,
@@ -53,10 +63,8 @@ public class Parser {
     public static final float[] t_offsets = {0.0f, 2.0f, 4.0f};
 
     public ParsedOutputs parsed = new ParsedOutputs();
-    public ArrayList<LeadDataV2> leads = parsed.leads;
+    public ArrayList<LeadDataV3> leads = parsed.leads;
     public MetaData metaDataOutput = parsed.metaData;
-    public float[] desireState = metaDataOutput.desireState;
-    public float[] desirePrediction = metaDataOutput.desirePrediction;
 
     public float[][] meta = parsed.meta;
     public float[][] pose = parsed.pose;
@@ -67,9 +75,10 @@ public class Parser {
     public float[] rot = parsed.rot;
     public float[] rotStd = parsed.rotStd;
     public float[] laneLineProbs = parsed.laneLineProbs;
-    public ArrayList<float[]> laneLineStds = parsed.laneLineStds;
+    public float[] laneLineStds = parsed.laneLineStds;
     public ArrayList<ArrayList<float[]>> laneLines = parsed.laneLines;
     public ArrayList<ArrayList<float[]>> roadEdges = parsed.roadEdges;
+    public float[] roadEdgeStds = parsed.roadEdgeStds;
 
     public Map<String, float[]> net_outputs = new HashMap<String, float[]>();
     public float[] plan_t_arr = new float[TRAJECTORY_SIZE];
@@ -153,16 +162,6 @@ public class Parser {
         }
     }
 
-    public void softPlus(float[] output, float[] x, int start, int end)
-    {
-        float temp;
-        for(int i=0; i < end-start; i++)
-        {
-            temp = ( x[start+i]>=0 )?x[start+i]:0;
-            output[i] = Double.valueOf(Math.log1p(Math.exp(-Math.abs(x[start+i])))).floatValue() + temp;
-        }
-    }
-
     public float[] getBestPlan(float[] x) {
         int plan_mhp_max_idx = 0;
         for(int i=1; i < PLAN_MHP_N; i++)
@@ -187,54 +186,78 @@ public class Parser {
             if (x[start + (i + 1)*(PLAN_MHP_GROUP_SIZE) - 1] > x[start + (plan_mhp_max_idx + 1)*(PLAN_MHP_GROUP_SIZE) - 1])
                 plan_mhp_max_idx = i;
 
-        copyOfRange(x, output, start+plan_mhp_max_idx*(PLAN_MHP_GROUP_SIZE), start+(plan_mhp_max_idx+1)*(PLAN_MHP_GROUP_SIZE));
+        copyOfRange(x, output, plan_mhp_max_idx*(PLAN_MHP_GROUP_SIZE), (plan_mhp_max_idx+1)*(PLAN_MHP_GROUP_SIZE));
     }
 
-    public void fillXYZT(ArrayList<float[]>xyzt, float[] data, int columns, int column_offset, float[] plan_t)
+    public void fillXYZT(ArrayList<float[]>xyzt, float[] data, int columns, int column_offset, float[] plan_t_arr, boolean fill_std)
     {
         float[] x_arr = xyzt.get(0);
         float[] y_arr = xyzt.get(1);
         float[] z_arr = xyzt.get(2);
         float[] t_arr = xyzt.get(3);
+        float[] xStd_arr = xyzt.get(4);
+        float[] yStd_arr = xyzt.get(5);
+        float[] zStd_arr = xyzt.get(6);
 
-        for(int i=0; i < TRAJECTORY_SIZE; i++)
+        for(int i = 0; i < TRAJECTORY_SIZE; i++)
         {
             if (column_offset >= 0)
             {
                 t_arr[i] = T_IDXS[i];
                 x_arr[i] = data[i * columns + column_offset];
+                if (fill_std)
+                    xStd_arr[i] = data[columns * (TRAJECTORY_SIZE + i) + column_offset];
             }
             else
             {
-                t_arr[i] = plan_t[i];
+                t_arr[i] = plan_t_arr[i];
                 x_arr[i] = X_IDXS[i];
+                xStd_arr[i] = Float.NaN;
             }
             y_arr[i] = data[i*columns + 1 + column_offset];
             z_arr[i] = data[i*columns + 2 + column_offset];
+
+            if (fill_std) 
+            {
+                yStd_arr[i] = data[columns * (TRAJECTORY_SIZE + i) + 1 + column_offset];
+                zStd_arr[i] = data[columns * (TRAJECTORY_SIZE + i) + 2 + column_offset];
+            }
         }
     }
 
-    public void fillXYZT(ArrayList<float[]>xyzt, float[] data, int start, int columns, int column_offset, float[] plan_t)
+    public void fillXYZT(ArrayList<float[]>xyzt, float[] data, int start, int columns, int column_offset, float[] plan_t_arr, boolean fill_std)
     {
         float[] x_arr = xyzt.get(0);
         float[] y_arr = xyzt.get(1);
         float[] z_arr = xyzt.get(2);
         float[] t_arr = xyzt.get(3);
+        float[] xStd_arr = xyzt.get(4);
+        float[] yStd_arr = xyzt.get(5);
+        float[] zStd_arr = xyzt.get(6);
 
-        for(int i=0; i < TRAJECTORY_SIZE; i++)
+        for(int i = 0; i < TRAJECTORY_SIZE; i++)
         {
             if (column_offset >= 0)
             {
                 t_arr[i] = T_IDXS[i];
                 x_arr[i] = data[start + i * columns + column_offset];
+                if (fill_std)
+                    xStd_arr[i] = data[start + columns * (TRAJECTORY_SIZE + i) + column_offset];
             }
             else
             {
-                t_arr[i] = plan_t[i];
+                t_arr[i] = plan_t_arr[i];
                 x_arr[i] = X_IDXS[i];
+                xStd_arr[i] = Float.NaN;
             }
             y_arr[i] = data[start + i*columns + 1 + column_offset];
             z_arr[i] = data[start + i*columns + 2 + column_offset];
+
+            if (fill_std)
+            {
+                yStd_arr[i] = data[start + columns * (TRAJECTORY_SIZE + i) + 1 + column_offset];
+                zStd_arr[i] = data[start + columns * (TRAJECTORY_SIZE + i) + 2 + column_offset];
+            }
         }
     }
 
@@ -284,23 +307,84 @@ public class Parser {
         pool.returnArray(temp_data);
     }
 
-    public void fillMeta(float[] metaData){
-        float[] temp = pool.getArray(DESIRE_LEN);
-        copyOfRange(metaData, temp, 0, DESIRE_LEN);
-        softmax(temp, desireState);
-        int offset = DESIRE_LEN + OTHER_META_SIZE;
-        for (int i=0; i<4; i++){
-            copyOfRange(metaData, temp, offset+i*DESIRE_LEN, offset+(i+1)*DESIRE_LEN);
-            softmax(temp, temp);
-            for (int j=i*DESIRE_LEN; j<(i+1)*DESIRE_LEN; j++){
-                desirePrediction[j] = temp[j-i*DESIRE_LEN];
-            }
+    public void fill_lead_v3(LeadDataV3 lead, float[] lead_data, float[] prob, int t_offset, float prob_t)
+    {
+
+        float[] data = get_lead_data(lead_data, t_offset);
+        lead.prob = sigmoid(prob[t_offset]);
+        lead.probTime = prob_t;
+        float[] x_arr = lead.x;
+        float[] y_arr = lead.y;
+        float[] v_arr = lead.v;
+        float[] a_arr = lead.a;
+        float[] x_stds_arr = lead.XStd;
+        float[] y_stds_arr = lead.YStd;
+        float[] v_stds_arr = lead.VStd;
+        float[] a_stds_arr = lead.AStd;
+
+        for(int i = 0; i < LEAD_TRAJ_LEN; i++)
+        {
+            x_arr[i] = data[i * LEAD_PRED_DIM + 0];
+            y_arr[i] = data[i * LEAD_PRED_DIM + 1];
+            v_arr[i] = data[i * LEAD_PRED_DIM + 2];
+            a_arr[i] = data[i * LEAD_PRED_DIM + 3];
+            x_stds_arr[i] = (float) Math.exp(data[LEAD_MHP_VALS + i * LEAD_PRED_DIM + 0]);
+            y_stds_arr[i] = (float) Math.exp(data[LEAD_MHP_VALS + i * LEAD_PRED_DIM + 1]);
+            v_stds_arr[i] = (float) Math.exp(data[LEAD_MHP_VALS + i * LEAD_PRED_DIM + 2]);
+            a_stds_arr[i] = (float) Math.exp(data[LEAD_MHP_VALS + i * LEAD_PRED_DIM + 3]);
         }
+    }
+
+    
+    public void fill_sigmoid(float[] input, float[] output, int offset, int len, int stride)
+    {
+        for (int i=0; i<len; i++)
+            output[i] = sigmoid(input[DESIRE_LEN+offset+i*stride]);
+    }
+
+    public void fillMeta(float[] metaData) {
+        float[] desire_state_softmax = metaDataOutput.desireState;
+        float[] desire_pred_softmax = metaDataOutput.desirePrediction;
+        float[] gas_disengage_sigmoid = metaDataOutput.disengagePredictions.gasDesengageProbs;
+        float[] brake_disengage_sigmoid = metaDataOutput.disengagePredictions.brakeDisengageProbs;
+        float[] steer_override_sigmoid = metaDataOutput.disengagePredictions.steerOverrideProbs;
+        float[] brake_3ms2_sigmoid = metaDataOutput.disengagePredictions.brake3MetersPerSecondSquaredProbs;
+        float[] brake_4ms2_sigmoid = metaDataOutput.disengagePredictions.brake4MetersPerSecondSquaredProbs;
+        float[] brake_5ms2_sigmoid = metaDataOutput.disengagePredictions.brake5MetersPerSecondSquaredProbs;
+
+        copyOfRange(metaData, desire_state_softmax, DESIRE_LEN+1, DESIRE_LEN);
+        softmax(desire_state_softmax, desire_state_softmax);
+        int offset = DESIRE_LEN + OTHER_META_SIZE;
+        for (int i=0; i<4; i++)
+        {
+            copyOfRange(metaData, desire_pred_softmax, offset+i*DESIRE_LEN, i*DESIRE_LEN);
+            softmax(desire_pred_softmax, desire_pred_softmax);
+        }
+
+        fill_sigmoid(metaData, gas_disengage_sigmoid, 1, NUM_META_INTERVALS, META_STRIDE);
+        fill_sigmoid(metaData, brake_disengage_sigmoid, 2, NUM_META_INTERVALS, META_STRIDE);
+        fill_sigmoid(metaData, steer_override_sigmoid, 3, NUM_META_INTERVALS, META_STRIDE);
+        fill_sigmoid(metaData, brake_3ms2_sigmoid, 4, NUM_META_INTERVALS, META_STRIDE);
+        fill_sigmoid(metaData, brake_4ms2_sigmoid, 5, NUM_META_INTERVALS, META_STRIDE);
+        fill_sigmoid(metaData, brake_5ms2_sigmoid, 6, NUM_META_INTERVALS, META_STRIDE);
+
+        copyOfRange(prev_brake_5ms2_probs, prev_brake_5ms2_probs, 1, prev_brake_5ms2_probs.length);
+        copyOfRange(prev_brake_3ms2_probs, prev_brake_3ms2_probs, 1, prev_brake_3ms2_probs.length);
+        boolean above_fcw_threshold = true;
+
+        for(int i = 0; i < 5; i++)
+        {
+            float threshold = i < 2 ? FCW_THRESHOLD_5MS2_LOW : FCW_THRESHOLD_5MS2_HIGH;
+            above_fcw_threshold = above_fcw_threshold && prev_brake_5ms2_probs[i] > threshold;
+        }
+
+        for(int i = 0; i < 3; i++)
+        {
+            above_fcw_threshold = above_fcw_threshold && prev_brake_3ms2_probs[i] > FCW_THRESHOLD_3MS2;
+        }
+
         metaDataOutput.engagedProb = sigmoid(metaData[DESIRE_LEN]);
-        metaDataOutput.disengagePredictions.gasDesengageProbs[0] = sigmoid(metaData[DESIRE_LEN+1]);
-        metaDataOutput.disengagePredictions.brakeDisengageProbs[0] = sigmoid(metaData[DESIRE_LEN+2]);
-        metaDataOutput.disengagePredictions.steerOverrideProbs[0] = sigmoid(metaData[DESIRE_LEN+3]);
-        pool.returnArray(temp);
+        metaDataOutput.hardBrakePredicted = above_fcw_threshold;
     }
 
     public ParsedOutputs parser(float[] outs){
@@ -312,23 +396,44 @@ public class Parser {
 
         getBestPlan(outs, best_plan, PLAN_IDX);
 
-        for(int i=0; i < TRAJECTORY_SIZE; i++)
-            plan_t_arr[i] = best_plan[i*PLAN_MHP_COLUMNS + 15];
+        for (int xidx=1, tidx=0; xidx<TRAJECTORY_SIZE; xidx++) {
+            // increment tidx until we find an element that's further away than the current xidx
+            while (tidx < TRAJECTORY_SIZE-1 && best_plan[(tidx+1)*PLAN_MHP_COLUMNS] < X_IDXS[xidx]) {
+                tidx++;
+            }
+            float current_x_val = best_plan[tidx*PLAN_MHP_COLUMNS];
+            float next_x_val = best_plan[(tidx+1)*PLAN_MHP_COLUMNS];
+            if (next_x_val < X_IDXS[xidx]) {
+                // if the plan doesn't extend far enough, set plan_t to the max value (10s), then break
+                plan_t_arr[xidx] = T_IDXS[TRAJECTORY_SIZE-1];
+                break;
+            } else {
+                // otherwise, interpolate to find `t` for the current xidx
+                float p = (X_IDXS[xidx] - current_x_val) / (next_x_val - current_x_val);
+                plan_t_arr[xidx] = p * T_IDXS[tidx+1] + (1 - p) * T_IDXS[tidx];
+            }
+        }
 
-        fillXYZT(parsed.position, best_plan, PLAN_MHP_COLUMNS, 0, plan_t_arr);
-        fillXYZT(parsed.velocity, best_plan, PLAN_MHP_COLUMNS, 3, plan_t_arr);
-        fillXYZT(parsed.orientation, best_plan, PLAN_MHP_COLUMNS, 9, plan_t_arr);
-        fillXYZT(parsed.orientationRate, best_plan, PLAN_MHP_COLUMNS, 12, plan_t_arr);
+        fillXYZT(parsed.position, best_plan, PLAN_MHP_COLUMNS, 0, plan_t_arr, true);
+        fillXYZT(parsed.velocity, best_plan, PLAN_MHP_COLUMNS, 3, plan_t_arr, false);
+        fillXYZT(parsed.orientation, best_plan, PLAN_MHP_COLUMNS, 9, plan_t_arr, false);
+        fillXYZT(parsed.orientationRate, best_plan, PLAN_MHP_COLUMNS, 12, plan_t_arr, false);
 
-        for(int i=0; i < 4; i++) {
-            fillXYZT(laneLines.get(i), outs, LL_IDX + i*TRAJECTORY_SIZE*2, 2, -1, plan_t_arr);
-            laneLineProbs[i] = sigmoid(outs[LL_PROB_IDX+i]);
-            softPlus(laneLineStds.get(i), outs, 2*TRAJECTORY_SIZE*(4 + i), 2*TRAJECTORY_SIZE*(4 + i+1));
-            fillXYZT(roadEdges.get(i), outs, RE_IDX + i*TRAJECTORY_SIZE*2, 2, -1, plan_t_arr);
+        for(int i=0; i < 4; i++) 
+        {
+            fillXYZT(laneLines.get(i), outs, LL_IDX + i*TRAJECTORY_SIZE*2, 2, -1, plan_t_arr, false);
+            laneLineProbs[i] = sigmoid(outs[LL_PROB_IDX + i*2+1]);
+            laneLineStds[i] = (float) Math.exp(outs[LL_IDX + 2*TRAJECTORY_SIZE*(4+i)]);
+        }
+
+        for(int i=0; i<2; i++)
+        {
+            fillXYZT(roadEdges.get(i), outs, RE_IDX + i*TRAJECTORY_SIZE*2, 2, -1, plan_t_arr, false);
+            roadEdgeStds[i] = (float) Math.exp(outs[RE_IDX + 2*TRAJECTORY_SIZE*(2+i)]);
         }
 
         for(int t_offset=0; t_offset < LEAD_MHP_SELECTION; t_offset++)
-            fill_lead_v2(leads.get(t_offset), net_outputs.get("lead"), net_outputs.get("leadProb"), t_offset, t_offsets[t_offset]);
+            fill_lead_v3(leads.get(t_offset), net_outputs.get("lead"), net_outputs.get("leadProb"), t_offset, t_offsets[t_offset]);
 
         copyOfRange(net_outputs.get("meta"), meta[0], 0, meta[0].length);
         copyOfRange(net_outputs.get("pose"), pose[0], 0, pose[0].length);
@@ -339,12 +444,14 @@ public class Parser {
         copyOfRange(pose[0], trans, 0, 3);
         copyOfRange(pose[0], transStd, 6, 9);
 
-        for(int j=0; j < transStd.length; j++)
-            transStd[j] += 1e-6;
+        copyOfRange(pose[0], rot, 3, 6);
+        copyOfRange(pose[0], rotStd, 9, 12);
 
-        copyOfRange(pose[0], rot, 6, 9);
-        copyOfRange(pose[0], rotStd, 6, 9);
-        softPlus(rotStd, Arrays.copyOfRange(pose[0], 9, 12));
+        for (int i =0; i < 3; i ++)
+        {
+            transStd[i] = (float) Math.exp(transStd[i]);
+            rotStd[i] = (float) Math.exp(rotStd[i]);
+        }
 
         for(int j=0; j < rotStd.length; j++){
             rotStd[j] *= Math.PI / 180.0;
