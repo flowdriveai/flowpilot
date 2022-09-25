@@ -160,6 +160,16 @@ public class Parser {
         }
     }
 
+    public void softPlus(float[] output, float[] x, int start, int end)
+    {
+        float temp;
+        for(int i=0; i < end-start; i++)
+        {
+            temp = ( x[start+i]>=0 )?x[start+i]:0;
+            output[i] = Double.valueOf(Math.log1p(Math.exp(-Math.abs(x[start+i])))).floatValue() + temp;
+        }
+    }
+
     public float[] getBestPlan(float[] x) {
         int plan_mhp_max_idx = 0;
         for(int i=1; i < PLAN_MHP_N; i++)
@@ -176,6 +186,15 @@ public class Parser {
                 plan_mhp_max_idx = i;
 
         copyOfRange(x, output, plan_mhp_max_idx*(PLAN_MHP_GROUP_SIZE), (plan_mhp_max_idx+1)*(PLAN_MHP_GROUP_SIZE));
+    }
+
+    public void getBestPlan(float[] x, float[] output, int start) {
+        int plan_mhp_max_idx = 0;
+        for(int i=1; i < PLAN_MHP_N; i++)
+            if (x[start + (i + 1)*(PLAN_MHP_GROUP_SIZE) - 1] > x[start + (plan_mhp_max_idx + 1)*(PLAN_MHP_GROUP_SIZE) - 1])
+                plan_mhp_max_idx = i;
+
+        copyOfRange(x, output, start+plan_mhp_max_idx*(PLAN_MHP_GROUP_SIZE), start+(plan_mhp_max_idx+1)*(PLAN_MHP_GROUP_SIZE));
     }
 
     public void fillXYZT(ArrayList<float[]>xyzt, float[] data, int columns, int column_offset, float[] plan_t)
@@ -199,6 +218,30 @@ public class Parser {
             }
             y_arr[i] = data[i*columns + 1 + column_offset];
             z_arr[i] = data[i*columns + 2 + column_offset];
+        }
+    }
+
+    public void fillXYZT(ArrayList<float[]>xyzt, float[] data, int start, int columns, int column_offset, float[] plan_t)
+    {
+        float[] x_arr = xyzt.get(0);
+        float[] y_arr = xyzt.get(1);
+        float[] z_arr = xyzt.get(2);
+        float[] t_arr = xyzt.get(3);
+
+        for(int i=0; i < TRAJECTORY_SIZE; i++)
+        {
+            if (column_offset >= 0)
+            {
+                t_arr[i] = T_IDXS[i];
+                x_arr[i] = data[start + i * columns + column_offset];
+            }
+            else
+            {
+                t_arr[i] = plan_t[i];
+                x_arr[i] = X_IDXS[i];
+            }
+            y_arr[i] = data[start + i*columns + 1 + column_offset];
+            z_arr[i] = data[start + i*columns + 2 + column_offset];
         }
     }
 
@@ -269,17 +312,12 @@ public class Parser {
 
     public ParsedOutputs parser(float[] outs){
 
-        copyOfRange(outs, net_outputs.get("plan"), PLAN_IDX, LL_IDX);
-        copyOfRange(outs, net_outputs.get("laneLines"), LL_IDX, LL_PROB_IDX);
-        copyOfRange(outs, net_outputs.get("laneLinesProb"), LL_PROB_IDX, RE_IDX);
-        copyOfRange(outs, net_outputs.get("roadEdges"), RE_IDX, LEAD_IDX);
         copyOfRange(outs, net_outputs.get("lead"), LEAD_IDX, LEAD_PROB_IDX);
         copyOfRange(outs, net_outputs.get("leadProb"), LEAD_PROB_IDX, DESIRE_STATE_IDX);
         copyOfRange(outs, net_outputs.get("meta"), DESIRE_STATE_IDX, POSE_IDX);
         copyOfRange(outs, net_outputs.get("pose"), POSE_IDX, OUTPUT_SIZE);
-        copyOfRange(outs, net_outputs.get("state"), OUTPUT_SIZE, OUTPUT_SIZE+TEMPORAL_SIZE);
 
-        getBestPlan(net_outputs.get("plan"), best_plan);
+        getBestPlan(outs, best_plan, PLAN_IDX);
 
         for(int i=0; i < TRAJECTORY_SIZE; i++)
             plan_t_arr[i] = best_plan[i*PLAN_MHP_COLUMNS + 15];
@@ -290,10 +328,10 @@ public class Parser {
         fillXYZT(parsed.orientationRate, best_plan, PLAN_MHP_COLUMNS, 12, plan_t_arr);
 
         for(int i=0; i < 4; i++) {
-            fillXYZT(laneLines.get(i), Arrays.copyOfRange(net_outputs.get("laneLines"), i*TRAJECTORY_SIZE*2, (i+1)*TRAJECTORY_SIZE*2), 2, -1, plan_t_arr);
-            laneLineProbs[i] = sigmoid(net_outputs.get("laneLinesProb")[i]);
-            softPlus(laneLineStds.get(i), Arrays.copyOfRange(net_outputs.get("laneLines"), 2*TRAJECTORY_SIZE*(4 + i), 2*TRAJECTORY_SIZE*(4 + i+1)));
-            fillXYZT(roadEdges.get(i), Arrays.copyOfRange(net_outputs.get("roadEdges"), i*TRAJECTORY_SIZE*2, (i+1)*TRAJECTORY_SIZE*2), 2, -1, plan_t_arr);
+            fillXYZT(laneLines.get(i), outs, LL_IDX + i*TRAJECTORY_SIZE*2, 2, -1, plan_t_arr);
+            laneLineProbs[i] = sigmoid(outs[LL_PROB_IDX+i]);
+            softPlus(laneLineStds.get(i), outs, 2*TRAJECTORY_SIZE*(4 + i), 2*TRAJECTORY_SIZE*(4 + i+1));
+            fillXYZT(roadEdges.get(i), outs, RE_IDX + i*TRAJECTORY_SIZE*2, 2, -1, plan_t_arr);
         }
 
         for(int t_offset=0; t_offset < LEAD_MHP_SELECTION; t_offset++)
@@ -301,7 +339,7 @@ public class Parser {
 
         copyOfRange(net_outputs.get("meta"), meta[0], 0, meta[0].length);
         copyOfRange(net_outputs.get("pose"), pose[0], 0, pose[0].length);
-        copyOfRange(net_outputs.get("state"), state[0], 0, state[0].length);
+        copyOfRange(outs, state[0], OUTPUT_SIZE, OUTPUT_SIZE+TEMPORAL_SIZE);
 
         fillMeta(meta[0]);
 
