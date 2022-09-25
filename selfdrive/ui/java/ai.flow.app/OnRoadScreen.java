@@ -373,9 +373,10 @@ public class OnRoadScreen extends ScreenAdapter {
                 imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
         }
         else {
-            if (frameData.getNativeImageAddr() == 0)
+            if (frameData.getNativeImageAddr() == 0) {
                 imgBuffer.put(frameData.getImage().asByteBuffer());
                 imgBuffer.rewind();
+            }
         }
         // update K only once.
         if (!cameraMatrixUpdated){
