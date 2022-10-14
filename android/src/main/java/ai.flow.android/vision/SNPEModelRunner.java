@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import static import com.qualcomm.qti.snpe.NeuralNetwork.Runtime;
+import static com.qualcomm.qti.snpe.NeuralNetwork.Runtime;
 
 public class SNPEModelRunner extends ModelRunner {
     private Application context;
