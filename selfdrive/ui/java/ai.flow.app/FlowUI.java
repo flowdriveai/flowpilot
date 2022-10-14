@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.vision.ModelExecutor;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
@@ -11,11 +12,9 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import ai.flow.common.Params;
 import ai.flow.common.ParamsInterface;
 import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
-import ai.flow.vision.ModelExecutorInterface;
 
 import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Core;
@@ -36,7 +35,7 @@ public class FlowUI extends Game {
     public int pid;
     public Launcher launcher;
     public Map<String, SensorInterface> sensors;
-    public ModelExecutorInterface modelExecutor;
+    public ModelExecutor modelExecutor;
     // reuse common screens
     public SettingsScreen settingsScreen;
     public OnRoadScreen onRoadScreen;

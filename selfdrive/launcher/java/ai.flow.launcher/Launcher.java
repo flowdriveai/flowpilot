@@ -1,12 +1,12 @@
 package ai.flow.launcher;
 
-import ai.flow.common.Params;
 import ai.flow.common.ParamsInterface;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.CameraManager;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.vision.ModelExecutor;
-import ai.flow.vision.ModelExecutorInterface;
+import ai.flow.vision.ModelRunner;
+import ai.flow.vision.TNNModelRunner;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -14,12 +14,12 @@ import java.util.Map;
 
 
 public class Launcher {
-    public ModelExecutorInterface modeld;
+    public ModelExecutor modeld;
     public Map<String, SensorInterface> sensors;
     public FlowInitd flowInitd = new FlowInitd();
     public ParamsInterface params = ParamsInterface.getInstance();
 
-    public Launcher(Map<String, SensorInterface> sensors, ModelExecutorInterface modelExecutor){
+    public Launcher(Map<String, SensorInterface> sensors, ModelExecutor modelExecutor){
         this.sensors = sensors;
         this.modeld = modelExecutor;
     }
@@ -61,7 +61,11 @@ public class Launcher {
             put("roadCamera", cameraManager);
             put("motionSensors", sensorManager);
         }};
-        this.modeld = new ModelExecutor();
+
+        String modelPath = "models/supercombo_simple";
+        ModelRunner model = new TNNModelRunner(modelPath, true);
+
+        this.modeld = new ModelExecutor(model);
         this.startAllD();
     }
 }

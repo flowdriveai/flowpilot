@@ -1,6 +1,6 @@
 source .env
 
-#export USE_CUDA="1" # Has no affect on android
+export USE_GPU="1"
 export PASSIVE="0"
 export USE_PARAMS_CLIENT="1"
 #export MSGQ="1"
