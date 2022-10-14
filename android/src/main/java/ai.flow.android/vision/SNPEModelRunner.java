@@ -23,6 +23,11 @@ public class SNPEModelRunner extends ModelRunner {
     public int warmupIters = 50;
     boolean useGPU;
 
+    float[] imgTensorSequenceArr = new float[128*256*12];
+    float[] desireArr = new float[8];
+    float[] trafficArr = new float[2];
+    float[] stateArr = new float[512];
+
     public SNPEModelRunner(Application context, String modelPath, boolean useGPU){
         this.context = context;
         this.modelPath = modelPath;
@@ -44,6 +49,7 @@ public class SNPEModelRunner extends ModelRunner {
 
             if (useGPU)
                 builder.setRuntimeOrder(Runtime.GPU_FLOAT16);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,9 +63,14 @@ public class SNPEModelRunner extends ModelRunner {
         container.put("initial_state", network.createFloatTensor(shapes.get("initial_state")));
     }
 
-    public void writeTensor(FloatTensor tensor, ByteBuffer buffer){
-        for (int i=0; i<tensor.getSize(); i++)
-            tensor.write(buffer.getFloat(i*4), i);
+    public void BufferToFloatArr(float[] arr, ByteBuffer buffer){
+        for (int i=0; i<arr.length; i++)
+            arr[i] = buffer.getFloat(i*4);
+    }
+
+    public void writeTensor(FloatTensor tensor, ByteBuffer buffer, float arr[]){
+        BufferToFloatArr(arr, buffer);
+        tensor.write(arr, 0, arr.length);
     }
 
     @Override
@@ -70,10 +81,10 @@ public class SNPEModelRunner extends ModelRunner {
 
     @Override
     public void run(ByteBuffer inputImgs, ByteBuffer desire, ByteBuffer trafficConvention, ByteBuffer state, float[] netOutputs){
-        writeTensor(container.get("input_imgs"), inputImgs);
-        writeTensor(container.get("desire"), desire);
-        writeTensor(container.get("traffic_convention"), trafficConvention);
-        writeTensor(container.get("initial_state"), state);
+        writeTensor(container.get("input_imgs"), inputImgs, imgTensorSequenceArr);
+        writeTensor(container.get("desire"), desire, desireArr);
+        writeTensor(container.get("traffic_convention"), trafficConvention, trafficArr);
+        writeTensor(container.get("initial_state"), state, stateArr);
 
         network.execute(container).get("outputs").read(netOutputs, 0, netOutputs.length);
     }
