@@ -1,6 +1,6 @@
 source .env
 
-export USE_GPU="1" # Has no affect on android
+export USE_GPU="1"
 export PASSIVE="0"
 export USE_PARAMS_CLIENT="1"
 #export MSGQ="1"
@@ -11,4 +11,3 @@ export SIMULATION="1"
 export FINGERPRINT="HONDA CIVIC 2016"
 
 flowinit
-

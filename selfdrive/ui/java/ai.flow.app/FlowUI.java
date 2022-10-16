@@ -121,6 +121,12 @@ public class FlowUI extends Game {
 
         FileHandle model = Gdx.files.internal("models/supercombo.dlc");
         model.copyTo(Gdx.files.external("supercombo.dlc"));
+
+        FileHandle tnnProto = Gdx.files.internal("models/supercombo_simple.tnnproto");
+        tnnProto.copyTo(Gdx.files.external("supercombo_simple.tnnproto"));
+
+        FileHandle tnnModel = Gdx.files.internal("models/supercombo_simple.tnnmodel");
+        tnnModel.copyTo(Gdx.files.external("supercombo_simple.tnnmodel"));
     }
 
     @Override
