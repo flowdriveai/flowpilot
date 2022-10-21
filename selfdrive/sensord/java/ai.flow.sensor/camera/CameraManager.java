@@ -7,6 +7,7 @@ import org.capnproto.PrimitiveList;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
@@ -21,11 +22,11 @@ public class CameraManager extends SensorInterface implements Runnable {
     public static ZMQPubHandler ph = new ZMQPubHandler();
     public String topic;
     public long deltaTime;
-    public int defaultFrameWidth = 1164;
-    public int defaultFrameHeight = 874;
+    public int defaultFrameWidth;
+    public int defaultFrameHeight;
     public MsgFrameData msgFrameData = new MsgFrameData(0);
-    ByteBuffer imageBuffer = ByteBuffer.allocateDirect(defaultFrameWidth*defaultFrameHeight*3);
-    public Mat frame;
+    ByteBuffer imageBuffer;
+    public Mat frame, frameCropContinuous, frameCrop;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
     public int frameID = 0;
     public ParamsInterface params = ParamsInterface.getInstance();
@@ -36,12 +37,34 @@ public class CameraManager extends SensorInterface implements Runnable {
             K.set(i, intrinsics[i]);
     }
 
-    public CameraManager(String topic, int frequency) {
+    public CameraManager(String topic, int frequency, String videoSrc, int frameWidth, int frameHeight) {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         this.topic = topic;
+        this.defaultFrameWidth = frameWidth;
+        this.defaultFrameHeight = frameHeight;
+        imageBuffer = ByteBuffer.allocateDirect(defaultFrameWidth*defaultFrameHeight*3);
         capture = new VideoCapture("tmp");
         //capture = new VideoCapture("/storage/emulated/0/Android/data/ai.flow.android/files/tmp");
         msgFrameData.setImageAddress(imageBuffer);
+        frame = new Mat(874, 1164, CvType.CV_8UC3, msgFrameData.getImageBuffer());
+        deltaTime = (long) 1000/frequency; //ms
+        loadIntrinsics();
+    }
+
+    public CameraManager(String topic, int frequency, int videoSrc, int frameWidth, int frameHeight) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        this.topic = topic;
+        this.defaultFrameWidth = frameWidth;
+        this.defaultFrameHeight = frameHeight;
+        imageBuffer = ByteBuffer.allocateDirect(defaultFrameWidth*defaultFrameHeight*3);
+        capture = new VideoCapture(videoSrc);
+
+        frame = new Mat();
+        frameCropContinuous = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
+        msgFrameData.frameData.setNativeImageAddr(frameCropContinuous.dataAddr());
+
+        //capture = new VideoCapture("/storage/emulated/0/Android/data/ai.flow.android/files/tmp");
+        //msgFrameData.setImageAddress(imageBuffer);
         frame = new Mat(874, 1164, CvType.CV_8UC3, msgFrameData.getImageBuffer());
         deltaTime = (long) 1000/frequency; //ms
         loadIntrinsics();
@@ -52,9 +75,25 @@ public class CameraManager extends SensorInterface implements Runnable {
         ph.createPublisher(topic);
         while (!stopped){
             capture.read(frame);
-            frameID += 1;
-            msgFrameData.frameData.setFrameId(frameID);
             Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2RGB);
+            frameID += 1;
+            if (frameCrop==null) {
+                try {
+                    frameCrop = frame.submat(
+                    new Rect(
+                        Math.abs(frame.width() - defaultFrameWidth) / 2, 
+                        Math.abs(frame.height() - defaultFrameHeight) / 2,
+                        defaultFrameWidth, defaultFrameHeight
+                    )
+                );
+                } catch (Exception e) {
+                    System.out.println("image too small");
+                }
+            }
+            frameCropContinuous = frameCrop.clone();
+            //frameCrop.copyTo(frameCropContinuous);
+            
+            msgFrameData.frameData.setFrameId(frameID);
             ph.publishBuffer(topic, msgFrameData.serialize());
            try{
                 Thread.sleep(deltaTime);

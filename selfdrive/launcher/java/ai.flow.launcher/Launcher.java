@@ -18,6 +18,7 @@ public class Launcher {
     public Map<String, SensorInterface> sensors;
     public FlowInitd flowInitd = new FlowInitd();
     public ParamsInterface params = ParamsInterface.getInstance();
+    CameraManager cameraManager;
 
     public Launcher(Map<String, SensorInterface> sensors, ModelExecutorInterface modelExecutor){
         this.sensors = sensors;
@@ -55,7 +56,13 @@ public class Launcher {
     }
 
     public void main(String[] args) throws IOException {
-        CameraManager cameraManager = new CameraManager("roadCameraState", 20);
+        if (System.getenv("USE_VIDEO_STREAM") != null) {
+			cameraManager = new CameraManager("roadCameraState", 30, "driving", 1164, 874);
+		}
+		else {
+			// use external stream. 
+			cameraManager = new CameraManager("roadCameraState", 30, Integer.parseInt(System.getenv("EXTERNAL_STREAM_URL")), 1164, 874);
+		}
         SensorManager sensorManager = new SensorManager();
         this.sensors = new HashMap<String, SensorInterface>() {{
             put("roadCamera", cameraManager);
