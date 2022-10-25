@@ -26,14 +26,8 @@ public class HeadlessLauncher {
 	private static Application createApplication() throws IOException {
 		// Note: you can use a custom ApplicationListener implementation for the headless project instead of FlowUI.
 		SensorInterface cameraManager;
-		System.out.println(System.getenv("EXTERNAL_STREAM_URL")+1);
-		if (System.getenv("USE_VIDEO_STREAM") != null) {
-			cameraManager = new CameraManager("roadCameraState", 30, "tmp", 1164, 874);
-		}
-		else {
-			// use external stream. 
-			cameraManager = new CameraManager("roadCameraState", 30, Integer.parseInt(System.getenv("EXTERNAL_STREAM_URL")), 1164, 874);
-		}
+		cameraManager = new CameraManager("roadCameraState", 30, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+
 		SensorManager sensorManager = new SensorManager();
 		Map<String, SensorInterface> sensors = new HashMap<String, SensorInterface>() {{
 			put("roadCamera", cameraManager);

@@ -4,12 +4,10 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.sensor.SensorInterface;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Rect;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -25,8 +23,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     public int defaultFrameWidth;
     public int defaultFrameHeight;
     public MsgFrameData msgFrameData = new MsgFrameData(0);
-    ByteBuffer imageBuffer;
-    public Mat frame, frameCropContinuous, frameCrop;
+    public Mat frame, frameProcessed, frameCrop, framePadded;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
     public int frameID = 0;
     public ParamsInterface params = ParamsInterface.getInstance();
@@ -42,32 +39,65 @@ public class CameraManager extends SensorInterface implements Runnable {
         this.topic = topic;
         this.defaultFrameWidth = frameWidth;
         this.defaultFrameHeight = frameHeight;
-        imageBuffer = ByteBuffer.allocateDirect(defaultFrameWidth*defaultFrameHeight*3);
-        capture = new VideoCapture("tmp");
-        //capture = new VideoCapture("/storage/emulated/0/Android/data/ai.flow.android/files/tmp");
-        msgFrameData.setImageAddress(imageBuffer);
-        frame = new Mat(874, 1164, CvType.CV_8UC3, msgFrameData.getImageBuffer());
+
+        // start capturing from video / webcam or ip cam.
+        if (videoSrc == null)
+            videoSrc = "tmp"; // use a sample video file.
+        try {
+            capture = new VideoCapture(Integer.parseInt(videoSrc));
+        } catch (Exception e){
+            capture = new VideoCapture(videoSrc);
+        }
+
+        // try to get the nearest resolution to default.
+        capture.set(Videoio.CAP_PROP_FRAME_WIDTH, defaultFrameWidth);
+        capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, defaultFrameHeight);
+        capture.set(Videoio.CAP_PROP_BUFFERSIZE, 1);
+
+        // init mat buffers once and reuse.
+        frame = new Mat();
+        framePadded = new Mat();
+        frameProcessed = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
+        msgFrameData.frameData.setNativeImageAddr(frameProcessed.dataAddr());
+
         deltaTime = (long) 1000/frequency; //ms
         loadIntrinsics();
     }
 
-    public CameraManager(String topic, int frequency, int videoSrc, int frameWidth, int frameHeight) {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        this.topic = topic;
-        this.defaultFrameWidth = frameWidth;
-        this.defaultFrameHeight = frameHeight;
-        imageBuffer = ByteBuffer.allocateDirect(defaultFrameWidth*defaultFrameHeight*3);
-        capture = new VideoCapture(videoSrc);
+    public void processFrame(Mat frame){
+        // correct color-space.
+        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2RGB);
+        Mat currFrame = frame;
 
-        frame = new Mat();
-        frameCropContinuous = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
-        msgFrameData.frameData.setNativeImageAddr(frameCropContinuous.dataAddr());
+        // apply padding if image dimensions are too small.
+        int padWidth = 0, padHeight = 0;
+        if (frame.width() < defaultFrameWidth)
+            padWidth = defaultFrameWidth - frame.width();
+        if (frame.height() < defaultFrameHeight)
+            padHeight = defaultFrameHeight - frame.height();
 
-        //capture = new VideoCapture("/storage/emulated/0/Android/data/ai.flow.android/files/tmp");
-        //msgFrameData.setImageAddress(imageBuffer);
-        frame = new Mat(874, 1164, CvType.CV_8UC3, msgFrameData.getImageBuffer());
-        deltaTime = (long) 1000/frequency; //ms
-        loadIntrinsics();
+        if (padWidth != 0 || padHeight != 0){
+            int top = padHeight / 2;
+            int bottom = padHeight-(padHeight/2);
+            int left = padWidth / 2;
+            int right = padWidth-(padWidth/2);
+            Core.copyMakeBorder(frame, framePadded, top, bottom, left, right, Core.BORDER_CONSTANT);
+            currFrame = framePadded;
+        }
+
+        // apply cropping if image dimensions are larger.
+        if (frameCrop==null) {
+            frameCrop = currFrame.submat(
+                        new Rect(
+                                Math.abs(currFrame.width() - defaultFrameWidth) / 2,
+                                Math.abs(currFrame.height() - defaultFrameHeight) / 2,
+                                defaultFrameWidth, defaultFrameHeight
+                                )
+                        );
+        }
+
+        // cropping may make the buffer non-continuous. cannot avoid a copy here.
+        frameCrop.copyTo(frameProcessed);
     }
 
     public void run(){
@@ -75,24 +105,8 @@ public class CameraManager extends SensorInterface implements Runnable {
         ph.createPublisher(topic);
         while (!stopped){
             capture.read(frame);
-            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2RGB);
             frameID += 1;
-            if (frameCrop==null) {
-                try {
-                    frameCrop = frame.submat(
-                    new Rect(
-                        Math.abs(frame.width() - defaultFrameWidth) / 2, 
-                        Math.abs(frame.height() - defaultFrameHeight) / 2,
-                        defaultFrameWidth, defaultFrameHeight
-                    )
-                );
-                } catch (Exception e) {
-                    System.out.println("image too small");
-                }
-            }
-            frameCropContinuous = frameCrop.clone();
-            //frameCrop.copyTo(frameCropContinuous);
-            
+            processFrame(frame);
             msgFrameData.frameData.setFrameId(frameID);
             ph.publishBuffer(topic, msgFrameData.serialize());
            try{
@@ -100,15 +114,6 @@ public class CameraManager extends SensorInterface implements Runnable {
             }catch (InterruptedException e){
                 ph.releaseAll();}
         }
-    }
-
-    public void cloneByteBuffer(ByteBuffer source, ByteBuffer target) {
-        int sourceP = source.position();
-        int sourceL = source.limit();
-        target.put(source);
-        target.flip();
-        source.position(sourceP);
-        source.limit(sourceL);
     }
 
     public boolean isRunning() {

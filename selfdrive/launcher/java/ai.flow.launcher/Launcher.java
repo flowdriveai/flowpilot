@@ -56,13 +56,8 @@ public class Launcher {
     }
 
     public void main(String[] args) throws IOException {
-        if (System.getenv("USE_VIDEO_STREAM") != null) {
-			cameraManager = new CameraManager("roadCameraState", 30, "driving", 1164, 874);
-		}
-		else {
-			// use external stream. 
-			cameraManager = new CameraManager("roadCameraState", 30, Integer.parseInt(System.getenv("EXTERNAL_STREAM_URL")), 1164, 874);
-		}
+
+        cameraManager = new CameraManager("roadCameraState", 30, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
         SensorManager sensorManager = new SensorManager();
         this.sensors = new HashMap<String, SensorInterface>() {{
             put("roadCamera", cameraManager);

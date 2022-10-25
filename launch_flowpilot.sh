@@ -1,6 +1,7 @@
 source .env
 
 #export USE_CUDA="1" # Has no affect on android
+export ROAD_CAMERA_SOURCE="0" # no affect on android
 export PASSIVE="0"
 export USE_PARAMS_CLIENT="1"
 #export MSGQ="1"
