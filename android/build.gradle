@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
+
+	applicationVariants.all { variant ->
+        variant.getRuntimeConfiguration().exclude group: 'com.google.code.findbugs', module: 'jsr305'
+        variant.getRuntimeConfiguration().exclude group: 'org.nd4j', module: 'protobuf'
+    }
 	compileSdkVersion 31
 	ndkVersion "21.1.6352462"
 	sourceSets {
@@ -31,7 +36,7 @@ android {
 
 	defaultConfig {
 		applicationId 'ai.flow.android'
-		minSdkVersion 21
+		minSdkVersion 22
 		targetSdkVersion 30
 		versionCode 1
 		versionName "1.0"
@@ -113,6 +118,12 @@ dependencies {
 
 	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
 	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
+
+	implementation 'com.google.guava:guava:31.1-android'
+	def acraVersion = "5.9.3"
+	implementation "ch.acra:acra-http:$acraVersion"
+	implementation "ch.acra:acra-toast:$acraVersion"
+	implementation "ch.acra:acra-limiter:$acraVersion"
 }
 
 // Called every time gradle gets executed, takes the native dependencies of

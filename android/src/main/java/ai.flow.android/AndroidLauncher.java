@@ -27,8 +27,23 @@ import ai.flow.sensor.SensorInterface;
 
 import java.util.*;
 
+import org.acra.ACRA;
+import org.acra.BuildConfig;
+import org.acra.config.CoreConfigurationBuilder;
+import org.acra.data.StringFormat;
+import org.acra.config.ToastConfigurationBuilder;
+import org.acra.config.HttpSenderConfigurationBuilder;
+import org.acra.sender.HttpSender;
+
+
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
+
+	@Override
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(base);
+		initACRA(base);
+	}
 
 	public static Map<String, SensorInterface> sensors;
 	public static Context appContext;
@@ -93,6 +108,29 @@ public class AndroidLauncher extends AndroidApplication {
 		int pid = android.os.Process.myPid();
 		Launcher launcher = new Launcher(sensors, new ModelExecutor((Application) getContext().getApplicationContext()));
 		initialize(new FlowUI(launcher, pid), configuration);
+	}
+
+	private void initACRA(Context base) {
+		if(ACRA.isACRASenderServiceProcess()) return;
+
+		ACRA.init((Application) base.getApplicationContext(), new CoreConfigurationBuilder()
+				//core configuration:
+				.withBuildConfigClass(BuildConfig.class)
+				.withReportFormat(StringFormat.JSON)
+				.withPluginConfigurations(
+						//each plugin you chose above can be configured with its builder like this:
+						new ToastConfigurationBuilder()
+								.withText(getString(ai.flow.app.R.string.acra_toast_text))
+								.build(),
+
+						new HttpSenderConfigurationBuilder()
+								.withUri("https://acra.flowdrive.ai/report")
+								.withBasicAuthLogin("lDbhwiSZ1wqwqfWe")
+								.withBasicAuthPassword("PJLqQ4eG5GKYf8ZP")
+								.withHttpMethod(HttpSender.Method.POST)
+								.build()
+				)
+		);
 	}
 
 	private boolean checkPermissions() {
