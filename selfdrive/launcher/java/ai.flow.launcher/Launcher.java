@@ -57,7 +57,7 @@ public class Launcher {
 
     public void main(String[] args) throws IOException {
 
-        cameraManager = new CameraManager("roadCameraState", 30, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+        cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
         SensorManager sensorManager = new SensorManager();
         this.sensors = new HashMap<String, SensorInterface>() {{
             put("roadCamera", cameraManager);

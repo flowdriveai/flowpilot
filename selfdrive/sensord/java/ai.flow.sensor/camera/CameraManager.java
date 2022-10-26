@@ -7,6 +7,7 @@ import org.capnproto.PrimitiveList;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.VideoWriter;
 import org.opencv.videoio.Videoio;
 
 import java.nio.ByteBuffer;
@@ -52,7 +53,9 @@ public class CameraManager extends SensorInterface implements Runnable {
         // try to get the nearest resolution to default.
         capture.set(Videoio.CAP_PROP_FRAME_WIDTH, defaultFrameWidth);
         capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, defaultFrameHeight);
-        capture.set(Videoio.CAP_PROP_BUFFERSIZE, 1);
+        capture.set(Videoio.CAP_PROP_BUFFERSIZE, 1); // grab latest frame only.
+        capture.set(Videoio.CAP_PROP_FPS, 20);
+        capture.set(Videoio.CAP_PROP_FOURCC, VideoWriter.fourcc('M', 'J', 'P', 'G'));
 
         // init mat buffers once and reuse.
         frame = new Mat();
@@ -103,16 +106,26 @@ public class CameraManager extends SensorInterface implements Runnable {
     public void run(){
         initialized = true;
         ph.createPublisher(topic);
+        long start, end, diff;
         while (!stopped){
+            start = System.currentTimeMillis();
             capture.read(frame);
             frameID += 1;
             processFrame(frame);
             msgFrameData.frameData.setFrameId(frameID);
             ph.publishBuffer(topic, msgFrameData.serialize());
-           try{
-                Thread.sleep(deltaTime);
-            }catch (InterruptedException e){
-                ph.releaseAll();}
+            end = System.currentTimeMillis();
+
+            diff = end - start;
+            if (diff < deltaTime){
+                try{
+                    Thread.sleep(deltaTime-diff);
+                }catch (InterruptedException e){
+                    ph.releaseAll();}
+            }
+            else if ((diff - deltaTime) > 5){
+                System.out.println("[WARNING]: camera lagging by " + (diff-deltaTime) + " ms");
+            }
         }
     }
 

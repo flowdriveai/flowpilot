@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Launches the desktop (LWJGL3) application. */
+/** Launches the desktop application. */
 public class Lwjgl3Launcher {
 	public static void main(String[] args) throws IOException {
 		createApplication();
@@ -23,7 +23,7 @@ public class Lwjgl3Launcher {
 
 	private static Lwjgl3Application createApplication() throws IOException {
 		SensorInterface cameraManager;
-		cameraManager = new CameraManager("roadCameraState", 30, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+		cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
 		SensorManager sensorManager = new SensorManager();
 
 		Map<String, SensorInterface> sensors = new HashMap<String, SensorInterface>() {{
