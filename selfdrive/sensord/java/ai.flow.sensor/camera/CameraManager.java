@@ -54,8 +54,8 @@ public class CameraManager extends SensorInterface implements Runnable {
         capture.set(Videoio.CAP_PROP_FRAME_WIDTH, defaultFrameWidth);
         capture.set(Videoio.CAP_PROP_FRAME_HEIGHT, defaultFrameHeight);
         capture.set(Videoio.CAP_PROP_BUFFERSIZE, 1); // grab latest frame only.
-        capture.set(Videoio.CAP_PROP_FPS, 20);
         capture.set(Videoio.CAP_PROP_FOURCC, VideoWriter.fourcc('M', 'J', 'P', 'G'));
+        capture.set(Videoio.CAP_PROP_FPS, 30);
 
         // init mat buffers once and reuse.
         frame = new Mat();
@@ -110,12 +110,11 @@ public class CameraManager extends SensorInterface implements Runnable {
         while (!stopped){
             start = System.currentTimeMillis();
             capture.read(frame);
+            end = System.currentTimeMillis();
             frameID += 1;
             processFrame(frame);
             msgFrameData.frameData.setFrameId(frameID);
             ph.publishBuffer(topic, msgFrameData.serialize());
-            end = System.currentTimeMillis();
-
             diff = end - start;
             if (diff < deltaTime){
                 try{
