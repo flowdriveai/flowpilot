@@ -75,6 +75,7 @@ Params::Params(const std::string &path) {
     std::string db_path = getParamPath();
     util::create_directories(db_path, 0775);
     env = lmdb::env::create();
+    env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL);
     env.open(db_path.c_str(), 0);
 }
 

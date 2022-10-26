@@ -24,6 +24,7 @@ public class Params extends ParamsInterface {
         String home = System.getenv("HOME");
         String dbPath = home + "/.flowdrive/params";
         new File(dbPath).mkdirs();
+        env.setMapSize(1024*1024*1024);
         env.open(dbPath);
         db = env.openDatabase();
     }
