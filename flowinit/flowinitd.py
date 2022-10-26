@@ -236,18 +236,11 @@ def main():
             for service in services:
                 service.start()
 
-            finished = [False] * len(services)
-
             pm = messaging.PubMaster(["procLog", "deviceState", "managerState"])
             params.put_bool("FlowinitReady", True)
 
             # Event loop
             while True:
-                # Kill everything if we get a stop signal or if flowpilot shuts
-                # down
-                for i, service in enumerate(services):
-                    # Set the finished flag for each service
-                    finished[i] = not service.is_alive()
 
                 running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if service.is_alive() else "\u001b[31m", service.name)
                        for service in services)
@@ -262,11 +255,7 @@ def main():
 
                 # Generate a new procLogList Message
                 proc_log_msg = messaging.new_message("procLog")
-                proc_log_msg.procLog.procs = [
-                    services[i].get_proc_msg()
-                    for i, _ in enumerate(finished)
-                    if not finished[i]
-                ]
+                proc_log_msg.procLog.procs = [service.get_proc_msg() for service in services]
                 proc_log_msg.procLog.cpuTimes = get_cpu_times()
                 proc_log_msg.procLog.mem = get_memory_logs()
 
@@ -275,11 +264,6 @@ def main():
                 # Publishing topics
                 pm.send("procLog", proc_log_msg)
                 pm.send("deviceState", device_state_msg)
-
-                if all(finished):
-                    cloudlog.info("everything is dead")
-                    logger.info("All services finished, exiting..")
-                    break
                 
                 # Try not to hog all the CPU cycles
                 time.sleep(Config.FREQUENCY)

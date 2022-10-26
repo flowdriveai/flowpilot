@@ -7,6 +7,7 @@ import multiprocessing
 from typing import Optional
 from common.clock import sec_since_boot
 from collections import deque
+from selfdrive.swaglog import cloudlog
 
 
 # time step for each process
@@ -31,14 +32,14 @@ def set_realtime_priority(level: int) -> None:
   try:
     os.sched_setscheduler(0, os.SCHED_FIFO, os.sched_param(level))  # type: ignore[attr-defined]
   except:
-    print("Unable to set realtime priority")
+    cloudlog.info("Unable to set realtime priority")
 
 
 def set_core_affinity(core: int) -> None:
   try:
     os.sched_setaffinity(0, [core,])   # type: ignore[attr-defined]
   except:
-    print("Unable to set core affinity priority")
+    cloudlog.info("Unable to set core affinity priority")
 
 
 def config_realtime_process(core: int, priority: int) -> None:
