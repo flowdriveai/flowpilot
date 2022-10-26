@@ -114,15 +114,12 @@ public class AndroidLauncher extends AndroidApplication {
 		if(ACRA.isACRASenderServiceProcess()) return;
 
 		ACRA.init((Application) base.getApplicationContext(), new CoreConfigurationBuilder()
-				//core configuration:
 				.withBuildConfigClass(BuildConfig.class)
 				.withReportFormat(StringFormat.JSON)
 				.withPluginConfigurations(
-						//each plugin you chose above can be configured with its builder like this:
 						new ToastConfigurationBuilder()
 								.withText(getString(ai.flow.app.R.string.acra_toast_text))
 								.build(),
-
 						new HttpSenderConfigurationBuilder()
 								.withUri("https://acra.flowdrive.ai/report")
 								.withBasicAuthLogin("lDbhwiSZ1wqwqfWe")
