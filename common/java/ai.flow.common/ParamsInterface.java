@@ -25,9 +25,9 @@ public abstract class ParamsInterface {
     }
 
     public static ParamsInterface getInstance() {
-        if (System.getenv("USE_PARAMS_CLIENT") != null)
-            return new ParamsClient();
-        return new Params();
+        if (System.getenv("USE_PARAMS_NATIVE") != null)
+            return new Params();
+        return new ParamsClient();
     }
 
     public void putInt(String key, int value){}
