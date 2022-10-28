@@ -36,4 +36,14 @@ public class SystemUtils {
             return -1;
         }
     }
+
+    public static boolean getUseGPU(){
+        String useGPU_ = System.getenv("USE_GPU");
+        boolean useGPU = false;
+        if (useGPU_ != null){
+            if (useGPU_.equals("1"))
+                useGPU =  true;
+        }
+        return useGPU;
+    }
 }

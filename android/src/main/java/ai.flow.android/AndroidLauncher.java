@@ -1,14 +1,22 @@
 package ai.flow.android;
 
+import ai.flow.android.sensor.CameraManager;
+import ai.flow.android.sensor.SensorManager;
+import ai.flow.app.FlowUI;
+import ai.flow.common.ParamsInterface;
+import ai.flow.launcher.Launcher;
+import ai.flow.sensor.SensorInterface;
+import ai.flow.vision.ModelExecutor;
+import ai.flow.vision.ModelRunner;
+import ai.flow.vision.TNNModelRunner;
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Process;
 import android.provider.Settings;
-import android.system.ErrnoException;
 import android.system.Os;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
@@ -16,16 +24,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import ai.flow.android.sensor.CameraManager;
-import ai.flow.android.sensor.SensorManager;
-import ai.flow.android.vision.ModelExecutor;
-import ai.flow.app.FlowUI;
-import ai.flow.common.Params;
-import ai.flow.common.ParamsInterface;
-import ai.flow.launcher.Launcher;
-import ai.flow.sensor.SensorInterface;
 
 import java.util.*;
+
+import static ai.flow.common.SystemUtils.getUseGPU;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
@@ -61,6 +63,11 @@ public class AndroidLauncher extends AndroidApplication {
 		// keep app from dimming due to inactivity.
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+		// tune system for max throughput.
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			getWindow().setSustainedPerformanceMode(true);
+		}
+
 		// request permissions and wait till granted.
 		requestPermissions();
 		while (!checkPermissions()){
@@ -90,8 +97,14 @@ public class AndroidLauncher extends AndroidApplication {
 			put("roadCamera", cameraManager);
 			put("motionSensors", sensorManager);
 		}};
-		int pid = android.os.Process.myPid();
-		Launcher launcher = new Launcher(sensors, new ModelExecutor((Application) getContext().getApplicationContext()));
+
+		int pid = Process.myPid();
+
+		String modelPath = "/storage/emulated/0/Android/data/ai.flow.android/files/supercombo_simple";
+
+		ModelRunner model = new TNNModelRunner(modelPath, getUseGPU());
+
+		Launcher launcher = new Launcher(sensors, new ModelExecutor(model));
 		initialize(new FlowUI(launcher, pid), configuration);
 	}
 

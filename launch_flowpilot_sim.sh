@@ -1,6 +1,6 @@
 source .env
 
-#export USE_CUDA="1" # Has no affect on android
+export USE_GPU="1"
 export PASSIVE="0"
 export ROAD_CAMERA_SOURCE="0" # no affect on android
 #export USE_PARAMS_NATIVE="1" # use java params over socket or native
@@ -11,4 +11,3 @@ export SIMULATION="1"
 export FINGERPRINT="HONDA CIVIC 2016"
 
 flowinit
-

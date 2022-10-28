@@ -17,13 +17,6 @@ public abstract class ParamsInterface {
         put("ControlsReady", CLEAR_ON_START);
     }};
 
-    public void setDefaults() {
-        for (String key : keys.keySet()) {
-            if (keys.get(key) == CLEAR_ON_START)
-                deleteKey(key);
-        }
-    }
-
     public static ParamsInterface getInstance() {
         if (System.getenv("USE_PARAMS_NATIVE") != null)
             return new Params();
