@@ -14,6 +14,11 @@ android {
 			sourceSets.main.res.filter.exclude '**/supercombo.onnx'
 		}
 	}
+
+	applicationVariants.all { variant ->
+	variant.getRuntimeConfiguration().exclude group: 'com.google.code.findbugs', module: 'jsr305'
+	variant.getRuntimeConfiguration().exclude group: 'org.nd4j', module: 'protobuf'}
+
 	packagingOptions {
 		// Preventing from license violations (more or less):
 		pickFirst 'META-INF/LICENSE.txt'
@@ -34,8 +39,15 @@ android {
 		minSdkVersion 22
 		targetSdkVersion 33
 		versionCode 1
-		versionName "1.0"
+		versionName "0.0.1"
 		multiDexEnabled true
+
+		if (System.getenv('ACRA_URI')!=null)
+			buildConfigField("String", "ACRA_URI", System.getenv('ACRA_URI'))
+		if (System.getenv('ACRA_AUTH_LOGIN')!=null)
+			buildConfigField("String", "ACRA_AUTH_LOGIN", System.getenv('ACRA_AUTH_LOGIN'))
+		if (System.getenv('ACRA_AUTH_PASSWORD')!=null)
+			buildConfigField("String", "ACRA_AUTH_PASSWORD", System.getenv('ACRA_AUTH_PASSWORD'))
 
 		externalNativeBuild {
 			cmake {

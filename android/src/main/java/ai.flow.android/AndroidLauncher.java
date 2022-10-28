@@ -12,6 +12,7 @@ import ai.flow.vision.ModelRunner;
 import ai.flow.vision.TNNModelRunner;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -31,8 +32,8 @@ import java.util.*;
 import org.acra.ACRA;
 import org.acra.BuildConfig;
 import org.acra.config.CoreConfigurationBuilder;
-import org.acra.data.StringFormat;
 import org.acra.config.ToastConfigurationBuilder;
+import org.acra.data.StringFormat;
 import org.acra.config.HttpSenderConfigurationBuilder;
 import org.acra.sender.HttpSender;
 
@@ -40,13 +41,6 @@ import static ai.flow.common.utils.getBoolEnvVar;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
-
-	@Override
-	protected void attachBaseContext(Context base) {
-		super.attachBaseContext(base);
-		initACRA(base);
-	}
-
 	public static Map<String, SensorInterface> sensors;
 	public static Context appContext;
 	List<String> requiredPermissions = Arrays.asList(android.Manifest.permission.CAMERA,
@@ -93,6 +87,8 @@ public class AndroidLauncher extends AndroidApplication {
 			}
 		}
 
+		int a = 1/0;
+
 		ParamsInterface params = ParamsInterface.getInstance();
 		TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		String dongleID = "";
@@ -128,24 +124,44 @@ public class AndroidLauncher extends AndroidApplication {
 		initialize(new FlowUI(launcher, pid), configuration);
 	}
 
+	@Override
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(base);
+		initACRA(base);
+	}
+
 	private void initACRA(Context base) {
 		if(ACRA.isACRASenderServiceProcess()) return;
 
-		ACRA.init((Application) base.getApplicationContext(), new CoreConfigurationBuilder()
-				.withBuildConfigClass(BuildConfig.class)
-				.withReportFormat(StringFormat.JSON)
-				.withPluginConfigurations(
-						new ToastConfigurationBuilder()
-								.withText(getString(ai.flow.app.R.string.acra_toast_text))
-								.build(),
-						new HttpSenderConfigurationBuilder()
-								.withUri("https://acra.flowdrive.ai/report")
-								.withBasicAuthLogin("lDbhwiSZ1wqwqfWe")
-								.withBasicAuthPassword("PJLqQ4eG5GKYf8ZP")
-								.withHttpMethod(HttpSender.Method.POST)
-								.build()
-				)
-		);
+		String ACRA_URI = null, ACRA_AUTH_LOGIN = null, ACRA_AUTH_PASSWORD = null;
+		try {
+			ACRA_URI = (String)ai.flow.app.BuildConfig.class.getField("ACRA_URI").get(null);
+			ACRA_AUTH_LOGIN = (String)ai.flow.app.BuildConfig.class.getField("ACRA_AUTH_LOGIN").get(null);
+			ACRA_AUTH_PASSWORD = (String)ai.flow.app.BuildConfig.class.getField("ACRA_AUTH_PASSWORD").get(null);
+		} catch (Exception e) {}
+
+		if (ACRA_URI != null && ACRA_AUTH_LOGIN != null && ACRA_AUTH_PASSWORD != null) {
+
+			System.out.println(ACRA_URI);
+			System.out.println(ACRA_AUTH_LOGIN);
+			System.out.println(ACRA_AUTH_PASSWORD);
+
+			ACRA.init((Application) base.getApplicationContext(), new CoreConfigurationBuilder()
+					.withBuildConfigClass(BuildConfig.class)
+					.withReportFormat(StringFormat.JSON)
+					.withPluginConfigurations(
+							new ToastConfigurationBuilder()
+									.withText("crash report sent.")
+									.build(),
+							new HttpSenderConfigurationBuilder()
+									.withUri(ACRA_URI)
+									.withBasicAuthLogin(ACRA_AUTH_LOGIN)
+									.withBasicAuthPassword(ACRA_AUTH_PASSWORD)
+									.withHttpMethod(HttpSender.Method.POST)
+									.build()
+					)
+			);
+		}
 	}
 
 	private boolean checkPermissions() {
