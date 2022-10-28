@@ -3,12 +3,6 @@ package ai.flow.vision;
 import ai.flow.common.ParamsInterface;
 import ai.flow.definitions.Definitions;
 import ai.flow.vision.messages.*;
-import ai.onnxruntime.OnnxTensor;
-import ai.onnxruntime.OrtEnvironment;
-import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
-import ai.onnxruntime.OrtSession.SessionOptions;
-import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
 import org.capnproto.PrimitiveList;
@@ -25,63 +19,57 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ModelExecutor implements Runnable, ModelExecutorInterface {
+public class ModelExecutor implements Runnable{
 
     public boolean stopped = false;
     public Thread thread;
     public final String threadName = "modeld";
     public boolean initialized = false;
     public final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    public static final String modelPath = "models/supercombo_simple.onnx";
-    public static boolean CUDAAvailable = false;
-
-    public float[][] netOutputs;
+    public float[] netOutputs;
     public ParsedOutputs outs;
     public long timePerIt = 0;
     public long iterationNum = 1;
-    public int warmupIters = 50;
 
-    public static final long[] imgTensorShape = {1, 12, 128, 256};
-    public static final long[] desireTensorShape = {1, 8};
-    public static final long[] trafficTensorShape = {1, 2};
-    public static final long[] stateTensorShape = {1, 512};
+    public static final int[] imgTensorShape = {1, 12, 128, 256};
+    public static final int[] desireTensorShape = {1, 8};
+    public static final int[] trafficTensorShape = {1, 2};
+    public static final int[] stateTensorShape = {1, 512};
+    public static final int[] outputTensorShape = {1, 11327};
+
+    public static final Map<String, int[]> shapeMap = new HashMap<>();
     public static final long[] YUVimgShape = {384, 512, 1};
 
     public final INDArray imgTensorSequence = Nd4j.zeros(imgTensorShape);
+    public final INDArray desireNDArr = Nd4j.zeros(desireTensorShape);
+    public final INDArray trafficNDArr = Nd4j.zeros(trafficTensorShape);
+    public final INDArray stateNDArr = Nd4j.zeros(stateTensorShape);
     public final INDArray transformedYUVNDArr = Nd4j.zeros(DataType.UINT8, YUVimgShape);
-
     public final INDArray augmentRot = Nd4j.zeros(1, 3);
     public final INDArray augmentTrans = Nd4j.zeros(1, 3);
-
-    public final float[][] pulseDesire = new float[1][8];
     public final float[][] prevDesire = new float[1][8];
-    public final float[][] traffic = new float[1][2];
-    public float[][] state = new float[1][512];
-
     public final Parser parser = new Parser();
     public final ParamsInterface params = ParamsInterface.getInstance();
 
-    public final  Map<String, OnnxTensor> container = new HashMap<>();
-
     public final INDArrayIndex[] imgTensor0Slices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0,6),
-                                                                                NDArrayIndex.all(), NDArrayIndex.all()};
+            NDArrayIndex.all(), NDArrayIndex.all()};
     public final INDArrayIndex[] imgTensor1Slices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(6,12),
-                                                                             NDArrayIndex.all(), NDArrayIndex.all()};
+            NDArrayIndex.all(), NDArrayIndex.all()};
 
     public static final float[] FULL_FRAME_SIZE = {874, 1164};
     public static final float FOCAL = 910.0f;
 
     public static float[][] cameraIntrinsicBuffer = {
-        {FOCAL, 0.00f, FULL_FRAME_SIZE[1]/2},
-        {0.00f, FOCAL, FULL_FRAME_SIZE[0]/2},
-        {0.00f, 0.00f, 1.00f}
+            {FOCAL, 0.00f, FULL_FRAME_SIZE[1]/2},
+            {0.00f, FOCAL, FULL_FRAME_SIZE[0]/2},
+            {0.00f, 0.00f, 1.00f}
     };
 
     public static final long[] MEDMODEL_INPUT_SIZE = {512, 256};
@@ -89,9 +77,9 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
     public static final float medmodel_zoom = 1f;
 
     public static float[][] medmodel_intrinsics_buffer = {
-        {FOCAL/medmodel_zoom, 0f, 0.5f*MEDMODEL_INPUT_SIZE[0]},
-        {0f, FOCAL/medmodel_zoom, MEDMODEL_CY},
-        {0f, 0f, 1f}
+            {FOCAL/medmodel_zoom, 0f, 0.5f*MEDMODEL_INPUT_SIZE[0]},
+            {0f, FOCAL/medmodel_zoom, MEDMODEL_CY},
+            {0f, 0f, 1f}
     };
     public static final INDArray medmodel_intrinsics = Nd4j.createFromArray(medmodel_intrinsics_buffer);
     public static INDArray cameraIntrinsics = Nd4j.createFromArray(cameraIntrinsicBuffer);
@@ -118,27 +106,25 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
     Mat deviceToCalibTransform;
 
     public ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
+    public ModelRunner modelRunner;
 
-    Runnable serializeAndPublish = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
-            msgDesire.fill(outs, timestamp);
-            msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
+    public ModelExecutor(ModelRunner modelRunner){
+        this.modelRunner = modelRunner;
+    }
 
-            ph.publishBuffer("modelV2", msgModelDataV2.serialize());
-            ph.publishBuffer("desire", msgDesire.serialize());
-            ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize());
-        }
+    public void serializeAndPublish(){
+        msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
+        msgDesire.fill(outs, timestamp);
+        msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
+
+        ph.publishBuffer("modelV2", msgModelDataV2.serialize());
+        ph.publishBuffer("desire", msgDesire.serialize());
+        ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize());
     };
 
-    public void warmup(OrtSession network, Map<String, OnnxTensor> dummyInputs, int warmupIters) throws OrtException {
-        for (int i=0; i<warmupIters; i++) {
-            try (OrtSession.Result netOutputsTensor = network.run(container);) {
-            }
-        }
+    public void floatArrToBuffer(float[] arr, ByteBuffer buffer){
+        for (int i=0; i<arr.length; i++)
+            buffer.putFloat(i*4, arr[i]);
     }
 
     public boolean isIntrinsicsValid(){
@@ -169,7 +155,14 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
         deviceToCalibTransform = Preprocess.deviceToCalibratedFrame(1.22f, new float[]{874.0f, 1164.0f}, cameraIntrinsics, medmodel_intrinsics, augmentRot, augmentTrans);
     }
 
-	public void run(){
+    public static double numElements(int[] shape){
+        double ret = 1;
+        for (int i:shape)
+            ret *= i;
+        return ret;
+    }
+
+    public void run(){
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
@@ -181,130 +174,109 @@ public class ModelExecutor implements Runnable, ModelExecutorInterface {
 
         final Size outputSize = new Size(512, 256);
 
-		try{
-		    final OrtEnvironment env = OrtEnvironment.getEnvironment();
-            final OrtSession.SessionOptions opts = new SessionOptions();
+        shapeMap.put("input_imgs", imgTensorShape);
+        shapeMap.put("initial_state", stateTensorShape);
+        shapeMap.put("desire", desireTensorShape);
+        shapeMap.put("traffic_convention", trafficTensorShape);
+        shapeMap.put("outputs", outputTensorShape);
 
-            opts.setOptimizationLevel(OptLevel.ALL_OPT);
-            opts.setInterOpNumThreads(8);
-            opts.setIntraOpNumThreads(4);
-            opts.setExecutionMode(OrtSession.SessionOptions.ExecutionMode.SEQUENTIAL);
-            if (System.getenv("USE_CUDA") != null) {
-                CUDAAvailable = true;
-                opts.addCUDA();
-                logger.info("To use CPU, unset the 'USE_CUDA' environment variable");
-            }
-            final OrtSession session = env.createSession(modelPath, opts);
+        modelRunner.init(shapeMap);
+        modelRunner.warmup();
 
-            OnnxTensor inputImgTensor = OnnxTensor.createTensor(env, imgTensorSequence.data().asNioFloat(), imgTensorShape);
+        ByteBuffer inputImgsBuffer = imgTensorSequence.data().asNio().order(ByteOrder.nativeOrder());
+        ByteBuffer stateBuffer = ByteBuffer.allocateDirect((int)numElements(stateTensorShape)*4).order(ByteOrder.nativeOrder());
+        ByteBuffer desireBuffer = ByteBuffer.allocateDirect((int)numElements(desireTensorShape)*4).order(ByteOrder.nativeOrder());
+        ByteBuffer trafficBuffer = ByteBuffer.allocateDirect((int)numElements(trafficTensorShape)*4).order(ByteOrder.nativeOrder());
 
-            try (OnnxTensor inputStateTensor = OnnxTensor.createTensor(env, state);
-                 OnnxTensor inputDesireTensor = OnnxTensor.createTensor(env, pulseDesire);
-                 OnnxTensor inputTrafficTensor = OnnxTensor.createTensor(env, traffic);){
-                container.put("input_imgs", inputImgTensor);
-                container.put("initial_state", inputStateTensor);
-                container.put("desire", inputDesireTensor);
-                container.put("traffic_convention", inputTrafficTensor);
-                warmup(session, container, warmupIters);
-            }
+        netOutputs = new float[(int)numElements(outputTensorShape)];
 
-            ByteBuffer imgBuffer;
+        ByteBuffer imgBuffer;
+        sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
+        frameData = msgFrameData.deserialize().getFrameData();
+        if (frameData.getNativeImageAddr() != 0)
+            imgBuffer = MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
+        else
+            imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
+        Mat imageCurr = new Mat(874, 1164, CvType.CV_8UC3, imgBuffer);
+        updateCameraMatrix();
+        deviceToCalibTransform = Preprocess.deviceToCalibratedFrame(1.22f, new float[]{874.0f, 1164.0f}, cameraIntrinsics, medmodel_intrinsics, augmentRot, augmentTrans);
+        lastFrameID = frameData.getFrameId();
+
+        Preprocess.TransformImg(imageCurr, transformed, deviceToCalibTransform, outputSize);
+        Preprocess.RGB888toYUV420(transformed, transformedYUV);
+        Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 0);
+
+        initialized = true;
+        params.putBool("ModelDReady", true);
+        while (!stopped) {
+
             sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
             frameData = msgFrameData.deserialize().getFrameData();
-            if (frameData.getNativeImageAddr() != 0)
-                imgBuffer = MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
-            else
-                imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
-            Mat imageCurr = new Mat(874, 1164, CvType.CV_8UC3, imgBuffer);
-            updateCameraMatrix();
-            deviceToCalibTransform = Preprocess.deviceToCalibratedFrame(1.22f, new float[]{874.0f, 1164.0f}, cameraIntrinsics, medmodel_intrinsics, augmentRot, augmentTrans);
-            lastFrameID = frameData.getFrameId();
+            if (frameData.getNativeImageAddr() == 0) {
+                imgBuffer.put(frameData.getImage().asByteBuffer());
+                imgBuffer.rewind();
+            }
+
+            start = System.currentTimeMillis();
+            if (sh.updated("pulseDesire")){
+                pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
+                desireNDArr.put(0, pulseDesireInput, 1);
+            }
+
+            if (sh.updated("liveCalibration")) {
+                sh.recvBuffer("liveCalibration", msgLiveCalibrationDataBuffer);
+                liveCalib = msgLiveCalibrationData.deserialize().getLiveCalibration();
+                handleLiveCalib(liveCalib);
+            }
 
             Preprocess.TransformImg(imageCurr, transformed, deviceToCalibTransform, outputSize);
             Preprocess.RGB888toYUV420(transformed, transformedYUV);
-            Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 0);
+            Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 1);
 
-            initialized = true;
-            params.putBool("ModelDReady", true);
-	        while (!stopped) {
+            modelRunner.run(imgTensorSequence, desireNDArr, trafficNDArr, stateNDArr, netOutputs);
+            outs = parser.parser(netOutputs);
 
-                sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
-                frameData = msgFrameData.deserialize().getFrameData();
-                if (frameData.getNativeImageAddr() == 0) {
-                    imgBuffer.put(frameData.getImage().asByteBuffer());
-                    imgBuffer.rewind();
-                }
+            for (int i=0; i<outs.state[0].length; i++)
+                stateNDArr.put(0, i, outs.state[0][i]);
 
-                start = System.currentTimeMillis();
-                if (sh.updated("pulseDesire")){
-                    pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
-                    pulseDesire[0][pulseDesireInput] = 1.0f;
-                }
-
-                if (sh.updated("liveCalibration")) {
-                    sh.recvBuffer("liveCalibration", msgLiveCalibrationDataBuffer);
-                    liveCalib = msgLiveCalibrationData.deserialize().getLiveCalibration();
-                    handleLiveCalib(liveCalib);
-                }
-
-                Preprocess.TransformImg(imageCurr, transformed, deviceToCalibTransform, outputSize);
-                Preprocess.RGB888toYUV420(transformed, transformedYUV);
-                Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 1);
-
-		        try (OnnxTensor inputStateTensor = OnnxTensor.createTensor(env, state);
-		             OnnxTensor inputDesireTensor = OnnxTensor.createTensor(env, pulseDesire);
-                     OnnxTensor inputTrafficTensor = OnnxTensor.createTensor(env, traffic);){
-		                 container.put("input_imgs", inputImgTensor);
-                         container.put("initial_state", inputStateTensor);
-                         container.put("desire", inputDesireTensor);
-                         container.put("traffic_convention", inputTrafficTensor);
-                         try (OrtSession.Result netOutputsTensor = session.run(container);){
-		                     netOutputs = (float[][]) netOutputsTensor.get(0).getValue();
-		                     outs = parser.parser(netOutputs[0]);
-		                 }
-		        }
-
-		        for (int i=0; i<outs.metaData.desireState.length; i++){
-                    if (outs.metaData.desireState[i] - prevDesire[0][i] > 0.99f)
-                        pulseDesire[0][i] = outs.metaData.desireState[i];
-                    else
-                        pulseDesire[0][i] = 0.0f;
-                    prevDesire[0][i] = outs.metaData.desireState[i];
-                }
-
-		        state = outs.state;
-                imgTensorSequence.put(imgTensor0Slices, imgTensorSequence.get(imgTensor1Slices));
-
-                // publish outputs
-                timestamp = System.currentTimeMillis();
-                backgroundExecutor.execute(serializeAndPublish);
-
-                end = System.currentTimeMillis();
-                // compute runtime stats.
-                // skip 1st 10 reading to let it warm up.
-                if (iterationNum > 10) {
-                    timePerIt += end - start;
-                    frameDrops += (frameData.getFrameId() - lastFrameID) - 1;
-                }
+            for (int i=0; i<outs.metaData.desireState.length; i++){
+                if (outs.metaData.desireState[i] - prevDesire[0][i] > 0.99f)
+                    desireNDArr.put(0, i, outs.metaData.desireState[i]);
                 else
-                    firstFrameID = lastFrameID;
+                    desireNDArr.put(0, i, 0);
+                prevDesire[0][i] = outs.metaData.desireState[i];
+            }
 
-                lastFrameID = frameData.getFrameId();
-                iterationNum++;
-		    }
-            deviceToCalibTransform.release();
-        }catch(OrtException e){
-               System.out.println(e);
-         }
+            imgTensorSequence.put(imgTensor0Slices, imgTensorSequence.get(imgTensor1Slices));
 
-		// dispose
+            // publish outputs
+            timestamp = System.currentTimeMillis();
+            serializeAndPublish();
+
+            end = System.currentTimeMillis();
+            // compute runtime stats.
+            // skip 1st 10 reading to let it warm up.
+            if (iterationNum > 10) {
+                timePerIt += end - start;
+                frameDrops += (frameData.getFrameId() - lastFrameID) - 1;
+            }
+            else
+                firstFrameID = lastFrameID;
+
+            lastFrameID = frameData.getFrameId();
+            iterationNum++;
+        }
+        deviceToCalibTransform.release();
+
+        // dispose
         backgroundExecutor.shutdown();
         imgTensorSequence.close();
         transformedYUVNDArr.close();
+        modelRunner.dispose();
         ph.releaseAll();
         transformed.release();
         transformedYUV.release();
-	}
+    }
 
     public void start() {
         if (thread == null) {

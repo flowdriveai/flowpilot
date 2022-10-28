@@ -84,7 +84,6 @@ public class IntroScreen extends ScreenAdapter {
         stage.draw();
         count++;
 
-        //if (appContext.params.existsAndCompare("ModelDReady", true))
         if (appContext.modelExecutor.isRunning())
             alpha -= 0.05;
 

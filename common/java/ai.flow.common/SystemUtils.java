@@ -36,4 +36,8 @@ public class SystemUtils {
             return -1;
         }
     }
+
+    public static boolean getUseGPU(){
+        return utils.getBoolEnvVar("USE_GPU");
+    }
 }

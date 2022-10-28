@@ -6,6 +6,11 @@
 #include "common/util.h"
 #include "common/params.h"
 
+volatile sig_atomic_t params_do_exit = 0;
+void params_sig_handler(int signal) {
+  params_do_exit = 1;
+}
+
 std::unordered_map<std::string, uint32_t> keys = {
     {"DongleId", PERSISTENT},
     {"DeviceManufacturer", PERSISTENT},
@@ -70,6 +75,7 @@ Params::Params(const std::string &path) {
     std::string db_path = getParamPath();
     util::create_directories(db_path, 0775);
     env = lmdb::env::create();
+    env.set_mapsize(1UL * 1024UL * 1024UL * 1024UL);
     env.open(db_path.c_str(), 0);
 }
 
@@ -100,14 +106,22 @@ std::string Params::get(const std::string &key, bool block) {
         }
         return std::string(val); 
     }
+
+    params_do_exit = 0;
+    void (*prev_handler_sigint)(int) = std::signal(SIGINT, params_sig_handler);
+    void (*prev_handler_sigterm)(int) = std::signal(SIGTERM, params_sig_handler);
     
-    while (!ret){
+    while (!params_do_exit){
         {
             lmdb::txn txn = lmdb::txn::begin(env, nullptr, MDB_RDONLY);
             lmdb::dbi dbi = lmdb::dbi::open(txn, nullptr);
             ret = dbi.get(txn, key, val);
+            if (ret)
+                break;
         }
     }
+    std::signal(SIGINT, prev_handler_sigint);
+    std::signal(SIGTERM, prev_handler_sigterm);
     return std::string(val);
 }
 
