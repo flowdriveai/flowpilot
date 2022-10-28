@@ -39,7 +39,7 @@ public class HeadlessLauncher {
 			put("motionSensors", sensorManager);
 		}};
 
-		String modelPath = "models/supercombo_simple";
+		String modelPath = "models/supercombo";
 
 		// onnx CPU performs better than TNN.
 		ModelRunner model;

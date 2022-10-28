@@ -64,7 +64,7 @@ public class Launcher {
             put("motionSensors", sensorManager);
         }};
 
-        String modelPath = "models/supercombo_simple";
+        String modelPath = "models/supercombo";
         ModelRunner model = new TNNModelRunner(modelPath, true);
 
         this.modeld = new ModelExecutor(model);

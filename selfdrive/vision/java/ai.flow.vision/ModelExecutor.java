@@ -48,16 +48,13 @@ public class ModelExecutor implements Runnable{
     public static final long[] YUVimgShape = {384, 512, 1};
 
     public final INDArray imgTensorSequence = Nd4j.zeros(imgTensorShape);
+    public final INDArray desireNDArr = Nd4j.zeros(desireTensorShape);
+    public final INDArray trafficNDArr = Nd4j.zeros(trafficTensorShape);
+    public final INDArray stateNDArr = Nd4j.zeros(stateTensorShape);
     public final INDArray transformedYUVNDArr = Nd4j.zeros(DataType.UINT8, YUVimgShape);
-
     public final INDArray augmentRot = Nd4j.zeros(1, 3);
     public final INDArray augmentTrans = Nd4j.zeros(1, 3);
-
-    public final float[][] pulseDesire = new float[1][8];
     public final float[][] prevDesire = new float[1][8];
-    public final float[][] traffic = new float[1][2];
-    public float[][] state = new float[1][512];
-
     public final Parser parser = new Parser();
     public final ParamsInterface params = ParamsInterface.getInstance();
 
@@ -115,19 +112,14 @@ public class ModelExecutor implements Runnable{
         this.modelRunner = modelRunner;
     }
 
-    Runnable serializeAndPublish = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
-            msgDesire.fill(outs, timestamp);
-            msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
+    public void serializeAndPublish(){
+        msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
+        msgDesire.fill(outs, timestamp);
+        msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
 
-            ph.publishBuffer("modelV2", msgModelDataV2.serialize());
-            ph.publishBuffer("desire", msgDesire.serialize());
-            ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize());
-        }
+        ph.publishBuffer("modelV2", msgModelDataV2.serialize());
+        ph.publishBuffer("desire", msgDesire.serialize());
+        ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize());
     };
 
     public void floatArrToBuffer(float[] arr, ByteBuffer buffer){
@@ -228,7 +220,7 @@ public class ModelExecutor implements Runnable{
             start = System.currentTimeMillis();
             if (sh.updated("pulseDesire")){
                 pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
-                pulseDesire[0][pulseDesireInput] = 1.0f;
+                desireNDArr.put(0, pulseDesireInput, 1);
             }
 
             if (sh.updated("liveCalibration")) {
@@ -241,29 +233,25 @@ public class ModelExecutor implements Runnable{
             Preprocess.RGB888toYUV420(transformed, transformedYUV);
             Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 1);
 
-            floatArrToBuffer(state[0], stateBuffer);
-            floatArrToBuffer(pulseDesire[0], desireBuffer);
-            floatArrToBuffer(traffic[0], trafficBuffer);
-            modelRunner.run(inputImgsBuffer, desireBuffer, trafficBuffer, stateBuffer, netOutputs);
+            modelRunner.run(imgTensorSequence, desireNDArr, trafficNDArr, stateNDArr, netOutputs);
             outs = parser.parser(netOutputs);
 
             for (int i=0; i<outs.state[0].length; i++)
-                stateBuffer.putFloat(i*4, outs.state[0][i]);
+                stateNDArr.put(0, i, outs.state[0][i]);
 
             for (int i=0; i<outs.metaData.desireState.length; i++){
                 if (outs.metaData.desireState[i] - prevDesire[0][i] > 0.99f)
-                    pulseDesire[0][i] = outs.metaData.desireState[i];
+                    desireNDArr.put(0, i, outs.metaData.desireState[i]);
                 else
-                    pulseDesire[0][i] = 0.0f;
+                    desireNDArr.put(0, i, 0);
                 prevDesire[0][i] = outs.metaData.desireState[i];
             }
 
-            state = outs.state;
             imgTensorSequence.put(imgTensor0Slices, imgTensorSequence.get(imgTensor1Slices));
 
             // publish outputs
             timestamp = System.currentTimeMillis();
-            backgroundExecutor.execute(serializeAndPublish);
+            serializeAndPublish();
 
             end = System.currentTimeMillis();
             // compute runtime stats.

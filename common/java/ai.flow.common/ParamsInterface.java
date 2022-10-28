@@ -4,18 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class ParamsInterface {
-    public static final int PERSISTENT = 0;
-    public static final int  CLEAR_ON_START = 1;
-
-    public static final Map<String, Integer> keys = new HashMap<String, Integer>() {{
-        put("CalibrationParams", PERSISTENT);
-        put("CameraMatrix", PERSISTENT);
-        put("DistortionCoefficients", PERSISTENT);
-        put("ModelDReady", CLEAR_ON_START);
-        put("FlowinitReady", PERSISTENT);
-        put("FlowpilotPID", CLEAR_ON_START);
-        put("ControlsReady", CLEAR_ON_START);
-    }};
 
     public static ParamsInterface getInstance() {
         if (System.getenv("USE_PARAMS_NATIVE") != null)

@@ -1,5 +1,7 @@
 package ai.flow.vision;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,8 +9,8 @@ import java.util.Map;
 import static ai.flow.common.SystemUtils.isAndroid;
 
 public class TNNModelRunner extends ModelRunner{
-    String modelPath = "models/supercombo_simple";
-    String deviceType = "OPENCL";
+    String modelPath;
+    String deviceType;
     TNN model;
     Map<String, ByteBuffer> container = new HashMap<>();
     boolean useGPU;
@@ -45,6 +47,16 @@ public class TNNModelRunner extends ModelRunner{
         container.put("desire", desire);
         container.put("traffic_convention", trafficConvention);
         container.put("initial_state", state);
+
+        model.forward(container, "outputs", netOutputs);
+    }
+
+    @Override
+    public void run(INDArray inputImgs, INDArray desire, INDArray trafficConvention, INDArray state, float[] netOutputs) {
+        container.put("input_imgs", inputImgs.data().asNio());
+        container.put("desire", desire.data().asNio());
+        container.put("traffic_convention", trafficConvention.data().asNio());
+        container.put("initial_state", state.data().asNio());
 
         model.forward(container, "outputs", netOutputs);
     }

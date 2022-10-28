@@ -5,10 +5,12 @@ import android.app.Application;
 import com.qualcomm.qti.snpe.FloatTensor;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 import com.qualcomm.qti.snpe.SNPE;
+import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +41,7 @@ public class SNPEModelRunner extends ModelRunner {
         this.shapes = shapes;
 
         SNPE.NeuralNetworkBuilder builder = null;
-        File modelStream = new File(modelPath);
+        File modelStream = new File(modelPath + ".dlc");
         try {
             builder = new SNPE.NeuralNetworkBuilder(context)
                     .setDebugEnabled(false)
@@ -68,8 +70,7 @@ public class SNPEModelRunner extends ModelRunner {
             arr[i] = buffer.getFloat(i*4);
     }
 
-    public void writeTensor(FloatTensor tensor, ByteBuffer buffer, float arr[]){
-        BufferToFloatArr(arr, buffer);
+    public void writeTensor(FloatTensor tensor, float[] arr){
         tensor.write(arr, 0, arr.length);
     }
 
@@ -81,10 +82,21 @@ public class SNPEModelRunner extends ModelRunner {
 
     @Override
     public void run(ByteBuffer inputImgs, ByteBuffer desire, ByteBuffer trafficConvention, ByteBuffer state, float[] netOutputs){
-        writeTensor(container.get("input_imgs"), inputImgs, imgTensorSequenceArr);
-        writeTensor(container.get("desire"), desire, desireArr);
-        writeTensor(container.get("traffic_convention"), trafficConvention, trafficArr);
-        writeTensor(container.get("initial_state"), state, stateArr);
+        // not implemented
+    }
+
+    @Override
+    public void run(INDArray inputImgs, INDArray desire, INDArray trafficConvention, INDArray state, float[] netOutputs){
+
+        inputImgs.data().asNioFloat().get(imgTensorSequenceArr);
+        desire.data().asNioFloat().get(desireArr);
+        trafficConvention.data().asNioFloat().get(trafficArr);
+        state.data().asNioFloat().get(stateArr);
+
+        writeTensor(container.get("input_imgs"), imgTensorSequenceArr);
+        writeTensor(container.get("desire"), desireArr);
+        writeTensor(container.get("traffic_convention"), trafficArr);
+        writeTensor(container.get("initial_state"), stateArr);
 
         network.execute(container).get("outputs").read(netOutputs, 0, netOutputs.length);
     }

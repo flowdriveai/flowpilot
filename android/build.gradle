@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 31
+	compileSdkVersion 33
 	ndkVersion "21.1.6352462"
 	sourceSets {
 		main {
@@ -11,7 +11,7 @@ android {
 			assets.srcDirs = ['../assets']
 			jniLibs.srcDirs = ['libs']
 			// exclude onnx models from apk.
-			sourceSets.main.res.filter.exclude '**/supercombo_simple.onnx'
+			sourceSets.main.res.filter.exclude '**/supercombo.onnx'
 		}
 	}
 	packagingOptions {
@@ -19,7 +19,7 @@ android {
 		pickFirst 'META-INF/LICENSE.txt'
 		pickFirst 'META-INF/LICENSE'
 		exclude 'META-INF/native-image/**'
-		exclude '**/supercombo_simple.onnx'
+		exclude '**/supercombo.onnx'
 		pickFirst '**/nd4j-native.properties'
 		pickFirst '**/libc++_shared.so'
 		pickFirst 'services.yaml'
@@ -32,7 +32,7 @@ android {
 	defaultConfig {
 		applicationId 'ai.flow.android'
 		minSdkVersion 21
-		targetSdkVersion 30
+		targetSdkVersion 33
 		versionCode 1
 		versionName "1.0"
 		multiDexEnabled true
@@ -55,13 +55,6 @@ android {
 	buildTypes {
 		release {
 			minifyEnabled false
-		}
-	}
-
-	externalNativeBuild {
-		cmake {
-			path "src/main/cpp/CMakeLists.txt"
-			version "3.10.2"
 		}
 	}
 }

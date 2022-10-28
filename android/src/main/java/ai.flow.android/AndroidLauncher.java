@@ -2,6 +2,7 @@ package ai.flow.android;
 
 import ai.flow.android.sensor.CameraManager;
 import ai.flow.android.sensor.SensorManager;
+import ai.flow.android.vision.SNPEModelRunner;
 import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
 import ai.flow.launcher.Launcher;
@@ -27,7 +28,7 @@ import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 
 import java.util.*;
 
-import static ai.flow.common.SystemUtils.getUseGPU;
+import static ai.flow.common.utils.getBoolEnvVar;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
@@ -63,10 +64,10 @@ public class AndroidLauncher extends AndroidApplication {
 		// keep app from dimming due to inactivity.
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		// tune system for max throughput.
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-			getWindow().setSustainedPerformanceMode(true);
-		}
+		// tune system for max throughput. Does this really help ?
+		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+		//	getWindow().setSustainedPerformanceMode(true);
+		//}
 
 		// request permissions and wait till granted.
 		requestPermissions();
@@ -100,9 +101,14 @@ public class AndroidLauncher extends AndroidApplication {
 
 		int pid = Process.myPid();
 
-		String modelPath = "/storage/emulated/0/Android/data/ai.flow.android/files/supercombo_simple";
+		String modelPath = "/storage/emulated/0/Android/data/ai.flow.android/files/supercombo";
 
-		ModelRunner model = new TNNModelRunner(modelPath, getUseGPU());
+		ModelRunner model;
+		boolean useGPU = true; // always use gpus on android phones.
+		if (getBoolEnvVar("USE_SNPE"))
+			model = new SNPEModelRunner(getApplication(), modelPath, useGPU);
+		else
+			model = new TNNModelRunner(modelPath, useGPU);
 
 		Launcher launcher = new Launcher(sensors, new ModelExecutor(model));
 		initialize(new FlowUI(launcher, pid), configuration);
