@@ -150,6 +150,9 @@ public class AndroidLauncher extends AndroidApplication {
 						.withBasicAuthPassword(ACRA_AUTH_PASSWORD)
 						.withHttpMethod(HttpSender.Method.POST)
 						.build();
+				builder.getPluginConfigurationBuilder(ToastConfigurationBuilder.class)
+						.withText("crash report sent to flowpilot maintainers")
+						.build();
 			} catch (ACRAConfigurationException e) {
 				throw new RuntimeException(e);
 			}
