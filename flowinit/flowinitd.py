@@ -194,6 +194,8 @@ def main():
         # android specififc
         if os.environ.get("USE_SNPE", None) == "1":
             params.put_bool("UseSNPE", True)
+        else:
+            params.put_bool("UseSNPE", False)
 
         for k, v in default_params:
             if params.get(k) is None:
