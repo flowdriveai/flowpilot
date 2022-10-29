@@ -11,6 +11,7 @@ import static ai.flow.common.SystemUtils.isAndroid;
 public class TNNModelRunner extends ModelRunner{
     String modelPath;
     String deviceType;
+    String IODeviceType = "NAIVE";
     TNN model;
     Map<String, ByteBuffer> container = new HashMap<>();
     boolean useGPU;
@@ -32,7 +33,10 @@ public class TNNModelRunner extends ModelRunner{
         else
             deviceType = "X86";
 
-        model.init(modelPath, deviceType);
+        if (isAndroid())
+            IODeviceType = "ARM";
+
+        model.init(modelPath, deviceType, IODeviceType);
 
         model.createInput("input_imgs", shapes.get("input_imgs"));
         model.createInput("initial_state", shapes.get("initial_state"));

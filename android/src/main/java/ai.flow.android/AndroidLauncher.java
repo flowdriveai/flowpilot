@@ -87,8 +87,6 @@ public class AndroidLauncher extends AndroidApplication {
 			}
 		}
 
-		int a = 1/0;
-
 		ParamsInterface params = ParamsInterface.getInstance();
 		TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		String dongleID = "";
@@ -115,7 +113,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 		ModelRunner model;
 		boolean useGPU = true; // always use gpus on android phones.
-		if (getBoolEnvVar("USE_SNPE"))
+		if (params.getBool("UseSNPE"))
 			model = new SNPEModelRunner(getApplication(), modelPath, useGPU);
 		else
 			model = new TNNModelRunner(modelPath, useGPU);
@@ -142,16 +140,12 @@ public class AndroidLauncher extends AndroidApplication {
 
 		if (ACRA_URI != null && ACRA_AUTH_LOGIN != null && ACRA_AUTH_PASSWORD != null) {
 
-			System.out.println(ACRA_URI);
-			System.out.println(ACRA_AUTH_LOGIN);
-			System.out.println(ACRA_AUTH_PASSWORD);
-
 			ACRA.init((Application) base.getApplicationContext(), new CoreConfigurationBuilder()
 					.withBuildConfigClass(BuildConfig.class)
 					.withReportFormat(StringFormat.JSON)
 					.withPluginConfigurations(
 							new ToastConfigurationBuilder()
-									.withText("crash report sent.")
+									.withText("crash report sent to flowpilot maintainers")
 									.build(),
 							new HttpSenderConfigurationBuilder()
 									.withUri(ACRA_URI)

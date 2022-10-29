@@ -32,8 +32,8 @@ POSSIBLE_PNAME_MATRIX = [
     "java.exe",  # windows
 ]
 ANDROID_APP = "ai.flow.app"
-ENV_VARS = ["USE_GPU", "USE_PARAMS_CLIENT", "ZMQ_MESSAGING_PROTOCOL", "ZMQ_MESSAGING_ADDRESS"
-            "USE_VIDEO_STREAM", "SIMULATION", "FINGERPRINT", "MSGQ", "PASSIVE"]
+ENV_VARS = ["USE_GPU", "ZMQ_MESSAGING_PROTOCOL", "ZMQ_MESSAGING_ADDRESS",
+            "SIMULATION", "FINGERPRINT", "MSGQ", "PASSIVE"]
 
 params = Params()
 
@@ -190,6 +190,10 @@ def main():
 
         if not params.get_bool("DisableRadar_Allow"):
             params.delete("DisableRadar")
+        
+        # android specififc
+        if os.environ.get("USE_SNPE", None) == "1":
+            params.put_bool("UseSNPE", True)
 
         for k, v in default_params:
             if params.get(k) is None:

@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class TNN {
-    public native boolean init(String modelPath, String deviceType);
+    public native boolean init(String modelPath, String deviceType, String IODeviceType);
 
     public native void createInput(String name, int[] shape);
     public native void createOutput(String name, int[] shape);

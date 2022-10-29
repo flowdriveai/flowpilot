@@ -1,8 +1,5 @@
 package ai.flow.common;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public abstract class ParamsInterface {
 
     public static ParamsInterface getInstance() {
