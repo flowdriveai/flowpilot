@@ -140,7 +140,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 		if (ACRA_URI != null && ACRA_AUTH_LOGIN != null && ACRA_AUTH_PASSWORD != null) {
 
-			CoreConfigurationBuilder builder = new CoreConfigurationBuilder(this)
+			CoreConfigurationBuilder builder = new CoreConfigurationBuilder(base)
 					.withBuildConfigClass(BuildConfig.class)
 					.withReportFormat(StringFormat.JSON);
 			try {
@@ -153,6 +153,8 @@ public class AndroidLauncher extends AndroidApplication {
 			} catch (ACRAConfigurationException e) {
 				throw new RuntimeException(e);
 			}
+
+			ACRA.init(getApplication(), builder);
 		}
 	}
 
