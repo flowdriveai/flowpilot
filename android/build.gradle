@@ -14,11 +14,6 @@ android {
 			sourceSets.main.res.filter.exclude '**/supercombo.onnx'
 		}
 	}
-
-	applicationVariants.all { variant ->
-	variant.getRuntimeConfiguration().exclude group: 'com.google.code.findbugs', module: 'jsr305'
-	variant.getRuntimeConfiguration().exclude group: 'org.nd4j', module: 'protobuf'}
-
 	packagingOptions {
 		// Preventing from license violations (more or less):
 		pickFirst 'META-INF/LICENSE.txt'
@@ -36,18 +31,11 @@ android {
 
 	defaultConfig {
 		applicationId 'ai.flow.android'
-		minSdkVersion 22
+		minSdkVersion 21
 		targetSdkVersion 33
 		versionCode 1
-		versionName "0.0.1"
+		versionName "1.0"
 		multiDexEnabled true
-
-		if (System.getenv('ACRA_URI')!=null)
-			buildConfigField("String", "ACRA_URI", System.getenv('ACRA_URI'))
-		if (System.getenv('ACRA_AUTH_LOGIN')!=null)
-			buildConfigField("String", "ACRA_AUTH_LOGIN", System.getenv('ACRA_AUTH_LOGIN'))
-		if (System.getenv('ACRA_AUTH_PASSWORD')!=null)
-			buildConfigField("String", "ACRA_AUTH_PASSWORD", System.getenv('ACRA_AUTH_PASSWORD'))
 
 		externalNativeBuild {
 			cmake {
@@ -84,7 +72,7 @@ dependencies {
 	implementation project(path: ':definitions')
 	implementation project(path: ':messaging')
 	coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
-    implementation project(path: ':launcher')
+	implementation project(path: ':launcher')
 	implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
 	implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
 	implementation project(":messaging")
@@ -105,6 +93,7 @@ dependencies {
 				exclude ((HashMap) [group: 'org.bytedeco', module: 'openblas-platform'])
 				exclude ((HashMap) [group: 'org.bytedeco', module: 'mkl-platform'])
 				exclude ((HashMap) [group: 'org.nd4j', module: 'nd4j-native'])
+				exclude ((HashMap) [group: 'org.nd4j', module: 'guava:1.0.0-M1.1'])
 			}
 	implementation "org.bytedeco:javacpp:$rootProject.javacpp_version"
 	implementation "org.bytedeco:javacpp:$rootProject.javacpp_version:android-arm64"
@@ -116,14 +105,13 @@ dependencies {
 	implementation(name: 'snpe-release', ext:'aar')
 	implementation "org.capnproto:runtime:0.1.13"
 
-	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
-	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
-
-	implementation 'com.google.guava:guava:31.1-android'
-	def acraVersion = "5.9.3"
+	def acraVersion = "5.8.4"
 	implementation "ch.acra:acra-http:$acraVersion"
 	implementation "ch.acra:acra-toast:$acraVersion"
 	implementation "ch.acra:acra-limiter:$acraVersion"
+
+	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
 }
 
 // Called every time gradle gets executed, takes the native dependencies of

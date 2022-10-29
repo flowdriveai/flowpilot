@@ -12,7 +12,6 @@ import ai.flow.vision.ModelRunner;
 import ai.flow.vision.TNNModelRunner;
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -31,6 +30,7 @@ import java.util.*;
 
 import org.acra.ACRA;
 import org.acra.BuildConfig;
+import org.acra.config.ACRAConfigurationException;
 import org.acra.config.CoreConfigurationBuilder;
 import org.acra.config.ToastConfigurationBuilder;
 import org.acra.data.StringFormat;
@@ -140,21 +140,19 @@ public class AndroidLauncher extends AndroidApplication {
 
 		if (ACRA_URI != null && ACRA_AUTH_LOGIN != null && ACRA_AUTH_PASSWORD != null) {
 
-			ACRA.init((Application) base.getApplicationContext(), new CoreConfigurationBuilder()
+			CoreConfigurationBuilder builder = new CoreConfigurationBuilder(this)
 					.withBuildConfigClass(BuildConfig.class)
-					.withReportFormat(StringFormat.JSON)
-					.withPluginConfigurations(
-							new ToastConfigurationBuilder()
-									.withText("crash report sent to flowpilot maintainers")
-									.build(),
-							new HttpSenderConfigurationBuilder()
-									.withUri(ACRA_URI)
-									.withBasicAuthLogin(ACRA_AUTH_LOGIN)
-									.withBasicAuthPassword(ACRA_AUTH_PASSWORD)
-									.withHttpMethod(HttpSender.Method.POST)
-									.build()
-					)
-			);
+					.withReportFormat(StringFormat.JSON);
+			try {
+				builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder.class)
+						.withUri(ACRA_URI)
+						.withBasicAuthLogin(ACRA_AUTH_LOGIN)
+						.withBasicAuthPassword(ACRA_AUTH_PASSWORD)
+						.withHttpMethod(HttpSender.Method.POST)
+						.build();
+			} catch (ACRAConfigurationException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
