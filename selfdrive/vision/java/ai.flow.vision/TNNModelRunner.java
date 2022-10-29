@@ -33,8 +33,8 @@ public class TNNModelRunner extends ModelRunner{
         else
             deviceType = "X86";
 
-        if (isAndroid())
-            IODeviceType = "ARM";
+        //if (isAndroid())
+        //    IODeviceType = "ARM";
 
         model.init(modelPath, deviceType, IODeviceType);
 
