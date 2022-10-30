@@ -12,6 +12,7 @@ import ai.flow.vision.ModelRunner;
 import ai.flow.vision.TNNModelRunner;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -129,8 +130,6 @@ public class AndroidLauncher extends AndroidApplication {
 	}
 
 	private void initACRA(Context base) {
-		if(ACRA.isACRASenderServiceProcess()) return;
-
 		String ACRA_URI = null, ACRA_AUTH_LOGIN = null, ACRA_AUTH_PASSWORD = null;
 		try {
 			ACRA_URI = (String)ai.flow.app.BuildConfig.class.getField("ACRA_URI").get(null);
@@ -138,27 +137,24 @@ public class AndroidLauncher extends AndroidApplication {
 			ACRA_AUTH_PASSWORD = (String)ai.flow.app.BuildConfig.class.getField("ACRA_AUTH_PASSWORD").get(null);
 		} catch (Exception e) {}
 
-		if (ACRA_URI != null && ACRA_AUTH_LOGIN != null && ACRA_AUTH_PASSWORD != null) {
+		if (ACRA_URI == null || ACRA_AUTH_LOGIN == null || ACRA_AUTH_PASSWORD == null)
+			return;
 
-			CoreConfigurationBuilder builder = new CoreConfigurationBuilder(base)
-					.withBuildConfigClass(BuildConfig.class)
-					.withReportFormat(StringFormat.JSON);
-			try {
-				builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder.class)
-						.withUri(ACRA_URI)
-						.withBasicAuthLogin(ACRA_AUTH_LOGIN)
-						.withBasicAuthPassword(ACRA_AUTH_PASSWORD)
-						.withHttpMethod(HttpSender.Method.POST)
-						.build();
-				builder.getPluginConfigurationBuilder(ToastConfigurationBuilder.class)
-						.withText("crash report sent to flowpilot maintainers")
-						.build();
-			} catch (ACRAConfigurationException e) {
-				throw new RuntimeException(e);
-			}
+		CoreConfigurationBuilder builder = new CoreConfigurationBuilder(this)
+				.withBuildConfigClass(BuildConfig.class)
+				.withReportFormat(StringFormat.JSON);
 
-			ACRA.init(getApplication(), builder);
-		}
+		builder.getPluginConfigurationBuilder(HttpSenderConfigurationBuilder.class)
+				.withUri(ACRA_URI)
+				.withBasicAuthLogin(ACRA_AUTH_LOGIN)
+				.withBasicAuthPassword(ACRA_AUTH_PASSWORD)
+				.withHttpMethod(HttpSender.Method.POST)
+				.setEnabled(true);
+		builder.getPluginConfigurationBuilder(ToastConfigurationBuilder.class)
+				.withText("crash report sent to flowpilot maintainers")
+				.setEnabled(true);
+
+		ACRA.init((Application) base.getApplicationContext(), builder);
 	}
 
 	private boolean checkPermissions() {

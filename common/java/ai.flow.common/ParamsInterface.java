@@ -1,9 +1,11 @@
 package ai.flow.common;
 
+import static ai.flow.common.utils.getBoolEnvVar;
+
 public abstract class ParamsInterface {
 
     public static ParamsInterface getInstance() {
-        if (System.getenv("USE_PARAMS_NATIVE") != null)
+        if (getBoolEnvVar("USE_PARAMS_NATIVE"))
             return new Params();
         return new ParamsClient();
     }
