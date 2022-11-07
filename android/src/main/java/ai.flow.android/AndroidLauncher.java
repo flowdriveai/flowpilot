@@ -172,7 +172,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 	private Boolean checkVersionMisMatch() {
 		if (!params.getString("Version").equals(ai.flow.app.BuildConfig.VERSION_NAME)) {
-			Toast.makeText(appContext, "WARNING: App version mismatch detected", Toast.LENGTH_LONG).show();
+			Toast.makeText(appContext, "WARNING: App version mismatch detected. Make sure you are using latest versions for app and termux.", Toast.LENGTH_LONG).show();
 			return true;
 		}
 		return false;
