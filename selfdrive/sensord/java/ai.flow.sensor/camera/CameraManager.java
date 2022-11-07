@@ -114,7 +114,7 @@ public class CameraManager extends SensorInterface implements Runnable {
             frameID += 1;
             processFrame(frame);
             msgFrameData.frameData.setFrameId(frameID);
-            ph.publishBuffer(topic, msgFrameData.serialize());
+            ph.publishBuffer(topic, msgFrameData.serialize(true));
             diff = end - start;
             if (diff < deltaTime){
                 try{

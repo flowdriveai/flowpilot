@@ -112,16 +112,6 @@ public class ModelExecutor implements Runnable{
         this.modelRunner = modelRunner;
     }
 
-    public void serializeAndPublish(){
-        msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
-        msgDesire.fill(outs, timestamp);
-        msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
-
-        ph.publishBuffer("modelV2", msgModelDataV2.serialize());
-        ph.publishBuffer("desire", msgDesire.serialize());
-        ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize());
-    };
-
     public void floatArrToBuffer(float[] arr, ByteBuffer buffer){
         for (int i=0; i<arr.length; i++)
             buffer.putFloat(i*4, arr[i]);
@@ -285,6 +275,16 @@ public class ModelExecutor implements Runnable{
             thread.start();
         }
     }
+
+    public void serializeAndPublish(){
+        msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
+        msgDesire.fill(outs, timestamp);
+        msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
+
+        ph.publishBuffer("modelV2", msgModelDataV2.serialize(true));
+        ph.publishBuffer("desire", msgDesire.serialize(true));
+        ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize(true));
+    };
 
     public long getIterationRate() {
         return timePerIt/iterationNum;

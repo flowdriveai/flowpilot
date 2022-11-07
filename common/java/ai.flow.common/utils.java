@@ -10,4 +10,8 @@ public class utils {
         }
         return ret;
     }
+
+    public static double secSinceBoot(){
+        return System.currentTimeMillis()/1000.0;
+    }
 }

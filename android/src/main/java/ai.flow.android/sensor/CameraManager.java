@@ -145,7 +145,7 @@ public class CameraManager extends SensorInterface {
                 }
                 frameCrop.copyTo(frameCropContinuous); // make sub-mat continuous.
                 msgFrameData.frameData.setFrameId(frameID);
-                ph.publishBuffer(topic, msgFrameData.serialize());
+                ph.publishBuffer(topic, msgFrameData.serialize(true));
                 image.close();
                 frameID += 1;
             }
