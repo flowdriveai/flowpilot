@@ -25,3 +25,6 @@ Jinja2==3.0.3
 psutil==5.8.0
 pyzmq==22.2.1
 smbus2==0.4.2
+pycurl==7.45.1
+tenacity==8.0.1
+atomicwrites==1.4.0

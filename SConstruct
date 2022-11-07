@@ -184,6 +184,7 @@ SConscript(['selfdrive/controls/lib/lateral_mpc_lib/SConscript'])
 SConscript(['selfdrive/controls/lib/long_mpc_lib/SConscript'])
 
 SConscript(['selfdrive/boardd/SConscript'])
+SConscript(['selfdrive/loggerd/SConscript'])
 
 if GetOption('test'):
   SConscript('panda/tests/safety/SConscript')

@@ -1,0 +1,14 @@
+Import('env', 'arch', 'cereal', 'messaging', 'common')
+
+libs = [common, cereal, messaging,
+        'zmq', 'capnp', 'kj', 'z','pthread']
+
+src = ['logger.cc']
+
+logger_lib = env.Library('logger', src)
+libs.insert(0, logger_lib)
+
+env.Program('loggerd', ['loggerd.cc'], LIBS=libs)
+
+if GetOption('test'):
+  env.Program('tests/test_logger', ['tests/test_runner.cc', 'tests/test_logger.cc'], LIBS=libs + ['curl', 'crypto'])
