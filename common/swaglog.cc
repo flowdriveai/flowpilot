@@ -37,7 +37,7 @@ class SwaglogState : public LogState {
       }
     }
 
-    // openpilot bindings
+    // flowpilot bindings
     char* dongle_id = getenv("DONGLE_ID");
     if (dongle_id) {
       ctx_j["dongle_id"] = dongle_id;

@@ -8,7 +8,7 @@ import zmq
 
 from common.logging_extra import SwagLogger, SwagFormatter, SwagLogFileFormatter
 
-SWAGLOG_DIR = os.path.join(str(Path.home()), ".flow", "log")
+SWAGLOG_DIR = os.path.join(str(Path.home()), ".flowdrive", "log")
 
 def get_file_handler():
   Path(SWAGLOG_DIR).mkdir(parents=True, exist_ok=True)
