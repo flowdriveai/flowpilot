@@ -34,15 +34,23 @@ android {
 		minSdkVersion 21
 		targetSdkVersion 30
 		versionCode 1
-		versionName "0.0.2"
-		multiDexEnabled true
 
-		if (System.getenv('ACRA_URI')!=null)
+		// set acra config for crash reporting.
+		if (System.getenv('ACRA_URI')!=null) {
 			buildConfigField("String", "ACRA_URI", System.getenv('ACRA_URI'))
-		if (System.getenv('ACRA_AUTH_LOGIN')!=null)
+			project.logger.lifecycle('ACRA URI found')
+		}
+		if (System.getenv('ACRA_AUTH_LOGIN')!=null) {
 			buildConfigField("String", "ACRA_AUTH_LOGIN", System.getenv('ACRA_AUTH_LOGIN'))
-		if (System.getenv('ACRA_AUTH_PASSWORD')!=null)
+			project.logger.lifecycle('ACRA AUTH LOGIN found')
+		}
+		if (System.getenv('ACRA_AUTH_PASSWORD')!=null) {
 			buildConfigField("String", "ACRA_AUTH_PASSWORD", System.getenv('ACRA_AUTH_PASSWORD'))
+			project.logger.lifecycle('ACRA AUTH PASSWORD found')
+		}
+
+		// set app version
+		versionName = rootProject.file('common/version.h').text.split("\"")[1].trim()
 
 		externalNativeBuild {
 			cmake {

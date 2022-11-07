@@ -22,6 +22,7 @@ import android.provider.Settings;
 import android.system.Os;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
+import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.badlogic.gdx.backends.android.AndroidApplication;
@@ -31,7 +32,7 @@ import java.util.*;
 
 import org.acra.ACRA;
 import org.acra.BuildConfig;
-import org.acra.config.ACRAConfigurationException;
+import org.acra.ErrorReporter;
 import org.acra.config.CoreConfigurationBuilder;
 import org.acra.config.ToastConfigurationBuilder;
 import org.acra.data.StringFormat;
@@ -44,6 +45,7 @@ import static ai.flow.common.utils.getBoolEnvVar;
 public class AndroidLauncher extends AndroidApplication {
 	public static Map<String, SensorInterface> sensors;
 	public static Context appContext;
+	public static ParamsInterface params;
 	List<String> requiredPermissions = Arrays.asList(android.Manifest.permission.CAMERA,
 			android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
 			android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -88,7 +90,7 @@ public class AndroidLauncher extends AndroidApplication {
 			}
 		}
 
-		ParamsInterface params = ParamsInterface.getInstance();
+		params = ParamsInterface.getInstance();
 		TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		String dongleID = "";
 		if (telephonyManager != null) {
@@ -120,6 +122,19 @@ public class AndroidLauncher extends AndroidApplication {
 			model = new TNNModelRunner(modelPath, useGPU);
 
 		Launcher launcher = new Launcher(sensors, new ModelExecutor(model));
+
+		ErrorReporter ACRAreporter = ACRA.getErrorReporter();
+		ACRAreporter.putCustomData("DongleId", dongleID);
+		ACRAreporter.putCustomData("AndroidAppVersion", ai.flow.app.BuildConfig.VERSION_NAME);
+		ACRAreporter.putCustomData("FlowpilotVersion", params.getString("Version"));
+		ACRAreporter.putCustomData("VersionMisMatch", checkVersionMisMatch().toString());
+
+		ACRAreporter.putCustomData("GitCommit", params.getString("GitCommit"));
+		ACRAreporter.putCustomData("GitBranch", params.getString("GitBranch"));
+		ACRAreporter.putCustomData("GitRemote", params.getString("GitRemote"));
+
+		// check version mismatch between android app and github repo project.
+
 		initialize(new FlowUI(launcher, pid), configuration);
 	}
 
@@ -155,6 +170,14 @@ public class AndroidLauncher extends AndroidApplication {
 				.setEnabled(true);
 
 		ACRA.init((Application) base.getApplicationContext(), builder);
+	}
+
+	private Boolean checkVersionMisMatch() {
+		if (!params.getString("Version").equals(ai.flow.app.BuildConfig.VERSION_NAME)) {
+			Toast.makeText(appContext, "WARNING: App version mismatch detected", Toast.LENGTH_LONG).show();
+			return true;
+		}
+		return false;
 	}
 
 	private boolean checkPermissions() {

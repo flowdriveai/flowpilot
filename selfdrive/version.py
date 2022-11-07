@@ -7,8 +7,7 @@ from functools import lru_cache
 from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
-TESTED_BRANCHES = ['master']
-VERSION = "0.0.1"
+TESTED_BRANCHES = ['release']
 
 training_version: bytes = b"0.0.1"
 terms_version: bytes = b"1"
@@ -65,8 +64,11 @@ def get_normalized_origin(default: Optional[str] = None) -> Optional[str]:
                .replace(":", "/", 1)
 
 
+@cache
 def get_version() -> str:
-  return VERSION
+  with open(os.path.join(BASEDIR, "common", "version.h")) as _versionf:
+    version = _versionf.read().split('"')[1]
+  return version
 
 @cache
 def get_short_version() -> str:
