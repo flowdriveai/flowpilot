@@ -1,12 +1,11 @@
-package ai.flow.vision.messages;
+package ai.flow.modeld.messages;
 
 import ai.flow.definitions.MessageBase;
 import ai.flow.definitions.Definitions;
-import ai.flow.vision.ParsedOutputs;
+import ai.flow.modeld.ParsedOutputs;
 
-import org.capnproto.MessageBuilder;
 import org.capnproto.PrimitiveList;
-import java.io.IOException;
+
 import java.nio.ByteBuffer;
 
 public class MsgCameraOdometery extends MessageBase {

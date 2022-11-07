@@ -4,9 +4,9 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.CameraManager;
 import ai.flow.sensor.SensorInterface;
-import ai.flow.vision.ModelExecutor;
-import ai.flow.vision.ModelRunner;
-import ai.flow.vision.TNNModelRunner;
+import ai.flow.modeld.ModelExecutor;
+import ai.flow.modeld.ModelRunner;
+import ai.flow.modeld.TNNModelRunner;
 
 import java.io.IOException;
 import java.util.HashMap;

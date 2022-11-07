@@ -1,8 +1,8 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 import ai.flow.common.ParamsInterface;
 import ai.flow.definitions.Definitions;
-import ai.flow.vision.messages.*;
+import ai.flow.modeld.messages.*;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
 import org.capnproto.PrimitiveList;

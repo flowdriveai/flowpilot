@@ -1,4 +1,4 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 public class LeadDataV2 {
     public float prob = 0.0f;

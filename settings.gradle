@@ -5,8 +5,8 @@ include ':messaging'
 project(':messaging').projectDir = file('cereal/messaging')
 include ':definitions'
 project(':definitions').projectDir = file('cereal')
-include ':vision'
-project(':vision').projectDir = file('selfdrive/vision')
+include ':modeld'
+project(':modeld').projectDir = file('selfdrive/modeld')
 include ':sensord'
 project(':sensord').projectDir = file('selfdrive/sensord')
 include ':launcher'

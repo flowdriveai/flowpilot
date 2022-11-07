@@ -1,6 +1,6 @@
 package ai.flow.android.vision;
 
-import ai.flow.vision.ModelRunner;
+import ai.flow.modeld.ModelRunner;
 import android.app.Application;
 import com.qualcomm.qti.snpe.FloatTensor;
 import com.qualcomm.qti.snpe.NeuralNetwork;
@@ -10,7 +10,6 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 

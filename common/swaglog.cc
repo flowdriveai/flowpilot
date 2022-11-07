@@ -46,7 +46,7 @@ class SwaglogState : public LogState {
     if (daemon_name) {
       ctx_j["daemon"] = daemon_name;
     }
-    ctx_j["version"] = COMMA_VERSION;
+    ctx_j["version"] = FLOWPILOT_VERSION;
     ctx_j["dirty"] = !getenv("CLEAN");
 
     // device type

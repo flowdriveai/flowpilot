@@ -1,4 +1,4 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 public class DesireEnum {
     public static String STAY_IN_LANE = "0";

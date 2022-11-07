@@ -1,9 +1,9 @@
 package ai.flow.app.lwjgl3;
 
-import ai.flow.vision.ModelExecutor;
-import ai.flow.vision.ModelRunner;
-import ai.flow.vision.ONNXModelRunner;
-import ai.flow.vision.TNNModelRunner;
+import ai.flow.modeld.ModelExecutor;
+import ai.flow.modeld.ModelRunner;
+import ai.flow.modeld.ONNXModelRunner;
+import ai.flow.modeld.TNNModelRunner;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import ai.flow.common.SystemUtils;
@@ -12,7 +12,6 @@ import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.CameraManager;
 import ai.flow.app.FlowUI;
-import ai.flow.sensor.camera.DummyCameraManager;
 
 import java.io.IOException;
 import java.util.HashMap;

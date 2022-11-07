@@ -1,7 +1,7 @@
 package ai.flow.app;
 
-import ai.flow.vision.LeadDataV2;
-import ai.flow.vision.Parser;
+import ai.flow.modeld.LeadDataV2;
+import ai.flow.modeld.Parser;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;

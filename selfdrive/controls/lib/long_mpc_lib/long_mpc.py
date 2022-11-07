@@ -5,7 +5,7 @@ import numpy as np
 from common.realtime import sec_since_boot
 from common.numpy_fast import clip, interp
 from selfdrive.swaglog import cloudlog
-from selfdrive.vision.constants import index_function
+from selfdrive.modeld.constants import index_function
 
 if __name__ == '__main__':  # generating code
   from pyextra.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver

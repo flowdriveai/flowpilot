@@ -1,4 +1,4 @@
-package ai.flow.vision.messages;
+package ai.flow.modeld.messages;
 
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;

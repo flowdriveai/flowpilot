@@ -1,4 +1,4 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 public class DisengagePredictions {
     public float[] t = new float[44];

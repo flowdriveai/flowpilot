@@ -18,7 +18,7 @@ sourceCompatibility = 8.0
 
 dependencies {
 	implementation project(':ui')
-	implementation project(':vision')
+	implementation project(':modeld')
 	implementation project(":sensord")
 	implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
 	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"

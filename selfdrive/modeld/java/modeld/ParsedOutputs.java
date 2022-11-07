@@ -1,4 +1,4 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 // Core java classes
 import java.util.ArrayList;

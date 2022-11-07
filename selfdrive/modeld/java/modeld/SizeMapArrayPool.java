@@ -1,4 +1,4 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 import java.util.ArrayList;
 import java.util.HashMap;

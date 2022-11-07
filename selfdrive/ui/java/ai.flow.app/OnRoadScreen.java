@@ -18,11 +18,11 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.*;
 import ai.flow.definitions.MessageBase;
 import ai.flow.definitions.Definitions;
-import ai.flow.vision.ParsedOutputs;
-import ai.flow.vision.Parser;
-import ai.flow.vision.Preprocess;
+import ai.flow.modeld.ParsedOutputs;
+import ai.flow.modeld.Parser;
+import ai.flow.modeld.Preprocess;
 
-import ai.flow.vision.messages.MsgLiveCalibrationData;
+import ai.flow.modeld.messages.MsgLiveCalibrationData;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
 import org.nd4j.linalg.api.memory.MemoryWorkspace;
@@ -35,9 +35,9 @@ import org.nd4j.linalg.factory.Nd4j;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import ai.flow.vision.messages.MsgFrameData;
-import ai.flow.vision.messages.MsgModelDataV2;
-import ai.flow.vision.DesireEnum;
+import ai.flow.modeld.messages.MsgFrameData;
+import ai.flow.modeld.messages.MsgModelDataV2;
+import ai.flow.modeld.DesireEnum;
 
 import messaging.ZMQSubHandler;
 

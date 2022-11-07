@@ -20,7 +20,7 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import ai.flow.app.FlowUI;
 import ai.flow.app.SetUpScreen;
 import ai.flow.calibration.CameraCalibratorIntrinsic;
-import ai.flow.vision.messages.MsgFrameData;
+import ai.flow.modeld.messages.MsgFrameData;
 import messaging.ZMQSubHandler;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;

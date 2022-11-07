@@ -1,4 +1,4 @@
-package ai.flow.vision;
+package ai.flow.modeld;
 
 public class MetaData {
     public float engagedProb = 0.0f;

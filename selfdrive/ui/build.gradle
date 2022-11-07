@@ -16,7 +16,7 @@ dependencies {
 	api "com.badlogicgames.gdx:gdx:$gdxVersion"
 	implementation project(":messaging")
 	implementation project(':definitions')
-	implementation project(':vision')
+	implementation project(':modeld')
 	implementation project(":sensord")
 	implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
 	implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")

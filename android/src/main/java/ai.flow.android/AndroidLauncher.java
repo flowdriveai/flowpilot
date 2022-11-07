@@ -7,9 +7,9 @@ import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
 import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
-import ai.flow.vision.ModelExecutor;
-import ai.flow.vision.ModelRunner;
-import ai.flow.vision.TNNModelRunner;
+import ai.flow.modeld.ModelExecutor;
+import ai.flow.modeld.ModelRunner;
+import ai.flow.modeld.TNNModelRunner;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Application;
@@ -38,8 +38,6 @@ import org.acra.config.ToastConfigurationBuilder;
 import org.acra.data.StringFormat;
 import org.acra.config.HttpSenderConfigurationBuilder;
 import org.acra.sender.HttpSender;
-
-import static ai.flow.common.utils.getBoolEnvVar;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {

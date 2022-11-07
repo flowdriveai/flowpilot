@@ -1,9 +1,9 @@
-package ai.flow.vision.messages;
+package ai.flow.modeld.messages;
 
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
-import ai.flow.vision.ParsedOutputs;
-import ai.flow.vision.Parser;
+import ai.flow.modeld.ParsedOutputs;
+import ai.flow.modeld.Parser;
 import org.capnproto.PrimitiveList;
 import org.capnproto.StructList;
 
