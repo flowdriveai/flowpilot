@@ -39,7 +39,6 @@ class Service:
         # need to use polling to determine if alive or not.
         if self.proc is not None:
             poll = self.proc.poll()
-            print(self.name, poll)
             return True if poll is None else False
         else:
             return self.phandler.is_running()         
