@@ -26,6 +26,7 @@ class Service:
         self.nomonitor = nomonitor
         self.phandler = None
         self.exitcode = None
+        self.proc = None
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -34,7 +35,11 @@ class Service:
         return self.__str__() + "\n"
     
     def is_alive(self):
-        return self.phandler.is_running()
+        if not self.phandler.is_running():
+            _, error = self.proc.communicate()
+            return False, error
+        
+        return self.phandler.is_running(), None
  
     def start(self):
         """Starts the service"""
@@ -42,7 +47,7 @@ class Service:
             return
         if not self.monitor_only:
             logger.info("Starting " + self.name)
-            stdout, stderr = None, None
+            stdout, stderr = subprocess.PIPE, subprocess.PIPE
             if Config.LOGPATH:
                 with open(
                     os.path.join(Config.LOGPATH, f"{self.name}.stdout"), "a"
@@ -51,10 +56,10 @@ class Service:
                 ) as stderr:
                     stdout, stderr = stdout, stderr
 
-            proc = subprocess.Popen(
+            self.proc = subprocess.Popen(
                         [self.command] + self.args, stdout=stdout, stderr=stderr, shell=True
                     )
-            self.pid = proc.pid
+            self.pid = self.proc.pid
         self.phandler = psutil.Process(self.pid)
 
     def stop(self):
@@ -88,7 +93,7 @@ class Service:
         state = log.ManagerState.ProcessState.new_message()
         state.name = self.name
         if self.phandler:
-            state.running = self.is_alive()
+            state.running = self.is_alive()[0]
             state.shouldBeRunning = self.phandler is not None
             state.pid = self.pid or 0
             state.exitCode = self.exitcode or 0

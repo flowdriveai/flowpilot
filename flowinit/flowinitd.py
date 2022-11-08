@@ -22,6 +22,7 @@ from flowinit.services import Service, killswitch
 from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
 from selfdrive.swaglog import cloudlog
+from selfdrive.sentry import sentry_init, capture_error
 
 logger = logging.getLogger(__name__)
 os.chdir(BASEDIR)
@@ -218,7 +219,9 @@ def main():
 
         if not is_dirty():
             os.environ['CLEAN'] = '1'
-
+        
+        sentry_init(prod=True)
+        
         cloudlog.bind_global(dongle_id="", version=get_version(), dirty=is_dirty(), # TODO
                             device="todo")
 
@@ -247,8 +250,13 @@ def main():
 
             # Event loop
             while True:
+                status, error = service.is_alive()
+                print("error")
+                print(error)
+                if error is not None:
+                    capture_error(error, level="fatal")
 
-                running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if service.is_alive() else "\u001b[31m", service.name)
+                running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if status else "\u001b[31m", service.name)
                        for service in services)
 
                 print(running)
