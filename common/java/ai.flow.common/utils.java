@@ -18,8 +18,4 @@ public class utils {
     public static double milliSinceBoot() {
         return System.currentTimeMillis();
     }
-
-    public static long nanoSinceBoot() {
-        return System.nanoTime();
-    }
 }

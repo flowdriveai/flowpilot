@@ -36,6 +36,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 
@@ -168,14 +170,14 @@ public class CameraManager extends SensorInterface {
         if (recording)
             return ;
         recording = true;
-        @SuppressLint("SdCardPath") File movieDir = new File(Path.internal("data/movies"));
+        @SuppressLint("SdCardPath") File movieDir = new File(Path.getVideoStorageDir());
 
         if (!movieDir.exists()) {
             movieDir.mkdirs();
         }
 
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String vidFilePath = movieDir.getAbsolutePath() + "/" + timestamp + ".mp4";
+        String videoFileName = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss--SSS").format(new Date());
+        String vidFilePath = movieDir.getAbsolutePath() + "/" + videoFileName + ".mp4";
 
         File vidFile = new File(vidFilePath);
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {

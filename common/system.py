@@ -25,9 +25,11 @@ def is_android_rooted():
         return True
     except PermissionError:
         return False
+        
 @cache
 def is_desktop():
     return get_platform() != System.android
+
 @cache
 def get_platform():
     system = platform.system()

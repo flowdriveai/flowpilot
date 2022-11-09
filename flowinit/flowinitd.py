@@ -4,6 +4,7 @@ import sys
 import time
 from pathlib import Path
 import traceback
+import subprocess
 import os
 
 import psutil
@@ -11,6 +12,7 @@ import yaml
 from common.params import Params, ParamKeyType
 from common.basedir import BASEDIR
 from common import system
+from common.path import external_android_storage
 import cereal.messaging as messaging
 
 from flowinit.config import Config
@@ -192,10 +194,16 @@ def main():
             params.delete("DisableRadar")
         
         # android specififc
-        if os.environ.get("USE_SNPE", None) == "1":
-            params.put_bool("UseSNPE", True)
-        else:
-            params.put_bool("UseSNPE", False)
+        if system.is_android():
+            if os.environ.get("USE_SNPE", None) == "1":
+                params.put_bool("UseSNPE", True)
+            else:
+                params.put_bool("UseSNPE", False)
+            
+            internal_assets_dir = os.path.join(BASEDIR, "assets")
+            external_android_asset_dir = os.path.join(external_android_storage(), "flowpilot", "assets")
+            Path(external_android_asset_dir).mkdir(parents=True, exist_ok=True)
+            subprocess.check_output(["rsync", "-r", "-u", internal_assets_dir, external_android_asset_dir])
 
         for k, v in default_params:
             if params.get(k) is None:
