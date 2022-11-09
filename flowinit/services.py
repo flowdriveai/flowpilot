@@ -8,7 +8,7 @@ import psutil
 from flowinit.config import Config
 from cereal import log
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)    
 
 
 class Service:
@@ -25,6 +25,7 @@ class Service:
         self.pid = pid
         self.nomonitor = nomonitor
         self.phandler = None
+        self.proc = None
         self.exitcode = None
         self.proc = None
 
@@ -35,11 +36,13 @@ class Service:
         return self.__str__() + "\n"
     
     def is_alive(self):
-        if not self.phandler.is_running():
-            _, error = self.proc.communicate()
-            return False, error
-        
-        return self.phandler.is_running(), None
+        # python subprocesses go into zombie state after terminating
+        # need to use polling to determine if alive or not.
+        if self.proc is not None:
+            poll = self.proc.poll()
+            return True if poll is None else False
+        else:
+            return self.phandler.is_running()         
  
     def start(self):
         """Starts the service"""
@@ -57,7 +60,7 @@ class Service:
                     stdout, stderr = stdout, stderr
 
             self.proc = subprocess.Popen(
-                        [self.command] + self.args, stdout=stdout, stderr=stderr, shell=True
+                        [self.command] + self.args, shell=True
                     )
             self.pid = self.proc.pid
         self.phandler = psutil.Process(self.pid)
@@ -71,22 +74,20 @@ class Service:
 
     def get_proc_msg(self):
         """Packages a Capn'Proto message for proc logs"""
-
         proc_msg = log.ProcLog.Process.new_message()
-
-        proc_msg.pid=self.pid
-        proc_msg.name=self.name
-        proc_msg.state=self.phandler.status()
-        proc_msg.nice=self.phandler.nice()
-        proc_msg.numThreads=self.phandler.num_threads()
-        proc_msg.startTime=self.phandler.create_time()
-        proc_msg.processor=self.phandler.cpu_affinity()
-        proc_msg.cpuPercent=self.phandler.cpu_percent()
-        proc_msg.cpuTimes=self.phandler.cpu_times().user
-        proc_msg.memoryUsage=self.phandler.memory_percent()
-        proc_msg.cmdline=self.phandler.cmdline()
-        proc_msg.exe=self.phandler.exe()
-
+        if self.is_alive():
+            proc_msg.pid=self.pid
+            proc_msg.name=self.name
+            proc_msg.state=self.phandler.status()
+            proc_msg.nice=self.phandler.nice()
+            proc_msg.numThreads=self.phandler.num_threads()
+            proc_msg.startTime=self.phandler.create_time()
+            proc_msg.processor=self.phandler.cpu_affinity()
+            proc_msg.cpuPercent=self.phandler.cpu_percent()
+            proc_msg.cpuTimes=self.phandler.cpu_times().user
+            proc_msg.memoryUsage=self.phandler.memory_percent()
+            proc_msg.cmdline=self.phandler.cmdline()
+            proc_msg.exe=self.phandler.exe()
         return proc_msg
 
     def get_process_state_msg(self):
