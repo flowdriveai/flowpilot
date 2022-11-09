@@ -200,10 +200,12 @@ def main():
             else:
                 params.put_bool("UseSNPE", False)
             
+            # android app cannot access internal termux files, need to copy them over 
+            # to external storage. rsync is used to copy only modified files.
             internal_assets_dir = os.path.join(BASEDIR, "assets")
-            external_android_asset_dir = os.path.join(external_android_storage(), "flowpilot", "assets")
-            Path(external_android_asset_dir).mkdir(parents=True, exist_ok=True)
-            subprocess.check_output(["rsync", "-r", "-u", internal_assets_dir, external_android_asset_dir])
+            external_android_flowpilot_dir = os.path.join(external_android_storage(), "flowpilot")
+            Path(external_android_flowpilot_dir).mkdir(parents=True, exist_ok=True)
+            subprocess.check_output(["rsync", "-r", "-u", internal_assets_dir, external_android_flowpilot_dir])
 
         for k, v in default_params:
             if params.get(k) is None:
