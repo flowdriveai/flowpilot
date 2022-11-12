@@ -134,7 +134,7 @@ public class CalibrateScreen extends ScreenAdapter {
     public static float[] byteToFloat(byte[] input) {
         float[] ret = new float[input.length / 4];
         for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.BIG_ENDIAN).getFloat();
+            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
         }
         return ret;
     }
@@ -143,7 +143,7 @@ public class CalibrateScreen extends ScreenAdapter {
         byte[] ret = new byte[(int)(mat.total() * mat.channels()) * 4];
         for(int i = 0; i < mat.rows(); i++) {
             for(int j = 0; j < mat.cols(); j++) {
-                ByteBuffer.wrap(ret, (i * mat.cols() + j)*4, 4).putFloat((float) mat.get(i, j)[0]);
+                ByteBuffer.wrap(ret, (i * mat.cols() + j)*4, 4).order(ByteOrder.LITTLE_ENDIAN).putFloat((float) mat.get(i, j)[0]);
             }
         }
         return ret;
