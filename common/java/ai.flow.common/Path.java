@@ -3,6 +3,7 @@ package ai.flow.common;
 import java.nio.file.Paths;
 
 public class Path {
+    @SuppressWarnings("NewApi")
     public static String getFlowPilotRoot() {
         if (SystemUtils.isAndroid())
             // on android, actual flowpilot root resides with termux which cannot be accessed.
@@ -13,6 +14,7 @@ public class Path {
         }
     }
 
+    @SuppressWarnings("NewApi")
     public static String internal(String relativePath){
         return Paths.get(getFlowPilotRoot(), relativePath).toString();
     }

@@ -670,7 +670,7 @@ void boardd_main_thread(std::vector<std::string> serials) {
     threads.emplace_back(pigeon_thread, peripheral_panda);
 
     threads.emplace_back(can_send_thread, pandas, getenv("FAKESEND") != nullptr);
-    //threads.emplace_back(can_recv_thread, pandas);
+    threads.emplace_back(can_recv_thread, pandas);
 
     for (auto &t : threads) t.join();
   }

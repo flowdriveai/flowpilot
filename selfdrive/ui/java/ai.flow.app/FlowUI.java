@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.common.Path;
 import ai.flow.modeld.ModelExecutor;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -68,7 +69,7 @@ public class FlowUI extends Game {
     }
 
     public static void loadFont(String fontPath, String fontName, int size, Skin skin){
-        FreeTypeFontGenerator fontGen = new FreeTypeFontGenerator(Gdx.files.internal(fontPath));
+        FreeTypeFontGenerator fontGen = new FreeTypeFontGenerator(Gdx.files.absolute(Path.internal(fontPath)));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
         parameter.genMipMaps = true;
         parameter.magFilter = Texture.TextureFilter.MipMapLinearLinear;
@@ -80,32 +81,31 @@ public class FlowUI extends Game {
     }
 
     public void loadInternalFonts(Skin skin){
-        loadFont("fonts/Inter-Regular.ttf", "default-font-16", 16, skin);
-        loadFont("fonts/Inter-Regular.ttf", "default-font", 36, skin);
-        loadFont("fonts/Inter-Regular.ttf", "default-font-64", 64, skin);
-        loadFont("fonts/opensans_bold.ttf", "default-font-bold", 20, skin);
-        loadFont("fonts/opensans_bold.ttf", "default-font-bold-med", 45, skin);
-        loadFont("fonts/opensans_bold.ttf", "default-font-bold-large", 100, skin);
+        loadFont("assets/fonts/Inter-Regular.ttf", "default-font-16", 16, skin);
+        loadFont("assets/fonts/Inter-Regular.ttf", "default-font", 36, skin);
+        loadFont("assets/fonts/Inter-Regular.ttf", "default-font-64", 64, skin);
+        loadFont("assets/fonts/opensans_bold.ttf", "default-font-bold", 20, skin);
+        loadFont("assets/fonts/opensans_bold.ttf", "default-font-bold-med", 45, skin);
+        loadFont("assets/fonts/opensans_bold.ttf", "default-font-bold-large", 100, skin);
     }
 
     @Override
     public void create() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Nd4j.zeros(1); // init nd4j (any better ways?)
-        copyResources();
 
         params.putInt("FlowpilotPID", pid);
 
         if (Gdx.gl != null) { // else headless mode
-            sound = Gdx.audio.newSound(Gdx.files.internal("sounds/click.mp3"));
+            sound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("assets/sounds/click.mp3")));
             shapeRenderer = new ShapeRenderer();
             font = new BitmapFont();
             font.setColor(0f, 1f, 0f, 1f);
             font.getData().setScale(2);
             batch = new SpriteBatch();
-            skin = new Skin(new TextureAtlas(Gdx.files.internal("skins/uiskin.atlas")));
+            skin = new Skin(new TextureAtlas(Gdx.files.absolute(Path.internal("assets/skins/uiskin.atlas"))));
             loadInternalFonts(skin);
-            skin.load(Gdx.files.internal("skins/uiskin.json"));
+            skin.load(Gdx.files.absolute(Path.internal("assets/skins/uiskin.json")));
 
             settingsScreen = new SettingsScreen(this);
             onRoadScreen = new OnRoadScreen(this);
@@ -116,20 +116,6 @@ public class FlowUI extends Game {
             launcher.startSensorD();
             launcher.startAllD();
         }
-    }
-
-    public void copyResources() {
-        FileHandle videoSource = Gdx.files.internal("tmp");
-        videoSource.copyTo(Gdx.files.external("tmp"));
-
-        FileHandle model = Gdx.files.internal("models/supercombo.dlc");
-        model.copyTo(Gdx.files.external("supercombo.dlc"));
-
-        FileHandle tnnProto = Gdx.files.internal("models/supercombo.tnnproto");
-        tnnProto.copyTo(Gdx.files.external("supercombo.tnnproto"));
-
-        FileHandle tnnModel = Gdx.files.internal("models/supercombo.tnnmodel");
-        tnnModel.copyTo(Gdx.files.external("supercombo.tnnmodel"));
     }
 
     @Override
