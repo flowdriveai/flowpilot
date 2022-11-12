@@ -20,8 +20,8 @@ services:
     command: keyvald
     nowait: true
   
-  gradled:
-    command: ./gradlew desktop:run
+  flowpilot:
+    command: LD_PRELOAD=libprocname.so ./gradlew desktop:run
     nowait: true
     platforms: ["desktop"]
     
