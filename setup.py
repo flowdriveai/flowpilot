@@ -18,6 +18,6 @@ setup(name="flowpilot",
                                         "logmessaged=selfdrive.logmessaged:main",
                                         "keyvald=selfdrive.keyvald:main",
                                         "pandad=selfdrive.boardd.pandad:run",
-                                        "flowinit=selfdrive.flowinit.flowinitd:main"]}
+                                        "flowinit=selfdrive.manager.flowinitd:main"]}
      )
 
