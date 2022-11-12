@@ -351,8 +351,10 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCameraMatrix(Definitions.FrameData.Reader frameData){
-        if (!isIntrinsicsValid(frameData))
+        if (!isIntrinsicsValid(frameData)) {
+            System.out.println("got invalid intrinsics from camera manager");
             return;
+        }
         PrimitiveList.Float.Reader intrinsics = frameData.getIntrinsics();
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){

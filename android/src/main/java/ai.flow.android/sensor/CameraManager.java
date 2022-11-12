@@ -1,5 +1,6 @@
 package ai.flow.android.sensor;
 
+import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.camera.MsgFrameData;
@@ -35,6 +36,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.concurrent.ExecutionException;
 
 
@@ -54,6 +57,7 @@ public class CameraManager extends SensorInterface {
     public int frameID = 0;
     public boolean recording = false;
     public Context context;
+    public ParamsInterface params = ParamsInterface.getInstance();
 
     static class CustomLifecycle implements LifecycleOwner {
 
@@ -96,6 +100,23 @@ public class CameraManager extends SensorInterface {
         msgFrameData.frameData.setNativeImageAddr(frameCropContinuous.dataAddr());
         ph = new ZMQPubHandler();
         ph.createPublisher(topic);
+
+        loadIntrinsics();
+    }
+
+    public void loadIntrinsics(){
+        if (params.exists("CameraMatrix")) {
+            float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
+            updateProperty("intrinsics", cameraMatrix);
+        }
+    }
+
+    public static float[] byteToFloat(byte[] input) {
+        float[] ret = new float[input.length / 4];
+        for (int x = 0; x < input.length; x += 4) {
+            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+        }
+        return ret;
     }
 
     public void setIntrinsics(float[] intrinsics){
