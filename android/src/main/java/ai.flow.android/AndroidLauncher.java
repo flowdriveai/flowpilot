@@ -111,7 +111,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 		int pid = Process.myPid();
 
-		String modelPath = Path.internal("assets/models/supercombo");
+		String modelPath = Path.internal("selfdrive/assets/models/supercombo");
 
 		ModelRunner model;
 		boolean useGPU = true; // always use gpus on android phones.

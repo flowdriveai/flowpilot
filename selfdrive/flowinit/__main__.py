@@ -1,6 +1,6 @@
 import logging
 
-from flowinit import main, unset_init_lock
+from selfdrive.flowinit import main, unset_init_lock
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ from typing import List
 
 import psutil
 
-from flowinit.config import Config
+from selfdrive.flowinit.config import Config
 from cereal import log
 
 logger = logging.getLogger(__name__)

@@ -81,12 +81,12 @@ public class FlowUI extends Game {
     }
 
     public void loadInternalFonts(Skin skin){
-        loadFont("assets/fonts/Inter-Regular.ttf", "default-font-16", 16, skin);
-        loadFont("assets/fonts/Inter-Regular.ttf", "default-font", 36, skin);
-        loadFont("assets/fonts/Inter-Regular.ttf", "default-font-64", 64, skin);
-        loadFont("assets/fonts/opensans_bold.ttf", "default-font-bold", 20, skin);
-        loadFont("assets/fonts/opensans_bold.ttf", "default-font-bold-med", 45, skin);
-        loadFont("assets/fonts/opensans_bold.ttf", "default-font-bold-large", 100, skin);
+        loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-16", 16, skin);
+        loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font", 36, skin);
+        loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-64", 64, skin);
+        loadFont("selfdrive/assets/fonts/opensans_bold.ttf", "default-font-bold", 20, skin);
+        loadFont("selfdrive/assets/fonts/opensans_bold.ttf", "default-font-bold-med", 45, skin);
+        loadFont("selfdrive/assets/fonts/opensans_bold.ttf", "default-font-bold-large", 100, skin);
     }
 
     @Override
@@ -97,15 +97,15 @@ public class FlowUI extends Game {
         params.putInt("FlowpilotPID", pid);
 
         if (Gdx.gl != null) { // else headless mode
-            sound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("assets/sounds/click.mp3")));
+            sound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/click.mp3")));
             shapeRenderer = new ShapeRenderer();
             font = new BitmapFont();
             font.setColor(0f, 1f, 0f, 1f);
             font.getData().setScale(2);
             batch = new SpriteBatch();
-            skin = new Skin(new TextureAtlas(Gdx.files.absolute(Path.internal("assets/skins/uiskin.atlas"))));
+            skin = new Skin(new TextureAtlas(Gdx.files.absolute(Path.internal("selfdrive/assets/skins/uiskin.atlas"))));
             loadInternalFonts(skin);
-            skin.load(Gdx.files.absolute(Path.internal("assets/skins/uiskin.json")));
+            skin.load(Gdx.files.absolute(Path.internal("selfdrive/assets/skins/uiskin.json")));
 
             settingsScreen = new SettingsScreen(this);
             onRoadScreen = new OnRoadScreen(this);

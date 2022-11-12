@@ -39,7 +39,7 @@ public class IntroScreen extends ScreenAdapter {
     public IntroScreen(FlowUI appContext) {
         this.appContext = appContext;
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        capture = new VideoCapture(Path.internal("assets/videos/" + videoName));
+        capture = new VideoCapture(Path.internal("selfdrive/assets/videos/" + videoName));
         frameCount = (int) capture.get(Videoio.CAP_PROP_FRAME_COUNT);
         vidWidth = (int) capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
         vidHeight = (int) capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);

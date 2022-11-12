@@ -2,7 +2,7 @@ import logging
 import tempfile
 import zmq
 import platform
-from flowinit.config import Config
+from selfdrive.flowinit.config import Config
 from cereal.messaging.utils import get_zmq_socket_path
 
 logger = logging.getLogger(__name__)

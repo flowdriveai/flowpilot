@@ -172,7 +172,7 @@ public class SettingsScreen extends ScreenAdapter {
         scrollTable.add(scrollPane);
         scrollTable.setBackground(createRoundedRectangle(800, 700, 20, new Color(0.18f, 0.18f, 0.18f, 0.8f)));
 
-        closeButton = getImageButton("assets/icons/icon_close.png");
+        closeButton = getImageButton("selfdrive/assets/icons/icon_close.png");
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
