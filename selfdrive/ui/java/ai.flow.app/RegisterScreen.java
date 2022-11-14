@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.net.HttpRequestBuilder;
+// import com.badlogic.gdx.net.HttpRequestBuilder;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -14,6 +14,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -182,38 +187,21 @@ public class RegisterScreen extends ScreenAdapter {
 
         progressVal++;
 
-        HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
-        Net.HttpRequest request =
-                requestBuilder
-                        .newRequest()
-                        .url(REGISTER_URI)
-                        .method(Net.HttpMethods.POST)
-                        .formEncodedContent(form)
-                        .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .POST(ofFormData(form))
+                .uri(URI.create(REGISTER_URI))
+                .build();
 
-        progressVal++;
-        Gdx.net.sendHttpRequest(
-                request,
-                new Net.HttpResponseListener() {
-                    @Override
-                    public void handleHttpResponse(Net.HttpResponse httpResponse) {
-                        progressVal++;
-                        sentMailDialog.show(stage);
-                        progressVal++;
-                    }
-
-                    @Override
-                    public void failed(Throwable t) {
-                        progressVal = 0;
-                        noInternetDialog.show(stage);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        progressVal = 0;
-                        noInternetDialog.show(stage);
-                    }
-                });
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (respone.statusCode() != 200) {
+            progressVal = 0;
+            noInternetDialog.show(stage);
+        } else {
+            progressVal++;
+            sentMailDialog.show(stage);
+            progressVal++;
+        }
     }
 
     @Override

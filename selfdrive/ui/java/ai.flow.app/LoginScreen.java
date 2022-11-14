@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.net.HttpRequestBuilder;
+// import com.badlogic.gdx.net.HttpRequestBuilder;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
@@ -12,6 +12,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.net.HttpCookie;
 import java.util.HashMap;
 import java.util.List;
@@ -117,53 +123,31 @@ public class LoginScreen extends ScreenAdapter {
 
         progressVal++;
 
-        HttpRequestBuilder requestBuilder = new HttpRequestBuilder();
-        Net.HttpRequest request =
-                requestBuilder
-                        .newRequest()
-                        .url(LOGIN_URI)
-                        .method(Net.HttpMethods.POST)
-                        .formEncodedContent(form)
-                        .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .POST(ofFormData(form))
+                .uri(URI.create(LOGIN_URI))
+                .build();
 
-        Gdx.net.sendHttpRequest(
-                request,
-                new Net.HttpResponseListener() {
-                    @Override
-                    public void handleHttpResponse(Net.HttpResponse httpResponse) {
-                        int statusCode = httpResponse.getStatus().getStatusCode();
-                        if (statusCode != 200) {
-                            loginError();
-                            progressVal = 0;
-                            return;
-                        }
-                        progressVal++;
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (respone.statusCode() != 200) {
+            loginError();
+            progressVal = 0;
+        } else {
+            progressVal++;
 
-                        try {
-                            String cookieHeader = httpResponse.getHeader("set-cookie");
-                            List<HttpCookie> cookies = HttpCookie.parse(cookieHeader);
-                            LoginSucceeded(cookies);
-
-                        } catch (Exception exception) {
-                            progressVal = 0;
-                            exception.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void failed(Throwable t) {
-                        progressVal = 0;
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        progressVal = 0;
-                    }
-                });
+            try {
+                String cookies = response.getFirstHeader("set-cookie").getValue();
+                LoginSucceeded(cookie);
+            } catch (Exception exception) {
+                progressVal = 0;
+                exception.printStackTrace();
+            }
+        }
     }
 
-    private void LoginSucceeded(List<HttpCookie> cookies) {
-        appContext.params.put("UserID", cookies.get(0).getValue());
+    private void LoginSucceeded(String cookie) {
+        appContext.params.put("UserID", cookie);
         progressVal++;
     }
 
