@@ -142,7 +142,7 @@ public class LoginScreen extends ScreenAdapter {
                         try {
                             String cookieHeader = httpResponse.getHeader("set-cookie");
                             List<HttpCookie> cookies = HttpCookie.parse(cookieHeader);
-                            LoginSucceeded(cookies);
+                            LoginSucceeded(email, token, cookies);
 
                         } catch (Exception exception) {
                             progressVal = 0;
@@ -162,8 +162,10 @@ public class LoginScreen extends ScreenAdapter {
                 });
     }
 
-    private void LoginSucceeded(List<HttpCookie> cookies) {
+    private void LoginSucceeded(String email, String token, List<HttpCookie> cookies) {
         appContext.params.put("UserID", cookies.get(0).getValue());
+        appContext.params.put("Email", email);
+        appContext.params.put("Token", token);
         progressVal++;
     }
 

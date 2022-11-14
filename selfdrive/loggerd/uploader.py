@@ -12,13 +12,15 @@ from pathlib import Path
 
 from cereal import log
 import cereal.messaging as messaging
-#from common.api import Api
+from common.api import Api
 from common.params import Params
 from common.realtime import set_core_affinity
 from system.hardware import TICI
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
 from selfdrive.swaglog import cloudlog
+
+import boto3
 
 NetworkType = log.DeviceState.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
@@ -57,7 +59,9 @@ def clear_locks(root):
 class Uploader():
   def __init__(self, dongle_id, root):
     self.dongle_id = dongle_id
-    #self.api = Api(dongle_id)
+    self.api = Api()
+    self.email = self.api.email
+    self.token = self.api.token
     self.root = root
 
     self.upload_thread = None
@@ -134,18 +138,21 @@ class Uploader():
 
   def do_upload(self, key, fn):
     try:
-      url_resp = self.api.get("v1.4/" + self.dongle_id + "/upload_url/", timeout=10, path=key, access_token=self.api.get_token())
-      if url_resp.status_code == 412:
-        self.last_resp = url_resp
-        return
+      credentials = self.api.get_credentials()
 
-      url_resp_json = json.loads(url_resp.text)
-      url = url_resp_json['url']
-      headers = url_resp_json['headers']
-      cloudlog.debug("upload_url v1.4 %s %s", url, str(headers))
+      access_key = credentials["access_key"]
+      secret_access_key = credentials["secret_access_key"]
+      session_token = credentials["session_token"]
+
+      s3=boto3.client(
+          's3',
+          aws_access_key_id=access_key,
+          aws_secret_access_key=secret_access_key,
+          aws_session_token=session_token,
+      )
 
       if fake_upload:
-        cloudlog.debug(f"*** WARNING, THIS IS A FAKE UPLOAD TO {url} ***")
+        cloudlog.debug(f"*** WARNING, THIS IS A FAKE UPLOAD ***")
 
         class FakeResponse():
           def __init__(self):
@@ -160,7 +167,8 @@ class Uploader():
           else:
             data = f
 
-          self.last_resp = requests.put(url, data=data, headers=headers, timeout=10)
+          s3.upload_fileobj(data, "fdusermedia", f"{self.email}/logs/{fn}")
+
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
       raise

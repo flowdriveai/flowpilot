@@ -4,7 +4,7 @@ import gc
 import os
 import time
 import multiprocessing
-from typing import Optional
+from typing import Optional, List
 from common.clock import sec_since_boot
 from collections import deque
 from selfdrive.swaglog import cloudlog
@@ -35,9 +35,9 @@ def set_realtime_priority(level: int) -> None:
     cloudlog.info("Unable to set realtime priority")
 
 
-def set_core_affinity(core: int) -> None:
+def set_core_affinity(cores: List[int]) -> None:
   try:
-    os.sched_setaffinity(0, [core,])   # type: ignore[attr-defined]
+    os.sched_setaffinity(0, cores)   # type: ignore[attr-defined]
   except:
     cloudlog.info("Unable to set core affinity priority")
 
@@ -45,7 +45,7 @@ def set_core_affinity(core: int) -> None:
 def config_realtime_process(core: int, priority: int) -> None:
   gc.disable()
   set_realtime_priority(priority)
-  set_core_affinity(core)
+  set_core_affinity([core])
 
 
 class Ratekeeper:
