@@ -342,18 +342,20 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     // TODO: move to common
-    public boolean isIntrinsicsValid(MsgFrameData frameMsg){
+    public boolean isIntrinsicsValid(Definitions.FrameData.Reader frameData){
         // PS: find better ways to check validity.
-        if (!frameMsg.frameData.hasIntrinsics())
+        if (!frameData.hasIntrinsics())
             return false;
-        PrimitiveList.Float.Reader intrinsics = frameMsg.frameData.getIntrinsics().asReader();
+        PrimitiveList.Float.Reader intrinsics = frameData.getIntrinsics();
         return intrinsics.get(0)!=0 & intrinsics.get(2)!=0 & intrinsics.get(4)!=0 & intrinsics.get(5)!=0 & intrinsics.get(8)!=0;
     }
 
-    public void updateCameraMatrix(MsgFrameData frameMsg){
-        if (!isIntrinsicsValid(frameMsg))
+    public void updateCameraMatrix(Definitions.FrameData.Reader frameData){
+        if (!isIntrinsicsValid(frameData)) {
+            System.out.println("got invalid intrinsics from camera manager");
             return;
-        PrimitiveList.Float.Reader intrinsics = frameMsg.frameData.getIntrinsics().asReader();
+        }
+        PrimitiveList.Float.Reader intrinsics = frameData.getIntrinsics();
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
                 K_buffer[i][j] = intrinsics.get(i*3 + j);
@@ -380,7 +382,7 @@ public class OnRoadScreen extends ScreenAdapter {
         }
         // update K only once.
         if (!cameraMatrixUpdated){
-            updateCameraMatrix(msgFrameData);
+            updateCameraMatrix(frameData);
         }
         pixelMap.setPixels(imgBuffer);
         texture.draw(pixelMap, 0, 0);
