@@ -40,9 +40,14 @@ class Service:
         # need to use polling to determine if alive or not.
         if self.proc is not None:
             poll = self.proc.poll()
-            return True if poll is None else False
+
+            if poll is None:
+                return True, None
+            else:
+                _, error = self.proc.communicate()
+                return False, error
         else:
-            return self.phandler.is_running()         
+            return self.phandler.is_running(), None   
  
     def start(self):
         """Starts the service"""
@@ -60,14 +65,14 @@ class Service:
                     stdout, stderr = stdout, stderr
 
             self.proc = subprocess.Popen(
-                        [self.command] + self.args, shell=True
+                        [self.command] + self.args, stdout=stdout, stderr=stderr, shell=True
                     )
             self.pid = self.proc.pid
         self.phandler = psutil.Process(self.pid)
 
     def stop(self):
         """Handles how the service ends"""
-        if self.is_alive():
+        if self.is_alive()[0]:
             logger.info("killing " + self.name)
             self.exitcode = self.phandler.terminate()
             self.phandler.wait()
@@ -75,7 +80,7 @@ class Service:
     def get_proc_msg(self):
         """Packages a Capn'Proto message for proc logs"""
         proc_msg = log.ProcLog.Process.new_message()
-        if self.is_alive():
+        if self.is_alive()[0]:
             proc_msg.pid=self.pid
             proc_msg.name=self.name
             proc_msg.state=self.phandler.status()

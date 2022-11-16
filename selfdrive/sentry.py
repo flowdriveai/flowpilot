@@ -1,9 +1,13 @@
 import sentry_sdk
-from sentry_sdk import capture_message
 
-from selfdrive.version import is_dirty, get_commit, get_origin, get_short_branch
 from selfdrive.swaglog import cloudlog
-    
+from selfdrive.version import get_commit, get_origin, get_short_branch, is_dirty
+
+
+def set_tag(key: str, value: str) -> None:
+    sentry_sdk.set_tag(key, value)
+
+
 def sentry_init(prod=False) -> None:
     
     if not prod: 
@@ -14,14 +18,26 @@ def sentry_init(prod=False) -> None:
         dsn="https://0e731cdaa07a4be3b53fe9f43d75a6ac@o4503930833338368.ingest.sentry.io/4503930835828736",
         ignore_errors=["KeyboardInterrupt"],
         traces_sample_rate=1.0,
+        environment=env,
     )
 
-    sentry_sdk.set_tag("dirty", is_dirty())
-    sentry_sdk.set_tag("origin", get_origin())
-    sentry_sdk.set_tag("branch", get_short_branch())
-    sentry_sdk.set_tag("commit", get_commit())
+    set_tag("dirty", is_dirty())
+    set_tag("origin", get_origin())
+    set_tag("branch", get_short_branch())
+    set_tag("commit", get_commit())
 
     sentry_sdk.Hub.current.start_session()
+
+
+def report_tombstone(fn: str, message: str, contents: str) -> None:
+  cloudlog.error({'tombstone': message})
+
+  with sentry_sdk.configure_scope() as scope:
+    scope.set_extra("tombstone_fn", fn)
+    scope.set_extra("tombstone", contents)
+    sentry_sdk.capture_message(message=message)
+    sentry_sdk.flush()
+
 
 def capture_error(error, level) -> None:
 

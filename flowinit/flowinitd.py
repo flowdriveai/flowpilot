@@ -247,19 +247,24 @@ def main():
 
             pm = messaging.PubMaster(["procLog", "deviceState", "managerState"])
             params.put_bool("FlowinitReady", True)
-
+            
             # Event loop
             while True:
-                status, error = service.is_alive()
-                print("error")
-                print(error)
-                if error is not None:
-                    capture_error(error, level="fatal")
+                running = []
 
-                running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if status else "\u001b[31m", service.name)
-                       for service in services)
+                for service in services:
+                    status, error = service.is_alive()
 
-                print(running)
+                    if status:
+                        running.append("%s%s\u001b[0m" % ("\u001b[32m", service.name))
+                    else:
+                        running.append("%s%s\u001b[0m" % ("\u001b[31m", service.name))
+                    
+                    if error is not None:
+                        if error.decode("utf-8").find("KeyboardInterrupt") == -1:
+                            capture_error(error.decode("utf-8"), level="error")
+
+                print(" ".join(running))
                 cloudlog.debug(running)
 
                 # send managerState
