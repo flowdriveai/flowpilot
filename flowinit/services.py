@@ -40,14 +40,15 @@ class Service:
         # need to use polling to determine if alive or not.
         if self.proc is not None:
             poll = self.proc.poll()
-
-            if poll is None:
-                return True, None
-            else:
-                _, error = self.proc.communicate()
-                return False, error
+            return True if poll is None else False
         else:
-            return self.phandler.is_running(), None   
+            return self.phandler.is_running()
+    
+    def communicate(self):
+        """Handles communication with the service and returns errors"""
+        if self.proc is not None:
+            _, error = self.proc.communicate()
+            return error
  
     def start(self):
         """Starts the service"""
@@ -72,7 +73,7 @@ class Service:
 
     def stop(self):
         """Handles how the service ends"""
-        if self.is_alive()[0]:
+        if self.is_alive():
             logger.info("killing " + self.name)
             self.exitcode = self.phandler.terminate()
             self.phandler.wait()
@@ -80,7 +81,7 @@ class Service:
     def get_proc_msg(self):
         """Packages a Capn'Proto message for proc logs"""
         proc_msg = log.ProcLog.Process.new_message()
-        if self.is_alive()[0]:
+        if self.is_alive():
             proc_msg.pid=self.pid
             proc_msg.name=self.name
             proc_msg.state=self.phandler.status()
@@ -99,7 +100,7 @@ class Service:
         state = log.ManagerState.ProcessState.new_message()
         state.name = self.name
         if self.phandler:
-            state.running = self.is_alive()[0]
+            state.running = self.is_alive()
             state.shouldBeRunning = self.phandler is not None
             state.pid = self.pid or 0
             state.exitCode = self.exitcode or 0

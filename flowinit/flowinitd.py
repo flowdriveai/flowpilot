@@ -220,7 +220,7 @@ def main():
         if not is_dirty():
             os.environ['CLEAN'] = '1'
         
-        sentry_init(prod=True)
+        sentry_init()
         
         cloudlog.bind_global(dongle_id="", version=get_version(), dirty=is_dirty(), # TODO
                             device="todo")
@@ -253,16 +253,17 @@ def main():
                 running = []
 
                 for service in services:
-                    status, error = service.is_alive()
+                    status = service.is_alive()
 
                     if status:
                         running.append("%s%s\u001b[0m" % ("\u001b[32m", service.name))
                     else:
                         running.append("%s%s\u001b[0m" % ("\u001b[31m", service.name))
-                    
-                    if error is not None:
-                        if error.decode("utf-8").find("KeyboardInterrupt") == -1:
-                            capture_error(error.decode("utf-8"), level="error")
+                        error = service.communicate()
+                        
+                        if error is not None:
+                            if error.decode("utf-8").find("KeyboardInterrupt") == -1:
+                                capture_error(error.decode("utf-8"), level="error")
 
                 print(" ".join(running))
                 cloudlog.debug(running)
