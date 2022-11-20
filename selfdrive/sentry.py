@@ -1,21 +1,24 @@
 import sentry_sdk
+import logging
 
 from selfdrive.swaglog import cloudlog
-from selfdrive.version import get_commit, get_origin, get_short_branch, is_dirty
+from selfdrive.version import get_commit, get_origin, get_short_branch, is_dirty, is_official
+from common.system import is_registered_device
 
+logger = logging.getLogger(__name__)
 
 def set_tag(key: str, value: str) -> None:
     sentry_sdk.set_tag(key, value)
 
-
-def sentry_init(prod=False) -> None:
+def sentry_init() -> None:
     
-    if not prod: 
+    if is_official() or not is_registered_device():
         return
 
+    logger.info("Sentry initialized")
     env = get_short_branch()
     sentry_sdk.init(
-        dsn="https://0e731cdaa07a4be3b53fe9f43d75a6ac@o4503930833338368.ingest.sentry.io/4503930835828736",
+        dsn="https://f58fa71b8d924fa79688f57ad81a6e4f@sentry.flowdrive.ai/2",
         ignore_errors=["KeyboardInterrupt"],
         traces_sample_rate=1.0,
         environment=env,

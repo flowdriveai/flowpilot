@@ -1,6 +1,7 @@
 import os
 import platform
 from functools import lru_cache
+from .params import Params
 
 def cache(user_function):
   return lru_cache(maxsize=None)(user_function)
@@ -35,3 +36,9 @@ def get_platform():
         if is_android(): return System.android
         else: return System.linux
     return system
+
+def is_registered_device() -> bool:
+    # TODO: shift fucntion to better place.
+    params = Params()
+    dongle_id = params.get("DongleId", encoding='utf8')
+    return dongle_id not in (None, "UnregisteredDevice")
