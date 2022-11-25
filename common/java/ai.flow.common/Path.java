@@ -8,7 +8,7 @@ public class Path {
         if (SystemUtils.isAndroid())
             // on android, actual flowpilot root resides with termux which cannot be accessed.
             // returns external storage path for now. This may change in the future.
-            return "/storage/emulated/0/flowpilot/";
+            return "/sdcard/flowpilot/";
         else{
             return Paths.get(System.getProperty("user.dir")).toString();
         }
@@ -21,7 +21,7 @@ public class Path {
 
     public static String getFlowdriveDir(){
         if (SystemUtils.isAndroid())
-            return "/storage/emulated/0/flowpilot/.flowdrive";
+            return "/sdcard/flowpilot/.flowdrive";
         return System.getenv("HOME") + "/.flowdrive";
     }
 
