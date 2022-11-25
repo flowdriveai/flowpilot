@@ -19,7 +19,7 @@ class Calibration:
 
 MIN_SPEED_FILTER = 15 * CV.MPH_TO_MS
 MAX_VEL_ANGLE_STD = np.radians(0.25)
-MAX_YAW_RATE_FILTER = np.radians(3)  # per second # TODO 2 rejects all readings
+MAX_YAW_RATE_FILTER = np.radians(2)  # per second # TODO 2 rejects all readings
 
 # This is at model frequency, blocks needed for efficiency
 SMOOTH_CYCLES = 400

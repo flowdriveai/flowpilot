@@ -63,6 +63,7 @@ public class OnRoadScreen extends ScreenAdapter {
     int drawResolution = 1;
     float fadeStrength = 0.03f;
     float minZ = 0.2f;
+    float minLeadProb = 0.7f;
     float leadDrawScale = 6f; /** in meters (think of it as a 6m sign board) **/
     float borderWidth = 30;
     float expandedBorderWidth = 600;
@@ -514,9 +515,12 @@ public class OnRoadScreen extends ScreenAdapter {
             drawStrip(edge1, colorEdges, 0.9f, defaultDrawLength, drawResolution);
         }
 
-        drawLeadTriangle(lead1s, colorLead, parsed.leads.get(0).prob);
-        //drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
-        //drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
+        if (parsed.leads.get(0).prob > minLeadProb)
+            drawLeadTriangle(lead1s, colorLead, parsed.leads.get(0).prob);
+        if (parsed.leads.get(1).prob > minLeadProb)
+            drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
+        if (parsed.leads.get(2).prob > minLeadProb)
+            drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
         appContext.shapeRenderer.end();
 
         Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
