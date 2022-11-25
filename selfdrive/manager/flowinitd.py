@@ -4,6 +4,7 @@ import sys
 import time
 from pathlib import Path
 import traceback
+import subprocess
 import os
 
 import psutil
@@ -11,13 +12,14 @@ import yaml
 from common.params import Params, ParamKeyType
 from common.basedir import BASEDIR
 from common import system
+from common.path import external_android_storage
 import cereal.messaging as messaging
 
-from flowinit.config import Config
-from flowinit.daemon import Daemon, DaemonSig
-from flowinit.filelock import FileLock
-from flowinit.utils import get_cpu_times, get_device_state_msg, get_memory_logs
-from flowinit.services import Service, killswitch
+from selfdrive.manager.config import Config
+from selfdrive.manager.daemon import Daemon, DaemonSig
+from selfdrive.manager.filelock import FileLock
+from selfdrive.manager.utils import get_cpu_times, get_device_state_msg, get_memory_logs
+from selfdrive.manager.services import Service, killswitch
 
 from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
@@ -192,10 +194,18 @@ def main():
             params.delete("DisableRadar")
         
         # android specififc
-        if os.environ.get("USE_SNPE", None) == "1":
-            params.put_bool("UseSNPE", True)
-        else:
-            params.put_bool("UseSNPE", False)
+        if system.is_android():
+            if os.environ.get("USE_SNPE", None) == "1":
+                params.put_bool("UseSNPE", True)
+            else:
+                params.put_bool("UseSNPE", False)
+            
+            # android app cannot access internal termux files, need to copy them over 
+            # to external storage. rsync is used to copy only modified files.
+            internal_assets_dir = os.path.join(BASEDIR, "selfdrive/assets")
+            external_android_flowpilot_assets_dir = os.path.join(external_android_storage(), "flowpilot/selfdrive")
+            Path(external_android_flowpilot_assets_dir).mkdir(parents=True, exist_ok=True)
+            subprocess.check_output(["rsync", "-r", "-u", internal_assets_dir, external_android_flowpilot_assets_dir])
 
         for k, v in default_params:
             if params.get(k) is None:

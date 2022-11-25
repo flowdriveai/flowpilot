@@ -35,7 +35,7 @@ public class Lwjgl3Launcher {
 			put("motionSensors", sensorManager);
 		}};
 
-		String modelPath = "models/supercombo";
+		String modelPath = "selfdrive/assets/models/supercombo";
 
 		// onnx CPU performs better than TNN.
 		ModelRunner model;

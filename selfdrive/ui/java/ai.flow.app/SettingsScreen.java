@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -45,7 +46,7 @@ public class SettingsScreen extends ScreenAdapter {
     }
 
     public Texture loadTextureMipMap(String path){
-        Texture texture = new Texture(Gdx.files.internal(path), true);
+        Texture texture = new Texture(Gdx.files.absolute(Path.internal(path)), true);
         texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
         return texture;
     }
@@ -171,7 +172,7 @@ public class SettingsScreen extends ScreenAdapter {
         scrollTable.add(scrollPane);
         scrollTable.setBackground(createRoundedRectangle(800, 700, 20, new Color(0.18f, 0.18f, 0.18f, 0.8f)));
 
-        closeButton = getImageButton("icons/icon_close.png");
+        closeButton = getImageButton("selfdrive/assets/icons/icon_close.png");
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {

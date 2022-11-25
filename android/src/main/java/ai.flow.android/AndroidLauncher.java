@@ -5,6 +5,7 @@ import ai.flow.android.sensor.SensorManager;
 import ai.flow.android.vision.SNPEModelRunner;
 import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.Path;
 import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.modeld.ModelExecutor;
@@ -110,7 +111,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 		int pid = Process.myPid();
 
-		String modelPath = "/storage/emulated/0/Android/data/ai.flow.android/files/supercombo";
+		String modelPath = Path.internal("selfdrive/assets/models/supercombo");
 
 		ModelRunner model;
 		boolean useGPU = true; // always use gpus on android phones.

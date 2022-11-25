@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
@@ -156,14 +157,14 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public Texture loadTextureMipMap(String path){
-        Texture texture = new Texture(Gdx.files.internal(path), true);
+        Texture texture = new Texture(Gdx.files.absolute(Path.internal(path)), true);
         texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
         return texture;
     }
 
     public Stack getStatusLabel(String text){
-        Image borderTexture = new Image(new Texture("icons/rounded-border.png"));
-        Image statusTexture = new Image(loadTextureMipMap("icons/status_label.png"));
+        Image borderTexture = new Image(new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/icons/rounded-border.png"))));
+        Image statusTexture = new Image(loadTextureMipMap("selfdrive/assets/icons/status_label.png"));
         Label textLabel = new Label(text, appContext.skin, "default-font-bold", "white");
         textLabel.setAlignment(Align.center);
         return new Stack(borderTexture, statusTexture, textLabel);
@@ -180,7 +181,7 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public Stack getMaxVelocityLabel(){
-        Image bg = new Image(new Texture("icons/max_cruise.png"));
+        Image bg = new Image(new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/icons/max_cruise.png"))));
         bg.setColor(0.5f, 0.5f, 0.5f, 0.8f);
         Table table = new Table();
         Label maxLabel = new Label("MAX", appContext.skin, "default-font", "white");
@@ -270,7 +271,7 @@ public class OnRoadScreen extends ScreenAdapter {
         alertTable.row();
         alertTable.add(alertText2).pad(15);
 
-        settingsButton = getImageButton("icons/button_settings.png");
+        settingsButton = getImageButton("selfdrive/assets/icons/button_settings.png");
         settingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -293,7 +294,7 @@ public class OnRoadScreen extends ScreenAdapter {
         updateStatusLabel(statusLabelOnline, StatusColors.colorStatusWarn);
         infoTable.add(statusLabelOnline).align(Align.top).height(uiHeight/8f).width(settingsBarWidth*0.8f).padTop(20);
         infoTable.row();
-        Image logoTexture = new Image(loadTextureMipMap("icons/circle-white.png"));
+        Image logoTexture = new Image(loadTextureMipMap("selfdrive/assets/icons/circle-white.png"));
         logoTexture.setColor(1, 1, 1, 0.85f);
         infoTable.add(logoTexture).align(Align.top).size(120).padTop(35);
 
