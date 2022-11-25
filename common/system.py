@@ -14,7 +14,7 @@ class System:
 
 @cache
 def is_android():
-    return "ANDROID_ROOT" in os.environ
+    return "ANDROID_DATA" in os.environ
 
 @cache
 def is_android_rooted():
