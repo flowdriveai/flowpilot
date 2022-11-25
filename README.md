@@ -8,8 +8,8 @@ Flowpilot is an open source driver assistance system built on top of openpilot, 
 
 For running flowpilot on your car, you need: 
 
- - A supported machine to run flowpilot i.e. A windows, linux PC or android phone based on a snapdragon chip.
- - A white / grey panda with giraffe or a black panda with car harness. 
+ - A supported machine to run flowpilot i.e. A windows/linux PC or an android phone.
+ - A white / grey panda with giraffe or a black/red panda with car harness. 
  - 1x USB-A to USB-A cable for connecting panda to PC and aditionally, an OTG cable is required if connecting panda to phone.
  - One of the [200+ supported cars](https://github.com/commaai/openpilot/blob/master/docs/CARS.md). The community supports Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run flowpilot.
  
