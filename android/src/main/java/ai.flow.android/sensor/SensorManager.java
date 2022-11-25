@@ -76,13 +76,13 @@ public class SensorManager extends SensorInterface implements Runnable{
     public void run(){
         if (running)
             return;
-        sensorManager.registerListener(listenerAccelerometer, sensorAccelerometer, delay * 1000);
-        sensorManager.registerListener(listenerGyroscope, sensorGyroscope, delay);
+        sensorManager.registerListener(listenerAccelerometer, sensorAccelerometer, delay*1000);
+        sensorManager.registerListener(listenerGyroscope, sensorGyroscope, delay*1000);
         initialized = true;
         running = true;
 
         while (running){
-            ph.publishBuffer(topic, msgSensorEvents.getSerializedBuffer());
+            ph.publishBuffer(topic, msgSensorEvents.serialize(true));
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
