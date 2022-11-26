@@ -132,8 +132,6 @@ public class AndroidLauncher extends AndroidApplication {
 		ACRAreporter.putCustomData("GitBranch", params.getString("GitBranch"));
 		ACRAreporter.putCustomData("GitRemote", params.getString("GitRemote"));
 
-		// check version mismatch between android app and github repo project.
-
 		initialize(new FlowUI(launcher, pid), configuration);
 	}
 
@@ -172,8 +170,9 @@ public class AndroidLauncher extends AndroidApplication {
 	}
 
 	private Boolean checkVersionMisMatch() {
+		// check version mismatch between android app and github repo project.
 		if (!params.getString("Version").equals(ai.flow.app.BuildConfig.VERSION_NAME)) {
-			Toast.makeText(appContext, "WARNING: App version mismatch detected. Make sure you are using latest versions for app and termux.", Toast.LENGTH_LONG).show();
+			Toast.makeText(appContext, "WARNING: App version mismatch detected. Make sure you are using compatible versions of apk and github repo.", Toast.LENGTH_LONG).show();
 			return true;
 		}
 		return false;
