@@ -24,6 +24,8 @@ It is recommended to develop on a virtual car / simulation before jumping onto t
 
 # Community
 
+[<img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg" width="200">](https://discord.com/invite/APJaQR9nhz)
+
 Flowpilot's core community lives on the official flowdrive [discord server](https://discord.com/invite/APJaQR9nhz). Check the pinned messages or search history through messages to see if your issues or question has been discussed earlier. You may also join [more awesome](https://linktr.ee/flowdrive) openpilot discord communities. 
 
 We also push frequent updates on our [twitter handle](https://twitter.com/flowdrive_ai).
