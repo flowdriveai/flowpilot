@@ -1,5 +1,5 @@
 set -e
-source .env
+source ./.env
 
 # build changes
 scons

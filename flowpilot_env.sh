@@ -1,4 +1,4 @@
-ARCHNAME=$(arch)
+ARCHNAME=$(uname -m)
 SCRIPT=$(realpath "$0")
 FLOWPILOT_DIR=$(dirname "$SCRIPT")
 

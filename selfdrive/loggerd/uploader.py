@@ -21,6 +21,10 @@ from selfdrive.loggerd.config import ROOT
 from selfdrive.swaglog import cloudlog
 
 import boto3
+from os.path import relpath
+import os
+import threading
+
 
 NetworkType = log.DeviceState.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
@@ -60,8 +64,6 @@ class Uploader():
   def __init__(self, dongle_id, root):
     self.dongle_id = dongle_id
     self.api = Api()
-    self.email = self.api.email
-    self.token = self.api.token
     self.root = root
 
     self.upload_thread = None
@@ -151,14 +153,14 @@ class Uploader():
           aws_session_token=session_token,
       )
 
+      class FakeResponse():
+        def __init__(self):
+          self.status_code = 200
+
       if fake_upload:
         cloudlog.debug(f"*** WARNING, THIS IS A FAKE UPLOAD ***")
-
-        class FakeResponse():
-          def __init__(self):
-            self.status_code = 200
-
         self.last_resp = FakeResponse()
+
       else:
         with open(fn, "rb") as f:
           if key.endswith('.bz2') and not fn.endswith('.bz2'):
@@ -167,7 +169,13 @@ class Uploader():
           else:
             data = f
 
-          s3.upload_fileobj(data, "fdusermedia", f"{self.email}/logs/{fn}")
+          # api.get_credentials should populate api.email field, saving us a DB call
+          object_name = self.api.email.decode("utf-8") + "/" + relpath(fn, ROOT)
+          bucket = "fdusermedia"
+
+          self.last_resp = FakeResponse()
+          s3.upload_fileobj(data, bucket, object_name)
+          s3.Object(bucket, object_name).wait_until_exists()
 
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
@@ -245,7 +253,6 @@ def uploader_fn(exit_event):
 
   if dongle_id is None:
     cloudlog.info("uploader missing dongle_id")
-    raise Exception("uploader can't start without dongle id")
 
   if TICI and not Path("/data/media").is_mount():
     cloudlog.warning("NVME not mounted")
@@ -258,11 +265,13 @@ def uploader_fn(exit_event):
   while not exit_event.is_set():
     sm.update(0)
     offroad = params.get_bool("IsOffroad")
+    offroad = False
     network_type = sm['deviceState'].networkType if not force_wifi else NetworkType.wifi
-    if network_type == NetworkType.none:
-      if allow_sleep:
-        time.sleep(60 if offroad else 5)
-      continue
+    # Start on any network type
+    # if network_type == NetworkType.none:
+    #   if allow_sleep:
+    #     time.sleep(60 if offroad else 5)
+    #   continue
 
     d = uploader.next_file_to_upload()
     if d is None:  # Nothing to upload
