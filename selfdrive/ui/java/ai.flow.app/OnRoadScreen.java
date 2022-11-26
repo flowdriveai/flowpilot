@@ -63,7 +63,7 @@ public class OnRoadScreen extends ScreenAdapter {
     int drawResolution = 1;
     float fadeStrength = 0.03f;
     float minZ = 0.2f;
-    float minLeadProb = 0.7f;
+    float minLeadProb = 0.5f;
     float leadDrawScale = 6f; /** in meters (think of it as a 6m sign board) **/
     float borderWidth = 30;
     float expandedBorderWidth = 600;
