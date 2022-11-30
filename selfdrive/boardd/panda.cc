@@ -16,7 +16,7 @@
 static int init_usb_ctx(libusb_context **context) {
   assert(context != nullptr);
 
-  #ifndef __x86_64__ // define better way for android.
+  #ifdef LIBUSB_OPTION_WEAK_AUTHORITY // present in special proot android build.
     libusb_set_option(NULL, LIBUSB_OPTION_WEAK_AUTHORITY);
   #endif
   int err = libusb_init(context);
