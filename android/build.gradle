@@ -64,12 +64,13 @@ android {
 	compileOptions {
 		sourceCompatibility "8.0"
 		targetCompatibility "8.0"
-		coreLibraryDesugaringEnabled true
 	}
 
 	buildTypes {
 		release {
+			debuggable false
 			minifyEnabled false
+			shrinkResources false
 		}
 	}
 }
