@@ -51,7 +51,7 @@ class Calibrator:
         self.old_rpy = None
 
         if not self.load_cache():
-            cloudlog.exception("Error reading cached CalibrationParams")
+            cloudlog.info("Error reading cached CalibrationParams")
 
         self.reset(self.rpy_init, self.valid_blocks)
         self.update_status()
