@@ -6,9 +6,12 @@ sudo apt-get install -y rsync clang capnproto libcapnp-dev libzmq3-dev cmake lib
 sudo apt-get install -y dfu-util gcc-arm-none-eabi libcurl4-openssl-dev libssl-dev
 
 # install capnpc-java
-SCRIPT=$(realpath "$0")
-DIR=$(dirname "$SCRIPT")
-sh $DIR/libs/capnpc-java/build.sh
+if ! command -v capnpc-java --version &> /dev/null
+then
+    SCRIPT=$(realpath "$0")
+    DIR=$(dirname "$SCRIPT")
+    sh $DIR/libs/capnpc-java/build.sh
+fi
 
 pip install pycapnp==1.0.0 --install-option="--force-system-libcapnp"
 pip install -r requirements.txt
