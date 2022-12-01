@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
     assert((argc > 1) && (sscanf(argv[1], "%d", &fd) == 1));
     
-    #ifdef LIBUSB_OPTION_WEAK_AUTHORITY // define better way for android.
+    #ifdef LIBUSB_OPTION_WEAK_AUTHORITY // present in special proot android build.
         libusb_set_option(NULL, LIBUSB_OPTION_WEAK_AUTHORITY);
     #endif
     assert(!libusb_init(&context));
