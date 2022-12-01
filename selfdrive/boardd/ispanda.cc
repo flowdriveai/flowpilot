@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     device = libusb_get_device(handle);
     assert(!libusb_get_device_descriptor(device, &desc));
 
-    if (desc.idVendor == 0xbbaa && desc.idProduct == 0xddcc) 
+    if (desc.idVendor == 0xbbaa && (desc.idProduct == 0xddcc || desc.idProduct == 0xddee)) 
         std::cout << "True" << std::endl;
     else
         std::cout << "False" << std::endl;
