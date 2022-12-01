@@ -16,3 +16,6 @@ fi
 pip install pycapnp==1.0.0 --install-option="--force-system-libcapnp"
 pip install -r requirements.txt
 
+# target for scons
+touch .dep_update
+

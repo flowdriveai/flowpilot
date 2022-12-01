@@ -10,6 +10,6 @@ gen_setup_files = [
 ]
 
 env.Command(['.env'], ['flowpilot_env.sh'], './flowpilot_env.sh')
-setup = env.Command([gen_setup_files], ['setup.py'], 'pip install -e .')
-#deps = env.Command(gen_setup_files, ['get_dependencies.sh'], './get_dependencies.sh')
-#pip = env.Command(gen_setup_files, ['requirements.txt'], 'pip install -r requirements.txt')
+env.Command([gen_setup_files], ['setup.py'], 'pip install -e .')
+env.Command('.dep_update', ['get_dependencies.sh'], './get_dependencies.sh')
+env.Command('.pip_update', ['requirements.txt'], 'pip install -r requirements.txt && touch .pip_update')
