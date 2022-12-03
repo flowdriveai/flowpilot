@@ -6,7 +6,7 @@ sudo apt-get install -y rsync clang capnproto libcapnp-dev libzmq3-dev cmake lib
 sudo apt-get install -y dfu-util gcc-arm-none-eabi libcurl4-openssl-dev libssl-dev
 
 # install capnpc-java
-if ! command -v capnpc-java --version &> /dev/null
+if ! command -v capnpc-java --version &> /dev/null  # TODO: Running through scons misses this
 then
     SCRIPT=$(realpath "$0")
     DIR=$(dirname "$SCRIPT")
