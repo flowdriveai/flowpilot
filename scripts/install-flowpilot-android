@@ -27,6 +27,8 @@ add_to_file() {
     grep -qF -- "$1" "$2" || echo "$1" >> "$2"
 }
 
+info "Preparing to install flowpilot..."
+
 add_to_file "nameserver 8.8.8.8" /etc/resolv.conf
 
 groupadd -g 3001 aid_bt
@@ -39,7 +41,7 @@ usermod -a -G aid_bt,aid_bt_net,aid_inet,aid_net_raw,aid_admin root
 usermod -g 3003 _apt
 
 add_to_file "export ANDROID_DATA=''" ~/.bashrc
-source ~/.bashrc
+export ANDROID_DATA=''
 apt update && apt install -y sudo git
 DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 sudo apt install -y software-properties-common
@@ -54,4 +56,4 @@ cd ~/flowpilot && git submodule update --init
 ./get_dependencies.sh
 scon
 
-success "Flowpilot successfully installed. launch using cd flowpilot && ./launch_flowpilot.sh"
+success "Flowpilot successfully installed. launch using 'cd flowpilot && ./launch_flowpilot.sh'"
