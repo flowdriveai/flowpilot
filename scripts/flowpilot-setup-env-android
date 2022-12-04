@@ -57,11 +57,12 @@ setup_nonroot_env() {
 
 	proot-distro install ubuntu || info "ubuntu already installed.. skipping"
 
-        rm -f /data/data/com.termux/files/usr/bin/login-flowpilot
+    rm -f /data/data/com.termux/files/usr/bin/login-flowpilot
 	echo proot-distro login ubuntu >> /data/data/com.termux/files/usr/bin/login-flowpilot
 
-        ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu $HOME/flowpilot_env
-        cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
+    ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu $HOME/flowpilot_env
+    cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
+    chmod +x $HOME/flowpilot_env/bin/install-flowpilot-android
 
   	success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
 }
@@ -77,6 +78,7 @@ setup_root_env() {
         mkdir -p $CHROOT
         sudo tar xfp /sdcard/flowpilot/Downloads/$ROOTFS_TAR -C $CHROOT
         sudo cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env_root/bin
+        sudo chmod +x $HOME/flowpilot_env_root/bin/install-flowpilot-android
 
         rm -f /data/data/com.termux/files/usr/bin/login-flowpilot-root
         echo "
