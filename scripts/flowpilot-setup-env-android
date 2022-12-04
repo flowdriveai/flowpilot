@@ -31,6 +31,9 @@ add_to_file() {
 }
 
 base_setup() {
+    # let termux work in background
+    termux-wake-lock
+
 	# get access to external storage
 	yes | termux-setup-storage
 
@@ -44,8 +47,8 @@ base_setup() {
 	TERMUX_API_APK_URL='https://f-droid.org/repo/com.termux.api_51.apk'
 	wget -q --show-progress --no-clobber --tries=5 $TERMUX_API_APK_URL -P /sdcard/flowpilot/Downloads
 
-	INSTALL_SCRIPT_URL='https://raw.githubusercontent.com/flowdriveai/flowpilot/installation-simplify/scripts/install-flowpilot-android'
-	wget -q --show-progress --no-clobber --tries=5 $INSTALL_SCRIPT_URL -P /sdcard/flowpilot/Downloads
+	INSTALL_SCRIPT_URL='https://raw.githubusercontent.com/flowdriveai/flowpilot/master/scripts/install-flowpilot-android'
+	wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -P /sdcard/flowpilot/Downloads
 
 	# setup startup commands
 	add_to_file 'sshd' ~/.bashrc

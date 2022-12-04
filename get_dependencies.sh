@@ -13,7 +13,8 @@ then
     sh $DIR/libs/capnpc-java/build.sh
 fi
 
-pip install pycapnp==1.0.0 --install-option="--force-system-libcapnp"
+# pycapnp without wheel build can fail on some systems, in this case, its built from scratch later in the process.
+pip install pycapnp==1.0.0 --install-option="--force-system-libcapnp" > /dev/null 2>&1
 pip install -r requirements.txt
 
 # target for scons
