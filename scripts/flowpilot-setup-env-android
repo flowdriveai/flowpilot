@@ -38,7 +38,7 @@ base_setup() {
 	yes | termux-setup-storage
 
 	# install base packages
-	pkg install -y proot-distro termux-api net-tools openssh wget tsu
+	pkg install -y proot-distro termux-api net-tools openssh wget
 
 	# download latest apks
 	FLOWPILOT_APK_URL=$(curl -s https://api.github.com/repos/flowdriveai/flowpilot/releases/latest | grep browser_download_url | cut -d '"' -f 4)
@@ -73,7 +73,7 @@ setup_nonroot_env() {
 # TODO: fix this
 setup_root_env() {
 	info "Preparing to install flowpilot root env ..."
-
+        pkg install tsu
         ROOTFS_TAR="ubuntu-focal-core-cloudimg-arm64-root-2020.12.10.tar.gz"
         wget -q --show-progress --no-clobber --tries=5 https://github.com/termux/proot-distro/releases/download/v1.2-ubuntu-focal-rootfs/$ROOTFS_TAR -P /sdcard/flowpilot/Downloads/
 
