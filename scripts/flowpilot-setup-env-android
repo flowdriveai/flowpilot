@@ -62,6 +62,7 @@ setup_nonroot_env() {
 
     rm -f /data/data/com.termux/files/usr/bin/login-flowpilot
 	echo proot-distro login ubuntu >> /data/data/com.termux/files/usr/bin/login-flowpilot
+    chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot
 
     ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu $HOME/flowpilot_env
     cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
@@ -84,29 +85,28 @@ setup_root_env() {
         sudo chmod +x $HOME/flowpilot_env_root/bin/install-flowpilot-android
 
         rm -f /data/data/com.termux/files/usr/bin/login-flowpilot-root
-        echo "
-            #!/data/data/com.termux/files/usr/bin/bash
+        echo "#!/data/data/com.termux/files/usr/bin/bash
 
-            # prepare mount external storage
-            mkdir -p $CHROOT/sdcard
+        # prepare mount external storage
+        mkdir -p $CHROOT/sdcard
 
-            # fix /data mount options
-            mount -o remount,dev,suid /data
+        # fix /data mount options
+        mount -o remount,dev,suid /data
 
-            mount --bind /dev $CHROOT/dev
-            mount --bind /sys $CHROOT/sys
-            mount --bind /proc $CHROOT/proc
-            mount --bind /dev/pts $CHROOT/dev/pts
-            mount --bind /sdcard $CHROOT/sdcard
+        mount --bind /dev $CHROOT/dev
+        mount --bind /sys $CHROOT/sys
+        mount --bind /proc $CHROOT/proc
+        mount --bind /dev/pts $CHROOT/dev/pts
+        mount --bind /sdcard $CHROOT/sdcard
 
-            # disable termux-exec
-            unset LD_PRELOAD
+        # disable termux-exec
+        unset LD_PRELOAD
 
-            export PATH=/bin:/sbin:/usr/bin:/usr/sbin
-            export TERM=\$TERM
-            export TMPDIR=/tmp
+        export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+        export TERM=\$TERM
+        export TMPDIR=/tmp
 
-            chroot $CHROOT /bin/su - root
+        chroot $CHROOT /bin/su - root
         " >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
         chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
 
