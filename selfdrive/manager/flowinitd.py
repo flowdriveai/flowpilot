@@ -260,23 +260,24 @@ def main():
             
             # Event loop
             while True:
-                running = []
-
+                running_daemons = []
                 for service in services:
-                    status = service.is_alive()
-
-                    if status:
-                        running.append("%s%s\u001b[0m" % ("\u001b[32m", service.name))
+                    is_running = service.is_alive()
+                    if is_running:
+                        running_daemons.append("%s%s\u001b[0m" % ("\u001b[32m", service.name))
                     else:
-                        running.append("%s%s\u001b[0m" % ("\u001b[31m", service.name))
-                        error = service.communicate()
-                        
-                        if error is not None:
-                            if error.decode("utf-8").find("KeyboardInterrupt") == -1:
-                                capture_error(error.decode("utf-8"), level="error")
+                        running_daemons.append("%s%s\u001b[0m" % ("\u001b[31m", service.name))
+                        if service.communicated:
+                            continue
+                        stderr = service.communicate()
+                        if stderr is not None:
+                            stderr = stderr.decode("utf-8")
+                            logger.error("%s%s\u001b[0m" % ("\u001b[31m", f"[{service.name}] " + stderr))
+                            if "KeyboardInterrupt" not in stderr:
+                                capture_error(stderr, level="error")
 
-                print(" ".join(running))
-                cloudlog.debug(running)
+                print(" ".join(running_daemons))
+                cloudlog.debug(running_daemons)
 
                 # send managerState
                 manager_state_msg = messaging.new_message('managerState')

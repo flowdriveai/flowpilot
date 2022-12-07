@@ -27,7 +27,7 @@ class Service:
         self.phandler = None
         self.proc = None
         self.exitcode = None
-        self.proc = None
+        self.communicated = False
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -47,8 +47,10 @@ class Service:
     def communicate(self):
         """Handles communication with the service and returns errors"""
         if self.proc is not None:
-            _, error = self.proc.communicate()
-            return error
+            _, stderr = self.proc.communicate()
+            self.communicated = True
+            return stderr
+        return None
  
     def start(self):
         """Starts the service"""
@@ -56,7 +58,9 @@ class Service:
             return
         if not self.monitor_only:
             logger.info("Starting " + self.name)
-            stdout, stderr = subprocess.PIPE, subprocess.PIPE
+            
+            # pipe only stderr for sentry
+            stdout, stderr = None, subprocess.PIPE 
             if Config.LOGPATH:
                 with open(
                     os.path.join(Config.LOGPATH, f"{self.name}.stdout"), "a"

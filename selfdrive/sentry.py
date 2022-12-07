@@ -1,21 +1,18 @@
 import sentry_sdk
-import logging
 
 from selfdrive.swaglog import cloudlog
 from selfdrive.version import get_commit, get_origin, get_short_branch, is_dirty, is_official
-from common.system import is_registered_device
+from common.system import is_android, is_android_rooted
 
-logger = logging.getLogger(__name__)
 
 def set_tag(key: str, value: str) -> None:
     sentry_sdk.set_tag(key, value)
 
 def sentry_init() -> None:
     
-    if is_official() or not is_registered_device():
+    if not is_official():
         return
 
-    logger.info("Sentry initialized")
     env = get_short_branch()
     sentry_sdk.init(
         dsn="https://f58fa71b8d924fa79688f57ad81a6e4f@sentry.flowdrive.ai/2",
@@ -28,9 +25,10 @@ def sentry_init() -> None:
     set_tag("origin", get_origin())
     set_tag("branch", get_short_branch())
     set_tag("commit", get_commit())
+    set_tag("android", is_android())
+    set_tag("androidroot", is_android_rooted())
 
     sentry_sdk.Hub.current.start_session()
-
 
 def report_tombstone(fn: str, message: str, contents: str) -> None:
   cloudlog.error({'tombstone': message})
