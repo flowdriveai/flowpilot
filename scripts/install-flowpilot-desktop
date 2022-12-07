@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -49,3 +49,4 @@ cd flowpilot && git submodule update --init
 
 pip install pipenv
 
+"Flowpilot successfully installed." 
