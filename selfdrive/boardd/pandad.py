@@ -87,7 +87,7 @@ def is_panda(usb_fd):
 
 def main_android_no_root() -> NoReturn:
   # android termux-usb implementation.
-  cloudlog.warning(f"Running pandad in no-root mode")
+  cloudlog.info(f"Running pandad in no-root mode")
 
   print("listing usb devices.. if this hangs here, restart termux.")
   while True:
@@ -100,7 +100,7 @@ def main_android_no_root() -> NoReturn:
           panda_descriptors.append(usb_fd)      
       if len(panda_descriptors) == 0:
         print("no panda found, retrying..")
-        time.sleep(0.1)
+        time.sleep(0.5)
         continue
       panda_descriptor = panda_descriptors[0] # pickup first panda
       print(f"connecting to panda {panda_descriptor}..")

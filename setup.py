@@ -9,6 +9,7 @@ def get_requirements():
    subprocess.check_call(["pip", "install", "-r", "requirements.txt"])
 
 setup(name="flowpilot",
+      version="0.1.0",
       packages=find_packages(),
       py_modules=["controlsd", "plannerd", "calibrationd", "logmessaged", "flowinit"],
       entry_points={"console_scripts": ["controlsd=selfdrive.controls.controlsd:main",
@@ -18,6 +19,6 @@ setup(name="flowpilot",
                                         "logmessaged=selfdrive.logmessaged:main",
                                         "keyvald=selfdrive.keyvald:main",
                                         "pandad=selfdrive.boardd.pandad:run",
-                                        "flowinit=flowinit.flowinitd:main"]}
+                                        "flowinit=selfdrive.manager.flowinitd:main"]}
      )
 

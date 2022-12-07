@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 
     assert((argc > 1) && (sscanf(argv[1], "%d", &fd) == 1));
     
-    #ifndef __x86_64__ // define better way for android.
+    #ifdef LIBUSB_OPTION_WEAK_AUTHORITY // present in special proot android build.
         libusb_set_option(NULL, LIBUSB_OPTION_WEAK_AUTHORITY);
     #endif
     assert(!libusb_init(&context));
@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     device = libusb_get_device(handle);
     assert(!libusb_get_device_descriptor(device, &desc));
 
-    if (desc.idVendor == 0xbbaa && desc.idProduct == 0xddcc) 
+    if (desc.idVendor == 0xbbaa && (desc.idProduct == 0xddcc || desc.idProduct == 0xddee)) 
         std::cout << "True" << std::endl;
     else
         std::cout << "False" << std::endl;

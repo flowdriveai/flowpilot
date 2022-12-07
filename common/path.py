@@ -1,29 +1,12 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/common/path.py
 import os
-import shutil
 
-
-def get_flowpilot_root():
+def flowpilot_root():
     return os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 def internal(path):
-    return os.path.join(get_flowpilot_root(), path)
+    return os.path.join(flowpilot_root(), path)
 
-def init_data_dir():
-    data_dir = internal('data')
-    if not os.path.exists(data_dir):
-        os.mkdir(data_dir)
+def external_android_storage():
+    return "/sdcard"
 
-def clear_data_dir():
-    try:
-        data_dir = internal('data')
-        if os.path.exists(data_dir):
-            shutil.rmtree(internal('data'))
-            init_data_dir()
-    except OSError as e:
-        print ("Error: %s - %s." % (e.filename, e.strerror))
-
-def is_fp_root_cwd():
-    return get_flowpilot_root() == os.getcwd()
-
-BASEDIR = get_flowpilot_root()
+BASEDIR = flowpilot_root()

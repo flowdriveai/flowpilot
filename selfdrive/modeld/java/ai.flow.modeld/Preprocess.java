@@ -18,32 +18,9 @@ import static org.opencv.imgproc.Imgproc.getPerspectiveTransform;
 public class Preprocess {
 
     private static final long[] YUVimgShape = {384, 512, 1};
-
     private static final ArrayList<INDArrayIndex[]> slices = getSlices();
-    private static final int[] idxTensor0 = new int[]{0, 1, 2, 3, 4, 5};
-    private static final int[] idxTensor1 = new int[]{6, 7, 8, 9, 10, 11};
-
-    private static final float[][] Rx_buffer =  {{1.0f,  0.0f, 0.0f},
-                                          {0.0f,  0.0f, 0.0f},
-                                          {0.0f , 0.0f, 0.0f }};
-
-    private static final float[][] Ry_buffer =  {{0.0f,  0.0f, 0.0f},
-                                          {0.0f,  1.0f, 0.0f},
-                                          {0.0f , 0.0f, 0.0f }};
-
-    private static final float[][] Rz_buffer =  {{0.0f,  0.0f, 0.0f},
-                                          {0.0f,  0.0f, 0.0f},
-                                          {0.0f , 0.0f, 1.0f }};
-
-    private static final float[][] t_buffer = {{0.0f, 0.0f, 0.0f}};
-
-    private static final INDArray Rx = Nd4j.createFromArray(Rx_buffer);
-    private static final INDArray Ry = Nd4j.createFromArray(Ry_buffer);
-    private static final INDArray Rz = Nd4j.createFromArray(Rz_buffer);
-    private static final INDArray t = Nd4j.createFromArray(t_buffer);
-
-    private static final Mat quadrangle_mat = new Mat(4, 2, CvType.CV_32F);
-    private static final Mat warped_quadrangle_mat = new Mat(4, 2, CvType.CV_32F);
+    private static final int[] idxTensor0 = {0, 1, 2, 3, 4, 5};
+    private static final int[] idxTensor1 = {6, 7, 8, 9, 10, 11};
 
     private static ArrayList<INDArrayIndex[]> getSlices(){
         ArrayList<INDArrayIndex[]> slices = new ArrayList<INDArrayIndex[]>();
@@ -91,25 +68,22 @@ public class Preprocess {
             roll = Math.toRadians(roll);
         }
 
-        // Calculate rotation about x axis
-        Rx.putScalar(new int[]{1, 1}, (float)Math.cos(pitch));
-        Rx.putScalar(new int[]{1, 2}, (float)-Math.sin(pitch));
-        Rx.putScalar(new int[]{2, 1}, (float)Math.sin(pitch));
-        Rx.putScalar(new int[]{2, 2}, (float)Math.cos(pitch));
+        float c1 = (float)Math.cos(pitch);
+        float s1 = (float)Math.sin(pitch);
+        float c2 = (float)Math.cos(yaw );
+        float s2 = (float)Math.sin(yaw);
+        float c3 = (float)Math.cos(roll);
+        float s3 = (float)Math.sin(roll);
 
-        Ry.putScalar(new int[]{0, 0}, (float)Math.cos(yaw));
-        Ry.putScalar(new int[]{0, 2}, (float)Math.sin(yaw));
-        Ry.putScalar(new int[]{2, 0}, (float)-Math.sin(yaw));
-        Ry.putScalar(new int[]{2, 2}, (float)Math.cos(yaw));
+        float[] R_buffer = {c2*c3, -c2*s3, s2,
+                            c1*s3+c3*s1*s2, c1*c3-s1*s2*s3, -c2*s1,
+                            s1*s3-c1*c3*s2, c3*s1+c1*s2*s3, c1*c2};
 
-        Rz.putScalar(new int[]{0, 0}, (float)Math.cos(roll));
-        Rz.putScalar(new int[]{0, 1}, (float)-Math.sin(roll));
-        Rz.putScalar(new int[]{1, 0}, (float)Math.sin(roll));
-        Rz.putScalar(new int[]{1, 1}, (float)Math.cos(roll));
+        float[] t_buffer = {0, (float)height, 0};
 
-        t.putScalar(new int[]{0, 1}, (float)height);
+        INDArray R = Nd4j.create(R_buffer, 3, 3);
+        INDArray t = Nd4j.create(t_buffer, 1, 3);
 
-        INDArray R = Rz.mmul(Ry).mmul(Rx);
         return Nd4j.vstack(R, t).transpose();
     }
 
@@ -224,6 +198,9 @@ public class Preprocess {
 
         warped_quadrangle = warped_quadrangle.div(warped_quadrangle.getColumn(2).reshape(warped_quadrangle.shape()[0], 1));
         warped_quadrangle = warped_quadrangle.get(NDArrayIndex.all(), NDArrayIndex.interval(0,2));
+
+        Mat quadrangle_mat = new Mat(4, 2, CvType.CV_32F);
+        Mat warped_quadrangle_mat = new Mat(4, 2, CvType.CV_32F);
 
         quadrangle_mat.put(0, 0, quadrangle.reshape(4*2).data().asFloat());
         warped_quadrangle_mat.put(0, 0, warped_quadrangle.reshape(4*2).data().asFloat());

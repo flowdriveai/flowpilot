@@ -813,11 +813,9 @@ class Controls:
       if self.i % 500 == 0:
         print("---------------")
         for event in self.events.events:
-          print(EVENT_NAME[event], EVENTS.get(event, {}))
+          print(EVENT_NAME[event])
         print('enabled:', self.enabled)
-        print('initialized:', self.initialized)
         print('current alerts:', self.current_alert)
-        print('v_cruise:', self.v_cruise_kph)
         print("---------------")
       self.i += 1
 

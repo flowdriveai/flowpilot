@@ -1,9 +1,6 @@
 # distutils: language = c++
 # cython: language_level = 3
-from posix.time cimport clock_gettime, timespec, CLOCK_MONOTONIC_RAW, CLOCK_REALTIME, clockid_t
-
-# warning, this was changed for compatibility with python and java.
-CLOCK_BOOTTIME = CLOCK_REALTIME
+from posix.time cimport clock_gettime, timespec, CLOCK_MONOTONIC_RAW, CLOCK_MONOTONIC, CLOCK_REALTIME, clockid_t
 
 cdef double readclock(clockid_t clock_id):
   cdef timespec ts
@@ -14,7 +11,8 @@ cdef double readclock(clockid_t clock_id):
   return current
 
 def monotonic_time():
-  return readclock(CLOCK_MONOTONIC_RAW)
+  return readclock(CLOCK_MONOTONIC)
 
 def sec_since_boot():
-  return readclock(CLOCK_BOOTTIME) 
+  return monotonic_time()
+  #return readclock(CLOCK_BOOTTIME) 

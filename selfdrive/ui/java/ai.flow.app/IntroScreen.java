@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.files.FileHandle;
@@ -36,14 +37,9 @@ public class IntroScreen extends ScreenAdapter {
     Image texImage;
 
     public IntroScreen(FlowUI appContext) {
-        if (!Gdx.files.external(videoName).exists()) {
-            FileHandle videoIntroSource = Gdx.files.internal("videos/" + videoName);
-            videoIntroSource.copyTo(Gdx.files.external(videoName));
-        }
-        FileHandle videoIntroSourceExt = Gdx.files.external(videoName);
         this.appContext = appContext;
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        capture = new VideoCapture(videoIntroSourceExt.file().getAbsolutePath());
+        capture = new VideoCapture(Path.internal("selfdrive/assets/videos/" + videoName));
         frameCount = (int) capture.get(Videoio.CAP_PROP_FRAME_COUNT);
         vidWidth = (int) capture.get(Videoio.CAP_PROP_FRAME_WIDTH);
         vidHeight = (int) capture.get(Videoio.CAP_PROP_FRAME_HEIGHT);

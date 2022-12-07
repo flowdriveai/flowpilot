@@ -5,6 +5,7 @@ import ai.flow.android.sensor.SensorManager;
 import ai.flow.android.vision.SNPEModelRunner;
 import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.Path;
 import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.modeld.ModelExecutor;
@@ -110,7 +111,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 		int pid = Process.myPid();
 
-		String modelPath = "/storage/emulated/0/Android/data/ai.flow.android/files/supercombo";
+		String modelPath = Path.internal("selfdrive/assets/models/supercombo");
 
 		ModelRunner model;
 		boolean useGPU = true; // always use gpus on android phones.
@@ -130,8 +131,6 @@ public class AndroidLauncher extends AndroidApplication {
 		ACRAreporter.putCustomData("GitCommit", params.getString("GitCommit"));
 		ACRAreporter.putCustomData("GitBranch", params.getString("GitBranch"));
 		ACRAreporter.putCustomData("GitRemote", params.getString("GitRemote"));
-
-		// check version mismatch between android app and github repo project.
 
 		initialize(new FlowUI(launcher, pid), configuration);
 	}
@@ -171,8 +170,9 @@ public class AndroidLauncher extends AndroidApplication {
 	}
 
 	private Boolean checkVersionMisMatch() {
+		// check version mismatch between android app and github repo project.
 		if (!params.getString("Version").equals(ai.flow.app.BuildConfig.VERSION_NAME)) {
-			Toast.makeText(appContext, "WARNING: App version mismatch detected. Make sure you are using latest versions for app and termux.", Toast.LENGTH_LONG).show();
+			Toast.makeText(appContext, "WARNING: App version mismatch detected. Make sure you are using compatible versions of apk and github repo.", Toast.LENGTH_LONG).show();
 			return true;
 		}
 		return false;

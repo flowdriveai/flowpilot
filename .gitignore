@@ -36,6 +36,8 @@ bin
 model2.png
 a.out
 .hypothesis
+.dep_update
+.pip_update
 
 *.dylib
 *.DSYM

@@ -12,14 +12,14 @@ public class utils {
     }
 
     public static double secSinceBoot() {
-        return System.currentTimeMillis() / 1000.0;
+        return System.nanoTime() / 1e9;
     }
 
     public static double milliSinceBoot() {
-        return System.currentTimeMillis();
+        return System.nanoTime() / 1e6;
     }
 
-    public static long nanoSinceBoot() {
+    public static double nanoSinceBoot() {
         return System.nanoTime();
     }
 }

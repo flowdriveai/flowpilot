@@ -128,8 +128,6 @@ else:
 
 Export('envCython')
 
-subprocess.call(["./flowpilot_env.sh"], shell=True)
-
 QCOM_REPLAY = False
 Export('env', 'arch', 'QCOM_REPLAY', 'SHARED')
 
@@ -172,7 +170,7 @@ else:
 
 Export('cereal', 'messaging')
 
-
+SConscript(['SConscript'])
 SConscript(['cereal/SConscript'])
 SConscript(['panda/board/SConscript'])
 SConscript(['opendbc/can/SConscript'])

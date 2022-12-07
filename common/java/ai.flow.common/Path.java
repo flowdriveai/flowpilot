@@ -1,27 +1,31 @@
 package ai.flow.common;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class Path {
+    @SuppressWarnings("NewApi")
     public static String getFlowPilotRoot() {
         if (SystemUtils.isAndroid())
-            return "/storage/emulated/0/flow-pilot";
+            // on android, actual flowpilot root resides with termux which cannot be accessed.
+            // returns external storage path for now. This may change in the future.
+            return "/sdcard/flowpilot/";
         else{
-            return Paths.get(System.getProperty("user.dir")).getParent().toString();
+            return Paths.get(System.getProperty("user.dir")).toString();
         }
     }
 
+    @SuppressWarnings("NewApi")
     public static String internal(String relativePath){
         return Paths.get(getFlowPilotRoot(), relativePath).toString();
     }
 
-    public static void initDataDir(){
-        try {
-            Files.createDirectories(Paths.get(internal("data")));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static String getFlowdriveDir(){
+        if (SystemUtils.isAndroid())
+            return "/sdcard/flowpilot/.flowdrive";
+        return System.getenv("HOME") + "/.flowdrive";
+    }
+
+    public static String getVideoStorageDir(){
+        return getFlowdriveDir() + "/media/0/realdata/videos";
     }
 }

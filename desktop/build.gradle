@@ -11,7 +11,7 @@ sourceSets {
     }
 }
 
-sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+sourceSets.main.resources.srcDirs += [ rootProject.file('selfdrive/assets').path ]
 mainClassName = 'ai.flow.app.lwjgl3.Lwjgl3Launcher'
 eclipse.project.name = appName + '-lwjgl3'
 sourceCompatibility = 8.0
@@ -31,7 +31,7 @@ dependencies {
 import org.gradle.internal.os.OperatingSystem
 
 run {
-	workingDir = rootProject.file('assets').path
+	workingDir = rootProject.file('.').path
 	setIgnoreExitValue(true)
 	environment 'OMP_NUM_THREADS', '2'
     if (OperatingSystem.current() == OperatingSystem.MAC_OS) {
