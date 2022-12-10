@@ -272,7 +272,7 @@ def main():
                         stderr = service.communicate()
                         if stderr is not None:
                             stderr = stderr.decode("utf-8")
-                            logger.error("%s%s\u001b[0m" % ("\u001b[31m", f"[{service.name}] " + stderr))
+                            print("%s%s\u001b[0m" % ("\u001b[31m", f"[{service.name}] " + stderr))
                             if "KeyboardInterrupt" not in stderr:
                                 capture_error(stderr, level="error")
 
