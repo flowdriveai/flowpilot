@@ -165,8 +165,8 @@ public class LoginScreen extends ScreenAdapter {
 
     private void LoginSucceeded(String email, String token, List<HttpCookie> cookies) {
         appContext.params.put("UserID", cookies.get(0).getValue());
-        appContext.params.put("Email", email);
-        appContext.params.put("Token", token);
+        appContext.params.put("UserEmail", email);
+        appContext.params.put("UserToken", token);
         progressVal++;
     }
 

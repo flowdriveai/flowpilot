@@ -30,6 +30,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"CarParamsCache", CLEAR_ON_MANAGER_START},
     {"CalibrationParams", PERSISTENT},
     {"UserID", PERSISTENT},
+    {"UserEmail", PERSISTENT},  
+    {"UserToken", PERSISTENT},
     {"CameraMatrix", PERSISTENT},
     {"DistortionCoefficients", PERSISTENT},
     {"ModelDReady", CLEAR_ON_MANAGER_START},
@@ -66,9 +68,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"Offroad_TemperatureTooHigh", CLEAR_ON_MANAGER_START},
     {"Offroad_UnofficialHardware", CLEAR_ON_MANAGER_START},
     {"Offroad_UpdateFailed", CLEAR_ON_MANAGER_START}, 
-    {"IsOffroad", PERSISTENT},  
-    {"Email", PERSISTENT},  
-    {"Token", PERSISTENT},   
+    {"IsOffroad", PERSISTENT},     
 };
 
 lmdb::env Params::env = nullptr;

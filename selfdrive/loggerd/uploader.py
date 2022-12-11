@@ -1,29 +1,21 @@
 #!/usr/bin/env python3
 import bz2
 import io
-import json
 import os
 import random
-import requests
 import threading
 import time
 import traceback
-from pathlib import Path
+import boto3
 
 from cereal import log
 import cereal.messaging as messaging
 from common.api import Api
 from common.params import Params
 from common.realtime import set_core_affinity
-from system.hardware import TICI
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
 from selfdrive.swaglog import cloudlog
-
-import boto3
-from os.path import relpath
-import os
-import threading
 
 
 NetworkType = log.DeviceState.NetworkType
@@ -59,6 +51,9 @@ def clear_locks(root):
     except OSError:
       cloudlog.exception("clear_locks failed")
 
+class FakeResponse():
+        def __init__(self):
+          self.status_code = 200
 
 class Uploader():
   def __init__(self, dongle_id, root):
@@ -153,10 +148,6 @@ class Uploader():
           aws_session_token=session_token,
       )
 
-      class FakeResponse():
-        def __init__(self):
-          self.status_code = 200
-
       if fake_upload:
         cloudlog.debug(f"*** WARNING, THIS IS A FAKE UPLOAD ***")
         self.last_resp = FakeResponse()
@@ -170,7 +161,7 @@ class Uploader():
             data = f
 
           # api.get_credentials should populate api.email field, saving us a DB call
-          object_name = self.api.email.decode("utf-8") + "/" + relpath(fn, ROOT)
+          object_name = self.api.email.decode("utf-8") + "/" + key
           bucket = "fdusermedia"
 
           self.last_resp = FakeResponse()
@@ -254,9 +245,6 @@ def uploader_fn(exit_event):
   if dongle_id is None:
     cloudlog.info("uploader missing dongle_id")
 
-  if TICI and not Path("/data/media").is_mount():
-    cloudlog.warning("NVME not mounted")
-
   sm = messaging.SubMaster(['deviceState'])
   pm = messaging.PubMaster(['uploaderState'])
   uploader = Uploader(dongle_id, ROOT)
@@ -266,13 +254,7 @@ def uploader_fn(exit_event):
     sm.update(0)
     offroad = params.get_bool("IsOffroad")
     offroad = False
-    network_type = sm['deviceState'].networkType if not force_wifi else NetworkType.wifi
-    # Start on any network type
-    # if network_type == NetworkType.none:
-    #   if allow_sleep:
-    #     time.sleep(60 if offroad else 5)
-    #   continue
-
+   
     d = uploader.next_file_to_upload()
     if d is None:  # Nothing to upload
       if allow_sleep:

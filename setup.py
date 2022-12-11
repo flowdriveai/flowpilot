@@ -19,6 +19,8 @@ setup(name="flowpilot",
                                         "logmessaged=selfdrive.logmessaged:main",
                                         "keyvald=selfdrive.keyvald:main",
                                         "pandad=selfdrive.boardd.pandad:run",
+                                        "uploader=selfdrive.loggerd.uploader:main",
+                                        "deleter=selfdrive.loggerd.deleter:main",
                                         "flowinit=selfdrive.manager.flowinitd:main"]}
      )
 
