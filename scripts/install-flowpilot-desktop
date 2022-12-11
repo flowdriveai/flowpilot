@@ -33,7 +33,8 @@ mv cmdline-tools/* ~/Android/Sdk/cmdline-tools/latest/
 rm -rf cmdline-tools
 echo 'export ANDROID_SDK_ROOT=$HOME/Android/Sdk' >> ~/.bashrc
 echo 'export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin' >> ~/.bashrc
-source ~/.bashrc
+export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin
 sdkmanager --install "platform-tools"
 sdkmanager --install "build-tools;32.0.0"
 
@@ -49,4 +50,4 @@ cd flowpilot && git submodule update --init
 
 pip install pipenv
 
-"Flowpilot successfully installed." 
+success "Flowpilot successfully installed." 
