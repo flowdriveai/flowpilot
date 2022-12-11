@@ -29,17 +29,19 @@ class Priority:
 
 
 def set_realtime_priority(level: int) -> None:
-  try:
-    os.sched_setscheduler(0, os.SCHED_FIFO, os.sched_param(level))  # type: ignore[attr-defined]
-  except:
-    cloudlog.info("Unable to set realtime priority")
+  pass # TODO: This causes android to randomly freeze while using chroot
+  #try:
+  #  os.sched_setscheduler(0, os.SCHED_FIFO, os.sched_param(level))  # type: ignore[attr-defined]
+  #except:
+  #  cloudlog.info("Unable to set realtime priority")
 
 
 def set_core_affinity(cores: List[int]) -> None:
-  try:
-    os.sched_setaffinity(0, cores)   # type: ignore[attr-defined]
-  except:
-    cloudlog.info("Unable to set core affinity priority")
+  pass # TODO: This causes android to randomly freeze while using chroot
+  #try:
+  #  os.sched_setaffinity(0, cores)   # type: ignore[attr-defined]
+  #except:
+  #  cloudlog.info("Unable to set core affinity priority")
 
 
 def config_realtime_process(core: int, priority: int) -> None:

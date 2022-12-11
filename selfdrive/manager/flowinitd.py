@@ -24,6 +24,7 @@ from selfdrive.manager.services import Service, killswitch
 from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
 from selfdrive.swaglog import cloudlog
+from selfdrive.sentry import sentry_init, capture_error
 
 logger = logging.getLogger(__name__)
 os.chdir(BASEDIR)
@@ -228,7 +229,9 @@ def main():
 
         if not is_dirty():
             os.environ['CLEAN'] = '1'
-
+        
+        sentry_init()
+        
         cloudlog.bind_global(dongle_id="", version=get_version(), dirty=is_dirty(), # TODO
                             device="todo")
 
@@ -254,15 +257,27 @@ def main():
 
             pm = messaging.PubMaster(["procLog", "deviceState", "managerState"])
             params.put_bool("FlowinitReady", True)
-
+            
             # Event loop
             while True:
+                running_daemons = []
+                for service in services:
+                    is_running = service.is_alive()
+                    if is_running:
+                        running_daemons.append("%s%s\u001b[0m" % ("\u001b[32m", service.name))
+                    else:
+                        running_daemons.append("%s%s\u001b[0m" % ("\u001b[31m", service.name))
+                        if service.communicated:
+                            continue
+                        stderr = service.communicate()
+                        if stderr is not None:
+                            stderr = stderr.decode("utf-8")
+                            print("%s%s\u001b[0m" % ("\u001b[31m", f"[{service.name}] " + stderr))
+                            if "KeyboardInterrupt" not in stderr:
+                                capture_error(stderr, level="error")
 
-                running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if service.is_alive() else "\u001b[31m", service.name)
-                       for service in services)
-
-                print(running)
-                cloudlog.debug(running)
+                print(" ".join(running_daemons))
+                cloudlog.debug(running_daemons)
 
                 # send managerState
                 manager_state_msg = messaging.new_message('managerState')

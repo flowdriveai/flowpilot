@@ -8,7 +8,7 @@ import psutil
 from selfdrive.manager.config import Config
 from cereal import log
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)    
 
 
 class Service:
@@ -27,6 +27,7 @@ class Service:
         self.phandler = None
         self.proc = None
         self.exitcode = None
+        self.communicated = False
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -41,7 +42,15 @@ class Service:
             poll = self.proc.poll()
             return True if poll is None else False
         else:
-            return self.phandler.is_running()         
+            return self.phandler.is_running()
+    
+    def communicate(self):
+        """Handles communication with the service and returns errors"""
+        if self.proc is not None:
+            _, stderr = self.proc.communicate()
+            self.communicated = True
+            return stderr
+        return None
  
     def start(self):
         """Starts the service"""
@@ -49,7 +58,9 @@ class Service:
             return
         if not self.monitor_only:
             logger.info("Starting " + self.name)
-            stdout, stderr = None, None
+            
+            # pipe only stderr for sentry
+            stdout, stderr = None, subprocess.PIPE 
             if Config.LOGPATH:
                 with open(
                     os.path.join(Config.LOGPATH, f"{self.name}.stdout"), "a"
@@ -59,7 +70,7 @@ class Service:
                     stdout, stderr = stdout, stderr
 
             self.proc = subprocess.Popen(
-                        [self.command] + self.args, shell=True
+                        [self.command] + self.args, stdout=stdout, stderr=stderr, shell=True
                     )
             self.pid = self.proc.pid
         self.phandler = psutil.Process(self.pid)
