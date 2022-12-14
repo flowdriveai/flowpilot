@@ -48,7 +48,7 @@ base_setup() {
 	wget -q --show-progress --no-clobber --tries=5 $TERMUX_API_APK_URL -P /sdcard/flowpilot/Downloads
 
 	INSTALL_SCRIPT_URL='https://raw.githubusercontent.com/flowdriveai/flowpilot/master/scripts/install-flowpilot-android'
-	wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -P /sdcard/flowpilot/Downloads
+	wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -O /sdcard/flowpilot/Downloads/install-flowpilot-android
 
 	# setup startup commands
 	add_to_file 'sshd' ~/.bashrc
