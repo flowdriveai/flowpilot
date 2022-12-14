@@ -85,28 +85,45 @@ setup_root_env() {
         sudo chmod +x $HOME/flowpilot_env_root/bin/install-flowpilot-android
 
         rm -f /data/data/com.termux/files/usr/bin/login-flowpilot-root
+        # Copy from https://github.com/MFDGaming/ubuntu-in-termux/blob/7daf992c9804403c4dfbab2bd23be6d81fa916db/ubuntu.sh#L65-L103
         echo "#!/data/data/com.termux/files/usr/bin/bash
+            cd \$(dirname \$0)
 
-        # prepare mount external storage
-        mkdir -p $CHROOT/sdcard
+	    # prepare mount external storage
+	    mkdir -p $CHROOT/sdcard
 
-        # fix /data mount options
-        mount -o remount,dev,suid /data
+	    # not sure this is needed or not, keep it now
+	    # fix /data mount options
+	    mount -o remount,dev,suid /data
 
-        mount --bind /dev $CHROOT/dev
-        mount --bind /sys $CHROOT/sys
-        mount --bind /proc $CHROOT/proc
-        mount --bind /dev/pts $CHROOT/dev/pts
-        mount --bind /sdcard $CHROOT/sdcard
-
-        # disable termux-exec
-        unset LD_PRELOAD
-
-        export PATH=/bin:/sbin:/usr/bin:/usr/sbin
-        export TERM=\$TERM
-        export TMPDIR=/tmp
-
-        chroot $CHROOT /bin/su - root
+            ## unset LD_PRELOAD in case termux-exec is installed
+            unset LD_PRELOAD
+            command="proot"
+            command+=" --link2symlink"
+            command+=" -0"
+            command+=" -r $CHROOT"
+            command+=" -b /dev"
+            command+=" -b /proc"
+            command+=" -b /sys"
+            command+=" -b $CHROOT/tmp:/dev/shm"
+            command+=" -b /data/data/com.termux"
+            command+=" -b /:/host-rootfs"
+            command+=" -b /sdcard"
+            command+=" -b /storage"
+            command+=" -b /mnt"
+            command+=" -w /root"
+            command+=" /usr/bin/env -i"
+            command+=" HOME=/root"
+            command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
+            command+=" TERM=\$TERM"
+            command+=" LANG=C.UTF-8"
+            command+=" /bin/bash --login"
+            com="\$@"
+            if [ -z "\$1" ];then
+                exec \$command
+            else
+                \$command -c "\$com"
+            fi
         " >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
         chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
 
