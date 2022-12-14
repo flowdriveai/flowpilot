@@ -48,7 +48,7 @@ base_setup() {
 	wget -q --show-progress --no-clobber --tries=5 $TERMUX_API_APK_URL -P /sdcard/flowpilot/Downloads
 
 	INSTALL_SCRIPT_URL='https://raw.githubusercontent.com/flowdriveai/flowpilot/master/scripts/install-flowpilot-android'
-	wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -P /sdcard/flowpilot/Downloads
+	wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -O /sdcard/flowpilot/Downloads/install-flowpilot-android
 
 	# setup startup commands
 	add_to_file 'sshd' ~/.bashrc
@@ -71,7 +71,6 @@ setup_nonroot_env() {
   	success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
 }
 
-# TODO: fix this
 setup_root_env() {
 	info "Preparing to install flowpilot root env ..."
         pkg install tsu
@@ -81,34 +80,48 @@ setup_root_env() {
         CHROOT=$HOME/flowpilot_env_root
         mkdir -p $CHROOT
         sudo tar xfp /sdcard/flowpilot/Downloads/$ROOTFS_TAR -C $CHROOT
-        sudo cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env_root/bin
-        sudo chmod +x $HOME/flowpilot_env_root/bin/install-flowpilot-android
+        sudo cp /sdcard/flowpilot/Downloads/install-flowpilot-android $CHROOT/bin
+        sudo chmod +x $CHROOT/bin/install-flowpilot-android
 
         rm -f /data/data/com.termux/files/usr/bin/login-flowpilot-root
+        # Copy from https://github.com/MFDGaming/ubuntu-in-termux/blob/7daf992c9804403c4dfbab2bd23be6d81fa916db/ubuntu.sh#L65-L103
         echo "#!/data/data/com.termux/files/usr/bin/bash
+	
+	    # prepare mount external storage
+	    mkdir -p $CHROOT/sdcard
 
-        # prepare mount external storage
-        mkdir -p $CHROOT/sdcard
+	    # fix /data mount options
+	    mount -o remount,dev,suid /data
 
-        # fix /data mount options
-        mount -o remount,dev,suid /data
-
-        mount --bind /dev $CHROOT/dev
-        mount --bind /sys $CHROOT/sys
-        mount --bind /proc $CHROOT/proc
-        mount --bind /dev/pts $CHROOT/dev/pts
-        mount --bind /sdcard $CHROOT/sdcard
-
-        # disable termux-exec
-        unset LD_PRELOAD
-
-        export PATH=/bin:/sbin:/usr/bin:/usr/sbin
-        export TERM=\$TERM
-        export TMPDIR=/tmp
-
-        chroot $CHROOT /bin/su - root
-        " >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
-        chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
+	    ## unset LD_PRELOAD in case termux-exec is installed
+	    unset LD_PRELOAD
+	    command=\"proot\"
+	    command+=\" --link2symlink\"
+	    command+=\" -0\"
+	    command+=\" -r $CHROOT\"
+	    command+=\" -b /dev\"
+	    command+=\" -b /proc\"
+	    command+=\" -b /sys\"
+	    command+=\" -b $CHROOT/tmp:/dev/shm\"
+	    command+=\" -b /data/data/com.termux\"
+	    command+=\" -b /:/host-rootfs\"
+	    command+=\" -b /sdcard\"
+	    command+=\" -b /mnt\"
+	    command+=\" -w /root\"
+	    command+=\" /usr/bin/env -i\"
+	    command+=\" HOME=/root\"
+	    command+=\" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games\"
+	    command+=\" TERM=\$TERM\"
+	    command+=\" LANG=C.UTF-8\"
+	    command+=\" /bin/bash --login\"
+	    com=\"\$@\"
+	    if [ -z \"\$1\" ];then
+		exec \$command
+	    else
+		\$command -c \"\$com\"
+	    fi
+	" >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
+	chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
 
 	success "Flowpilot root environment installed. login with 'sudo login-flowpilot-root'"
 }
