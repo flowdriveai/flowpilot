@@ -5,24 +5,21 @@ import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.net.HttpRequestBuilder;
+import com.badlogic.gdx.net.HttpRequestHeader;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-
-
-import java.net.HttpCookie;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class LoginScreen extends ScreenAdapter {
     FlowUI appContext;
     Stage stage;
     Table table;
-    TextField txfToken;
+    TextField txfEmail;
+    TextField txfPassword;
     TextButton btnLogin;
     TextButton btnBack;
     String email;
@@ -46,8 +43,10 @@ public class LoginScreen extends ScreenAdapter {
         this.stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         Gdx.input.setInputProcessor(stage);
 
-        txfToken = new TextField("", appContext.skin);
-        txfToken.setMessageText(" Token");
+        txfEmail = new TextField(email, appContext.skin);
+        txfEmail.setMessageText(" Email");
+        txfPassword = new TextField("", appContext.skin);
+        txfPassword.setMessageText(" Password");
 
         btnBack = new TextButton("Back", appContext.skin);
         btnBack.addListener(
@@ -67,17 +66,6 @@ public class LoginScreen extends ScreenAdapter {
                     }
                 });
 
-        dialog =
-                new Dialog("Error", appContext.skin) {
-                    public void result(Object obj) {
-                        if (obj.equals(true)) {
-                            dialog.hide();
-                        }
-                    }
-                };
-        dialog.text("Login Credentials Incorrect");
-        dialog.button("Retry", true);
-
         progressBar = new ProgressBar(0, 4, 1, false, appContext.skin);
         tableProgressBar = new Table();
         tableProgressBar.setFillParent(true);
@@ -88,11 +76,13 @@ public class LoginScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        title = new Label("Login with your secret token", appContext.skin);
+        title = new Label("Flowdrive Login", appContext.skin);
 
         table.add(title).align(Align.center).height(75f).colspan(2);
         table.row();
-        table.add(txfToken).width(440f).height(100f).colspan(2).pad(20);
+        table.add(txfEmail).width(440f).height(100f).colspan(2).pad(20);
+        table.row();
+        table.add(txfPassword).width(440f).height(100f).colspan(2).pad(20);
         table.row();
         table.add(btnBack).width(200f).height(100f).uniform().pad(20);
         table.add(btnLogin).width(200f).height(100f).uniform().pad(20);
@@ -103,18 +93,13 @@ public class LoginScreen extends ScreenAdapter {
 
     private void btnLoginClicked() {
         progressVal++;
-        String token = txfToken.getText();
-        manageLogin(email, token);
+        String email = txfEmail.getText();
+        String password = txfPassword.getText();
+        manageLogin(email, password);
     }
 
-    private void manageLogin(String email, String token) {
-        Map<String, String> form =
-                new HashMap<String, String>() {
-                    {
-                        put("email", email);
-                        put("token", token);
-                    }
-                };
+    private void manageLogin(String email, String password) {
+        String content = "{\n\t\"email\": \"" + email +"\",\n\t\"password\": \"" + password + "\",\n\t\"long_living\": true\n}";
 
         progressVal++;
 
@@ -124,7 +109,8 @@ public class LoginScreen extends ScreenAdapter {
                         .newRequest()
                         .url(LOGIN_URI)
                         .method(Net.HttpMethods.POST)
-                        .formEncodedContent(form)
+                        .header(HttpRequestHeader.ContentType, "application/json")
+                        .content(content)
                         .build();
 
         Gdx.net.sendHttpRequest(
@@ -132,18 +118,21 @@ public class LoginScreen extends ScreenAdapter {
                 new Net.HttpResponseListener() {
                     @Override
                     public void handleHttpResponse(Net.HttpResponse httpResponse) {
+
                         int statusCode = httpResponse.getStatus().getStatusCode();
                         if (statusCode != 200) {
-                            loginError();
+                            loginError(httpResponse);
                             progressVal = 0;
                             return;
                         }
                         progressVal++;
 
+                        // Login succeeded, save access token
                         try {
-                            String cookieHeader = httpResponse.getHeader("set-cookie");
-                            List<HttpCookie> cookies = HttpCookie.parse(cookieHeader);
-                            LoginSucceeded(email, token, cookies);
+                            String responseString = httpResponse.getResultAsString();
+                            JsonValue response = HttpUtils.parseGenericResponse(responseString);
+                            String auth_token = response.get("message").getString("auth_token");
+                            LoginSucceeded(email, auth_token);
 
                         } catch (Exception exception) {
                             progressVal = 0;
@@ -163,14 +152,27 @@ public class LoginScreen extends ScreenAdapter {
                 });
     }
 
-    private void LoginSucceeded(String email, String token, List<HttpCookie> cookies) {
-        appContext.params.put("UserID", cookies.get(0).getValue());
+    private void LoginSucceeded(String email, String auth_token) {
         appContext.params.put("UserEmail", email);
-        appContext.params.put("UserToken", token);
+        appContext.params.put("UserToken", auth_token);
         progressVal++;
     }
 
-    private void loginError() {
+    private void loginError(Net.HttpResponse httpResponse) {
+        String responseString = httpResponse.getResultAsString();
+        HttpUtils.DefaultResponse defaultResponse = HttpUtils.parseDefaultResponse(responseString);
+
+        dialog =
+                new Dialog("Error", appContext.skin) {
+                    public void result(Object obj) {
+                        if (obj.equals(true)) {
+                            dialog.hide();
+                        }
+                    }
+                };
+        dialog.text(defaultResponse.message);
+        dialog.button("Retry", true);
+
         dialog.show(stage);
     }
 
@@ -180,7 +182,7 @@ public class LoginScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // the session cookie is generated, we can check that to log in now.
-        if (appContext.params.exists("UserID")) {
+        if (appContext.params.exists("UserToken")) {
             appContext.setScreen(new SetUpScreen(appContext));
         }
 

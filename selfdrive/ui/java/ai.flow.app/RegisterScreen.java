@@ -158,7 +158,7 @@ public class RegisterScreen extends ScreenAdapter {
                         } else {
                             // Unknown error, respond with a response message
                             String responseString = httpResponse.getResultAsString();
-                            HttpUtils.Response response = HttpUtils.parseResponse(responseString);
+                            HttpUtils.DefaultResponse response = HttpUtils.parseDefaultResponse(responseString);
 
                             customDialog =
                                     new Dialog("Info", appContext.skin) {
