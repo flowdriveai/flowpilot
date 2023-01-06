@@ -12,6 +12,10 @@ cpppath = [
   python_path
 ]
 
+AddOption('--kaitai',
+          action='store_true',
+          help='Regenerate kaitai struct parsers')
+          
 AddOption('--test',
           action='store_true',
           help='build test files')
@@ -90,7 +94,8 @@ env = Environment(
     "#libs",
     "#opendbc/can/",
     "#common",
-    "#selfdrive/boardd"
+    "#selfdrive/boardd",
+    "#third_party",
   ],
 
   RPATH=rpath,
@@ -105,6 +110,7 @@ env = Environment(
     "#cereal",
     "#opendbc/can",
     "#common",
+    "#third_party",
   ],
   CYTHONCFILESUFFIX=".cpp",
   toolpath = ['opendbc/site_scons/site_tools'],
@@ -170,17 +176,49 @@ else:
 
 Export('cereal', 'messaging')
 
+# Build rednose library and ekf models
+
+rednose_deps = [
+  "#selfdrive/locationd/models/constants.py",
+  "#selfdrive/locationd/models/gnss_helpers.py",
+]
+
+rednose_config = {
+  'generated_folder': '#selfdrive/locationd/models/generated',
+  'to_build': {
+    'gnss': ('#selfdrive/locationd/models/gnss_kf.py', True, [], rednose_deps),
+    'live': ('#selfdrive/locationd/models/live_kf.py', True, ['live_kf_constants.h'], rednose_deps),
+    'car': ('#selfdrive/locationd/models/car_kf.py', True, [], rednose_deps),
+  },
+}
+
+if arch != "larch64":
+  rednose_config['to_build'].update({
+    'loc_4': ('#selfdrive/locationd/models/loc_kf.py', True, [], rednose_deps),
+    'pos_computer_4': ('#rednose/helpers/lst_sq_computer.py', False, [], []),
+    'pos_computer_5': ('#rednose/helpers/lst_sq_computer.py', False, [], []),
+    'feature_handler_5': ('#rednose/helpers/feature_handler.py', False, [], []),
+    'lane': ('#xx/pipeline/lib/ekf/lane_kf.py', True, [], rednose_deps),
+  })
+
+Export('rednose_config')
+SConscript(['rednose/SConscript'])
+
+SConscript(['third_party/SConscript'])
+
 SConscript(['SConscript'])
 SConscript(['cereal/SConscript'])
 SConscript(['panda/board/SConscript'])
 SConscript(['opendbc/can/SConscript'])
 
 SConscript(['common/kalman/SConscript'])
+SConscript(['common/transformations/SConscript'])
 
 SConscript(['selfdrive/controls/lib/cluster/SConscript'])
 SConscript(['selfdrive/controls/lib/lateral_mpc_lib/SConscript'])
 SConscript(['selfdrive/controls/lib/long_mpc_lib/SConscript'])
 
+SConscript(['selfdrive/locationd/SConscript'])
 SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/loggerd/SConscript'])
 
