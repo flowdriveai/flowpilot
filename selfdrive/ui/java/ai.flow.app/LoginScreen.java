@@ -111,6 +111,7 @@ public class LoginScreen extends ScreenAdapter {
                         .method(Net.HttpMethods.POST)
                         .header(HttpRequestHeader.ContentType, "application/json")
                         .content(content)
+                        .timeout(0) // block until the request is completed
                         .build();
 
         Gdx.net.sendHttpRequest(
