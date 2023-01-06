@@ -21,7 +21,7 @@ public class SetUpScreen extends ScreenAdapter {
             return;
         }
 
-        if (!appContext.params.exists("UserID")) {
+        if (!appContext.params.exists("UserToken")) {
             appContext.setScreen(new RegisterScreen(appContext));
             return;
         }
