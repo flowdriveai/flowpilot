@@ -51,6 +51,13 @@ kf_ps = []
 
 kf = CarKalman(GENERATED_DIR)
 
+kf.filter.set_global("mass", CP.mass)
+kf.filter.set_global("rotational_inertia", CP.rotationalInertia)
+kf.filter.set_global("center_to_front", CP.centerToFront)
+kf.filter.set_global("center_to_rear", CP.wheelbase - CP.centerToFront)
+kf.filter.set_global("stiffness_front", CP.tireStiffnessFront)
+kf.filter.set_global("stiffness_rear", CP.tireStiffnessRear)
+
 for i, t in list(enumerate(ts)):
   u = speeds[i]
   sa = steering_angles[i]
@@ -59,16 +66,14 @@ for i, t in list(enumerate(ts)):
   A, B = create_dyn_state_matrices(u, VM)
   B = B[:, :1]
     
-  print(A.dot(state))
-  print(B)
   state += DT * (A.dot(state) + B.dot(sa + ao))
 
   x += u * math.cos(psi) * DT
   y += (float(state[0]) * math.sin(psi) + u * math.sin(psi)) * DT
   psi += float(state[1]) * DT
   
-  kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_YAW_RATE, [float(state[1])])
-  kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_XY_SPEED, [[u, float(state[0])]])
+  #kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_YAW_RATE, [float(state[1])])
+  kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_X_SPEED, [[u]])
   kf.predict_and_observe(t, ObservationKind.STEER_ANGLE, [sa])
   kf.predict_and_observe(t, ObservationKind.ANGLE_OFFSET_FAST, [0])
 
