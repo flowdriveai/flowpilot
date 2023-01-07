@@ -39,6 +39,7 @@ angle_offsets = math.radians(1.0) * np.ones_like(ts)
 angle_offsets[ts > 60] = 0
 steering_angles = cast(np.ndarray, np.radians(5 * np.cos(2 * np.pi * ts / 100.)))
 
+
 xs = []
 ys = []
 psis = []
@@ -58,21 +59,20 @@ kf.filter.set_global("center_to_rear", CP.wheelbase - CP.centerToFront)
 kf.filter.set_global("stiffness_front", CP.tireStiffnessFront)
 kf.filter.set_global("stiffness_rear", CP.tireStiffnessRear)
 
-for i, t in list(enumerate(ts)):
+for i, t in tqdm(list(enumerate(ts))):
   u = speeds[i]
   sa = steering_angles[i]
   ao = angle_offsets[i]
 
   A, B = create_dyn_state_matrices(u, VM)
-  B = B[:, :1]
     
-  state += DT * (A.dot(state) + B.dot(sa + ao))
+  state += DT * (A.dot(state) + B.dot(np.atleast_2d([sa + ao, 0]).T))
 
   x += u * math.cos(psi) * DT
   y += (float(state[0]) * math.sin(psi) + u * math.sin(psi)) * DT
   psi += float(state[1]) * DT
   
-  #kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_YAW_RATE, [float(state[1])])
+  kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_YAW_RATE, [float(state[1])])
   kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_X_SPEED, [[u]])
   kf.predict_and_observe(t, ObservationKind.STEER_ANGLE, [sa])
   kf.predict_and_observe(t, ObservationKind.ANGLE_OFFSET_FAST, [0])
