@@ -7,9 +7,3 @@
 [submodule "cereal"]
 	path = cereal
 	url = https://github.com/flow-drive-ai/cereal
-[submodule "laika_repo"]
-	path = laika_repo
-	url = https://github.com/commaai/laika.git
-[submodule "rednose_repo"]
-	path = rednose_repo
-	url = https://github.com/commaai/rednose.git
