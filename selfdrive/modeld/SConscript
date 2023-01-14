@@ -1,0 +1,12 @@
+Import('env', 'arch', 'cereal', 'messaging', 'common')
+lenv = env.Clone()
+
+libs = [cereal, messaging, common, 'capnp', 'zmq', 'kj', 'pthread']
+
+src = [
+  "models/commonmodel.cc",
+  "models/driving.cc",
+  "models/nav.cc",
+]
+
+parser = lenv.SharedLibrary('modelpaerse', src, LIBS=libs)

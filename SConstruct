@@ -86,6 +86,7 @@ env = Environment(
     "-Wno-c99-designator",
     "-Wno-reorder-init-list",
     "-Wno-error=unused-but-set-variable",
+    "-Wno-c++11-narrowing"
   ] + cflags + ccflags,
 
   LINKFLAGS=ldflags,
@@ -100,8 +101,8 @@ env = Environment(
 
   RPATH=rpath,
 
-  CFLAGS=["-std=gnu11"],
-  CXXFLAGS=["-std=c++1z"],
+  CFLAGS=["-std=gnu11"] + cflags,
+  CXXFLAGS=["-std=c++1z"] + cxxflags,
   CPPPATH=cpppath + [
     "#",
     "#libs/acados/include",
@@ -213,6 +214,8 @@ SConscript(['opendbc/can/SConscript'])
 
 SConscript(['common/kalman/SConscript'])
 SConscript(['common/transformations/SConscript'])
+
+SConscript(['selfdrive/modeld/SConscript'])
 
 SConscript(['selfdrive/controls/lib/cluster/SConscript'])
 SConscript(['selfdrive/controls/lib/lateral_mpc_lib/SConscript'])
