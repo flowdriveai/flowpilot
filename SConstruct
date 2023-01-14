@@ -28,7 +28,12 @@ AddOption('--ubsan',
           action='store_true',
           help='turn on UBSan')
 
+AddOption('--clazy',
+          action='store_true',
+          help='build with clazy')
+
 SHARED = False
+real_arch = arch = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()
 
 lenv = {
   "PATH": os.environ['PATH'] + ":" + Dir(f"#libs/capnpc-java/{arch}/bin").abspath,
@@ -42,6 +47,7 @@ lenv = {
 
 libpath = [
       f"#libs/acados/{arch}/lib",
+      f'#libs/mapbox-gl-native-qt/x86_64/{arch}'
       ]
 
 cflags = []
@@ -93,6 +99,7 @@ env = Environment(
     "#cereal",
     "#libs",
     "#opendbc/can/",
+    "#libs/mapbox-gl-native-qt/x86_64",
     "#common",
     "#selfdrive/boardd",
     "#third_party",
@@ -107,6 +114,7 @@ env = Environment(
     "#libs/acados/include",
     "#libs/acados/include/blasfeo/include",
     "#libs/acados/include/hpipm/include",
+    "#libs/mapbox-gl-native-qt/include",
     "#cereal",
     "#opendbc/can",
     "#common",
@@ -133,6 +141,72 @@ else:
   envCython["LINKFLAGS"] = ["-pthread", "-shared"]
 
 Export('envCython')
+
+# # Qt build environment
+qt_env = env.Clone()
+qt_modules = ["Widgets", "Gui", "Core", "Network", "Concurrent", "Multimedia", "Quick", "Qml", "QuickWidgets", "Location", "Positioning", "DBus"]
+
+qt_libs = []
+if arch == "Darwin":
+  if real_arch == "arm64":
+    qt_env['QTDIR'] = "/opt/homebrew/opt/qt@5"
+  else:
+    qt_env['QTDIR'] = "/usr/local/opt/qt@5"
+  qt_dirs = [
+    os.path.join(qt_env['QTDIR'], "include"),
+  ]
+  qt_dirs += [f"{qt_env['QTDIR']}/include/Qt{m}" for m in qt_modules]
+  qt_env["LINKFLAGS"] += ["-F" + os.path.join(qt_env['QTDIR'], "lib")]
+  qt_env["FRAMEWORKS"] += [f"Qt{m}" for m in qt_modules] + ["OpenGL"]
+  qt_env.AppendENVPath('PATH', os.path.join(qt_env['QTDIR'], "bin"))
+else:
+  qt_install_prefix = subprocess.check_output(['qmake', '-query', 'QT_INSTALL_PREFIX'], encoding='utf8').strip()
+  qt_install_headers = subprocess.check_output(['qmake', '-query', 'QT_INSTALL_HEADERS'], encoding='utf8').strip()
+
+  qt_env['QTDIR'] = qt_install_prefix
+  qt_dirs = [
+    f"{qt_install_headers}",
+    f"{qt_install_headers}/QtGui/5.12.8/QtGui",
+  ]
+  qt_dirs += [f"{qt_install_headers}/Qt{m}" for m in qt_modules]
+
+  qt_libs = [f"Qt5{m}" for m in qt_modules]
+  if arch == "larch64":
+    qt_libs += ["GLESv2", "wayland-client"]
+  elif arch != "Darwin":
+    qt_libs += ["GL"]
+
+qt_env.Tool('qt')
+qt_env['CPPPATH'] += qt_dirs + ["#selfdrive/ui/qt/"]
+qt_flags = [
+  "-D_REENTRANT",
+  "-DQT_NO_DEBUG",
+  "-DQT_WIDGETS_LIB",
+  "-DQT_GUI_LIB",
+  "-DQT_QUICK_LIB",
+  "-DQT_QUICKWIDGETS_LIB",
+  "-DQT_QML_LIB",
+  "-DQT_CORE_LIB",
+  "-DQT_MESSAGELOGCONTEXT",
+]
+qt_flags
+qt_env['CXXFLAGS'] += qt_flags
+qt_env['LIBPATH'] += ['#selfdrive/ui']
+qt_env['LIBS'] = qt_libs
+# qt_env['QT_MOCHPREFIX'] = cache_dir + '/moc_files/moc_'
+
+if GetOption("clazy"):
+  checks = [
+    "level0",
+    "level1",
+    "no-range-loop",
+    "no-non-pod-global-static",
+  ]
+  qt_env['CXX'] = 'clazy'
+  qt_env['ENV']['CLAZY_IGNORE_DIRS'] = qt_dirs[0]
+  qt_env['ENV']['CLAZY_CHECKS'] = ','.join(checks)
+
+Export('env', 'qt_env', 'arch', 'real_arch', 'SHARED')
 
 QCOM_REPLAY = False
 Export('env', 'arch', 'QCOM_REPLAY', 'SHARED')
@@ -221,6 +295,8 @@ SConscript(['selfdrive/controls/lib/long_mpc_lib/SConscript'])
 SConscript(['selfdrive/locationd/SConscript'])
 SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/loggerd/SConscript'])
+SConscript(['selfdrive/ui/SConscript'])
+SConscript(['selfdrive/navd/SConscript'])
 
 if GetOption('test'):
   SConscript('panda/tests/safety/SConscript')
