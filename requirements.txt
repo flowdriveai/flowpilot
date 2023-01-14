@@ -32,4 +32,7 @@ sentry-sdk==1.10.1
 sympy==1.11.1
 certifi==2022.12.7
 hatanaka==2.8.0
+matplotlib==3.6.3
+polyline==1.4.0
+opencv-python==4.7.0.68
 
