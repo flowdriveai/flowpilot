@@ -20,7 +20,6 @@ constexpr float FCW_THRESHOLD_3MS2 = 0.7;
 std::array<float, 5> prev_brake_5ms2_probs = {0,0,0,0,0};
 std::array<float, 3> prev_brake_3ms2_probs = {0,0,0};
 
-PubMaster pm({"modelV2", "cameraOdometry"});
 
 void fill_lead(cereal::ModelDataV2::LeadDataV3::Builder lead, const ModelOutputLeads &leads, int t_idx, float prob_t) {
   std::array<float, LEAD_TRAJ_LEN> lead_t = {0.0, 2.0, 4.0, 6.0, 8.0, 10.0};
@@ -265,9 +264,9 @@ void fill_model(cereal::ModelDataV2::Builder &framed, const ModelOutput &net_out
 }
 
 extern "C" {
-  void model_publish(uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
+  unsigned char* parse_model(uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
                     const float* raw_pred, uint64_t timestamp_eof,
-                    float model_execution_time, const bool valid) {
+                    float model_execution_time, const bool valid, uint32_t* msg_size) {
     
     ModelOutput net_outputs = *(ModelOutput*) raw_pred;
     const uint32_t frame_age = (frame_id > vipc_frame_id) ? (frame_id - vipc_frame_id) : 0;
@@ -283,11 +282,16 @@ extern "C" {
       framed.setRawPredictions(kj::ArrayPtr<const float>(raw_pred, NET_OUTPUT_SIZE).asBytes());
     }
     fill_model(framed, net_outputs);
-    pm.send("modelV2", msg);
+    
+    auto bytes = msg.toBytes();
+    *msg_size = bytes.size();
+    unsigned char* ret = new unsigned char[*msg_size];
+    memcpy(ret, bytes.begin(), *msg_size);
+    return ret;
   }
 
-  void posenet_publish(uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
-                      const float* raw_pred, uint64_t timestamp_eof, const bool valid) {
+  unsigned char* parse_posenet(uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
+                      const float* raw_pred, uint64_t timestamp_eof, const bool valid, uint32_t* msg_size) {
     ModelOutput net_outputs = *(ModelOutput*) raw_pred;
     MessageBuilder msg;
     const auto &v_mean = net_outputs.pose.velocity_mean;
@@ -309,6 +313,10 @@ extern "C" {
     posenetd.setTimestampEof(timestamp_eof);
     posenetd.setFrameId(vipc_frame_id);
 
-    pm.send("cameraOdometry", msg);
+    auto bytes = msg.toBytes();
+    *msg_size = bytes.size();
+    unsigned char* ret = new unsigned char[*msg_size];
+    memcpy(ret, bytes.begin(), *msg_size);
+    return ret;
   }
 }
