@@ -47,7 +47,7 @@ lenv = {
 
 libpath = [
       f"#libs/acados/{arch}/lib",
-      f'#libs/mapbox-gl-native-qt/x86_64/{arch}'
+      f'#libs/mapbox-gl-native-qt/{arch}'
       ]
 
 cflags = []
@@ -99,7 +99,6 @@ env = Environment(
     "#cereal",
     "#libs",
     "#opendbc/can/",
-    "#libs/mapbox-gl-native-qt/x86_64",
     "#common",
     "#selfdrive/boardd",
     "#third_party",
