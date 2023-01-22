@@ -1,3 +1,5 @@
+sudo apt-get update
+
 # these need to be installed before requirements.txt 
 pip install pkgconfig==1.5.5
 pip install Cython==0.29.32
