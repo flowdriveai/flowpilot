@@ -16,9 +16,6 @@ then
     sh $DIR/libs/capnpc-java/build.sh
 fi
 
-# install mapbox-gl-native-qt
-sh $DIR/libs/mapbox-gl-native-qt/build.sh
-
 # pycapnp without wheel build can fail on some systems, in this case, its built from scratch later in the process.
 pip install pycapnp==1.0.0 --install-option="--force-system-libcapnp" > /dev/null 2>&1
 pip install -r requirements.txt

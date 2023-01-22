@@ -7,9 +7,9 @@ base_libs = [common, messaging, cereal, transformations, 'zmq',
 if arch == 'larch64':
   base_libs.append('EGL')
 
-maps = arch in ['larch64', 'x86_64']
+maps = True
 
-if maps and arch == 'x86_64':
+if maps:
   rpath = [Dir(f"#libs/mapbox-gl-native-qt/{arch}").srcnode().abspath]
   qt_env["RPATH"] += rpath
 
