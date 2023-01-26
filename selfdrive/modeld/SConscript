@@ -3,10 +3,12 @@ lenv = env.Clone()
 
 libs = [cereal, messaging, common, 'capnp', 'zmq', 'kj', 'pthread']
 
-src = [
+common_src = [
   "models/commonmodel.cc",
   "models/driving.cc",
   "models/nav.cc",
 ]
 
-parser = lenv.SharedLibrary('modelpaerse', src, LIBS=libs)
+parser = lenv.SharedLibrary('modelpaerse', common_src, LIBS=libs)
+
+lenv.Program('modelparsed', ["modelparsed.cc"]+common_src, LIBS=libs)

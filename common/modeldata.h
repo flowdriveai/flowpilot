@@ -2,7 +2,6 @@
 
 #include <array>
 #include "common/mat.h"
-#include "system/hardware/hw.h"
 
 const int TRAJECTORY_SIZE = 33;
 const int LAT_MPC_N = 16;

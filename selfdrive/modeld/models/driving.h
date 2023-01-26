@@ -245,10 +245,10 @@ constexpr int OUTPUT_SIZE = sizeof(ModelOutput) / sizeof(float);
 constexpr int NET_OUTPUT_SIZE = OUTPUT_SIZE + FEATURE_LEN + PAD_SIZE;
 
 void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
-                   const ModelOutput &net_outputs, uint64_t timestamp_eof,
-                   float model_execution_time, kj::ArrayPtr<const float> raw_pred, const bool valid);
+                   const float* raw_pred, uint64_t timestamp_eof,
+                   float model_execution_time, const bool valid);
 void posenet_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
-                     const ModelOutput &net_outputs, uint64_t timestamp_eof, const bool valid);
+                     const float* raw_pred, uint64_t timestamp_eof, const bool valid);
 extern "C" {
 uint32_t parse_model(uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
                       float model_execution_time, uint64_t timestamp_eof, const bool valid, const float* raw_pred,
