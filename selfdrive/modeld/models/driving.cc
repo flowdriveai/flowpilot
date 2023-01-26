@@ -11,7 +11,6 @@
 
 #include "common/params.h"
 #include "common/timing.h"
-#include "common/swaglog.h"
 
 constexpr float FCW_THRESHOLD_5MS2_HIGH = 0.15;
 constexpr float FCW_THRESHOLD_5MS2_LOW = 0.05;
@@ -263,60 +262,60 @@ void fill_model(cereal::ModelDataV2::Builder &framed, const ModelOutput &net_out
   temporal_pose.setRotStd({exp(r_std.x), exp(r_std.y), exp(r_std.z)});
 }
 
-extern "C" {
-  unsigned char* parse_model(uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
-                    const float* raw_pred, uint64_t timestamp_eof,
-                    float model_execution_time, const bool valid, uint32_t* msg_size) {
-    
-    ModelOutput net_outputs = *(ModelOutput*) raw_pred;
-    const uint32_t frame_age = (frame_id > vipc_frame_id) ? (frame_id - vipc_frame_id) : 0;
-    MessageBuilder msg;
-    auto framed = msg.initEvent(valid).initModelV2();
-    framed.setFrameId(vipc_frame_id);
-    framed.setFrameIdExtra(vipc_frame_id_extra);
-    framed.setFrameAge(frame_age);
-    framed.setFrameDropPerc(frame_drop * 100);
-    framed.setTimestampEof(timestamp_eof);
-    framed.setModelExecutionTime(model_execution_time);
-    if (send_raw_pred) {
-      framed.setRawPredictions(kj::ArrayPtr<const float>(raw_pred, NET_OUTPUT_SIZE).asBytes());
-    }
-    fill_model(framed, net_outputs);
-    
-    auto bytes = msg.toBytes();
-    *msg_size = bytes.size();
-    unsigned char* ret = new unsigned char[*msg_size];
-    memcpy(ret, bytes.begin(), *msg_size);
-    return ret;
+
+uint32_t parse_model(uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
+                    float model_execution_time, uint64_t timestamp_eof, const bool valid, const float* raw_pred,
+                    unsigned char* ret) {
+  ModelOutput net_outputs = *(ModelOutput*) raw_pred;
+  const uint32_t frame_age = (frame_id > vipc_frame_id) ? (frame_id - vipc_frame_id) : 0;
+  MessageBuilder msg;
+  auto framed = msg.initEvent(valid).initModelV2();
+  framed.setFrameId(vipc_frame_id);
+  framed.setFrameIdExtra(vipc_frame_id_extra);
+  framed.setFrameAge(frame_age);
+  framed.setFrameDropPerc(frame_drop * 100);
+  framed.setTimestampEof(timestamp_eof);
+  framed.setModelExecutionTime(model_execution_time);
+  if (send_raw_pred) {
+    framed.setRawPredictions(kj::ArrayPtr<const float>(raw_pred, NET_OUTPUT_SIZE).asBytes());
   }
+  fill_model(framed, net_outputs);
+  
+  auto bytes = msg.toBytes();
+  uint32_t msg_size = bytes.size();
+  if (ret == nullptr)
+    ret = new unsigned char[msg_size];
+  memcpy(ret, bytes.begin(), msg_size);
+  return msg_size;
+}
 
-  unsigned char* parse_posenet(uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
-                      const float* raw_pred, uint64_t timestamp_eof, const bool valid, uint32_t* msg_size) {
-    ModelOutput net_outputs = *(ModelOutput*) raw_pred;
-    MessageBuilder msg;
-    const auto &v_mean = net_outputs.pose.velocity_mean;
-    const auto &r_mean = net_outputs.pose.rotation_mean;
-    const auto &t_mean = net_outputs.wide_from_device_euler.mean;
-    const auto &v_std = net_outputs.pose.velocity_std;
-    const auto &r_std = net_outputs.pose.rotation_std;
-    const auto &t_std = net_outputs.wide_from_device_euler.std;
+uint32_t parse_posenet(uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
+                      const bool valid, uint64_t timestamp_eof, const float* raw_pred, unsigned char* ret) { 
+  ModelOutput net_outputs = *(ModelOutput*) raw_pred;
+  MessageBuilder msg;
+  const auto &v_mean = net_outputs.pose.velocity_mean;
+  const auto &r_mean = net_outputs.pose.rotation_mean;
+  const auto &t_mean = net_outputs.wide_from_device_euler.mean;
+  const auto &v_std = net_outputs.pose.velocity_std;
+  const auto &r_std = net_outputs.pose.rotation_std;
+  const auto &t_std = net_outputs.wide_from_device_euler.std;
 
-    auto posenetd = msg.initEvent(valid && (vipc_dropped_frames < 1)).initCameraOdometry();
-    posenetd.setTrans({v_mean.x, v_mean.y, v_mean.z});
-    posenetd.setRot({r_mean.x, r_mean.y, r_mean.z});
-    posenetd.setWideFromDeviceEuler({t_mean.x, t_mean.y, t_mean.z});
-    posenetd.setTransStd({exp(v_std.x), exp(v_std.y), exp(v_std.z)});
-    posenetd.setRotStd({exp(r_std.x), exp(r_std.y), exp(r_std.z)});
-    posenetd.setWideFromDeviceEulerStd({exp(t_std.x), exp(t_std.y), exp(t_std.z)});
+  auto posenetd = msg.initEvent(valid && (vipc_dropped_frames < 1)).initCameraOdometry();
+  posenetd.setTrans({v_mean.x, v_mean.y, v_mean.z});
+  posenetd.setRot({r_mean.x, r_mean.y, r_mean.z});
+  posenetd.setWideFromDeviceEuler({t_mean.x, t_mean.y, t_mean.z});
+  posenetd.setTransStd({exp(v_std.x), exp(v_std.y), exp(v_std.z)});
+  posenetd.setRotStd({exp(r_std.x), exp(r_std.y), exp(r_std.z)});
+  posenetd.setWideFromDeviceEulerStd({exp(t_std.x), exp(t_std.y), exp(t_std.z)});
 
 
-    posenetd.setTimestampEof(timestamp_eof);
-    posenetd.setFrameId(vipc_frame_id);
+  posenetd.setTimestampEof(timestamp_eof);
+  posenetd.setFrameId(vipc_frame_id);
 
-    auto bytes = msg.toBytes();
-    *msg_size = bytes.size();
-    unsigned char* ret = new unsigned char[*msg_size];
-    memcpy(ret, bytes.begin(), *msg_size);
-    return ret;
-  }
+  auto bytes = msg.toBytes();
+  uint32_t msg_size = bytes.size();
+  if (ret == nullptr)
+    ret = new unsigned char[msg_size];
+  memcpy(ret, bytes.begin(), msg_size);
+  return msg_size;
 }

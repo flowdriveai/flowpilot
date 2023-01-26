@@ -13,7 +13,6 @@
 #include "common/modeldata.h"
 #include "common/util.h"
 #include "selfdrive/modeld/models/commonmodel.h"
-#include "selfdrive/modeld/models/nav.h"
 
 constexpr int FEATURE_LEN = 128;
 constexpr int HISTORY_BUFFER_LEN = 99;
@@ -250,3 +249,10 @@ void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_frame_id
                    float model_execution_time, kj::ArrayPtr<const float> raw_pred, const bool valid);
 void posenet_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
                      const ModelOutput &net_outputs, uint64_t timestamp_eof, const bool valid);
+extern "C" {
+uint32_t parse_model(uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
+                      float model_execution_time, uint64_t timestamp_eof, const bool valid, const float* raw_pred,
+                      unsigned char* ret);
+uint32_t parse_posenet(uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
+                        const bool valid, uint64_t timestamp_eof, const float* raw_pred, unsigned char* ret);
+}
