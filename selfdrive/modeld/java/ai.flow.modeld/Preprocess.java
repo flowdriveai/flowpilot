@@ -1,5 +1,7 @@
 package ai.flow.modeld;
 
+import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformatons.Model;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
@@ -22,6 +24,25 @@ public class Preprocess {
     private static final int[] idxTensor0 = {0, 1, 2, 3, 4, 5};
     private static final int[] idxTensor1 = {6, 7, 8, 9, 10, 11};
 
+    public static INDArray getWrapMatrix(INDArray rpy_calib, INDArray f_intrinsics, INDArray e_intrinsics, boolean wide_cam, boolean big_model) {
+        INDArray intrinsics;
+        if (wide_cam)
+            intrinsics = e_intrinsics;
+        else
+            intrinsics = f_intrinsics;
+
+        INDArray calib_from_model;
+        if (big_model)
+            calib_from_model = InvertMatrix.invert(Model.sbigmodel_intrinsics, false);
+        else
+            calib_from_model = InvertMatrix.invert(Model.medmodel_intrinsics, false);
+
+        INDArray device_from_calib = eulerAnglesToRotationMatrix(rpy_calib.getDouble(0), rpy_calib.getDouble(1), rpy_calib.getDouble(2), false);
+        INDArray camera_from_calib = intrinsics.mmul(Camera.view_from_device.mmul(device_from_calib));
+        INDArray warp_matrix = camera_from_calib.mmul(calib_from_model);
+        return warp_matrix;
+    }
+
     private static ArrayList<INDArrayIndex[]> getSlices(){
         ArrayList<INDArrayIndex[]> slices = new ArrayList<INDArrayIndex[]>();
         for (int i=0; i<12; i++){
@@ -30,8 +51,11 @@ public class Preprocess {
         return slices;
     }
 
-    public static void TransformImg(Mat imgRGB888, Mat transformedRGB888, Mat M, Size output_size){
-        Imgproc.warpPerspective(imgRGB888, transformedRGB888, M, output_size);
+    public static void TransformImg(Mat imgRGB888, Mat transformedRGB888, INDArray M, Size output_size){
+        INDArray M_inv = InvertMatrix.invert(M, false);
+        Mat M_inv_mat = new Mat(3, 3, CvType.CV_32F);
+        M_inv_mat.put(0, 0, M_inv.data().asFloat());
+        Imgproc.warpPerspective(imgRGB888, transformedRGB888, M_inv_mat, output_size);
     }
 
     public static void RGB888toYUV420(Mat imgRGB888, Mat imgYUV420){
@@ -61,7 +85,6 @@ public class Preprocess {
     }
 
     public static INDArray eulerAnglesToRotationMatrix(double roll, double pitch, double yaw, double height, boolean isDegrees){
-
         if (isDegrees){
             yaw = Math.toRadians(yaw);
             pitch = Math.toRadians(pitch);
@@ -85,6 +108,28 @@ public class Preprocess {
         INDArray t = Nd4j.create(t_buffer, 1, 3);
 
         return Nd4j.vstack(R, t).transpose();
+    }
+
+    public static INDArray eulerAnglesToRotationMatrix(double roll, double pitch, double yaw, boolean isDegrees){
+        if (isDegrees){
+            yaw = Math.toRadians(yaw);
+            pitch = Math.toRadians(pitch);
+            roll = Math.toRadians(roll);
+        }
+
+        float c1 = (float)Math.cos(pitch);
+        float s1 = (float)Math.sin(pitch);
+        float c2 = (float)Math.cos(yaw );
+        float s2 = (float)Math.sin(yaw);
+        float c3 = (float)Math.cos(roll);
+        float s3 = (float)Math.sin(roll);
+
+        float[] R_buffer = {c2*c3, -c2*s3, s2,
+                c1*s3+c3*s1*s2, c1*c3-s1*s2*s3, -c2*s1,
+                s1*s3-c1*c3*s2, c3*s1+c1*s2*s3, c1*c2};
+
+        INDArray R = Nd4j.create(R_buffer, 3, 3);
+        return R.transpose();
     }
 
     public static INDArray euler2quat(INDArray euler) {

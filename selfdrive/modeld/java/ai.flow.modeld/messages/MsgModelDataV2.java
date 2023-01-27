@@ -3,7 +3,7 @@ package ai.flow.modeld.messages;
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
 import ai.flow.modeld.ParsedOutputs;
-import ai.flow.modeld.Parser;
+import ai.flow.modeld.CommonModel;
 import org.capnproto.PrimitiveList;
 import org.capnproto.StructList;
 
@@ -156,52 +156,52 @@ public class MsgModelDataV2 extends MessageBase {
         orientationRate = modelDataV2.initOrientationRate();
         acceleration = modelDataV2.initAcceleration();
 
-        positionX = position.initX(Parser.TRAJECTORY_SIZE);
-        positionY = position.initY(Parser.TRAJECTORY_SIZE);
-        positionZ = position.initZ(Parser.TRAJECTORY_SIZE);
-        positionT = position.initT(Parser.TRAJECTORY_SIZE);
-        velocityX = velocity.initX(Parser.TRAJECTORY_SIZE);
-        velocityY = velocity.initY(Parser.TRAJECTORY_SIZE);
-        velocityZ = velocity.initZ(Parser.TRAJECTORY_SIZE);
-        velocityT = velocity.initT(Parser.TRAJECTORY_SIZE);
-        orientationX = orientation.initX(Parser.TRAJECTORY_SIZE);
-        orientationY = orientation.initY(Parser.TRAJECTORY_SIZE);
-        orientationZ = orientation.initZ(Parser.TRAJECTORY_SIZE);
-        orientationT = orientation.initT(Parser.TRAJECTORY_SIZE);
-        orientationRateX = orientationRate.initX(Parser.TRAJECTORY_SIZE);
-        orientationRateY = orientationRate.initY(Parser.TRAJECTORY_SIZE);
-        orientationRateZ = orientationRate.initZ(Parser.TRAJECTORY_SIZE);
-        orientationRateT = orientationRate.initT(Parser.TRAJECTORY_SIZE);
-        accelerationX = acceleration.initX(Parser.TRAJECTORY_SIZE);
-        accelerationY = acceleration.initY(Parser.TRAJECTORY_SIZE);
-        accelerationZ = acceleration.initZ(Parser.TRAJECTORY_SIZE);
-        accelerationT = acceleration.initT(Parser.TRAJECTORY_SIZE);
+        positionX = position.initX(CommonModel.TRAJECTORY_SIZE);
+        positionY = position.initY(CommonModel.TRAJECTORY_SIZE);
+        positionZ = position.initZ(CommonModel.TRAJECTORY_SIZE);
+        positionT = position.initT(CommonModel.TRAJECTORY_SIZE);
+        velocityX = velocity.initX(CommonModel.TRAJECTORY_SIZE);
+        velocityY = velocity.initY(CommonModel.TRAJECTORY_SIZE);
+        velocityZ = velocity.initZ(CommonModel.TRAJECTORY_SIZE);
+        velocityT = velocity.initT(CommonModel.TRAJECTORY_SIZE);
+        orientationX = orientation.initX(CommonModel.TRAJECTORY_SIZE);
+        orientationY = orientation.initY(CommonModel.TRAJECTORY_SIZE);
+        orientationZ = orientation.initZ(CommonModel.TRAJECTORY_SIZE);
+        orientationT = orientation.initT(CommonModel.TRAJECTORY_SIZE);
+        orientationRateX = orientationRate.initX(CommonModel.TRAJECTORY_SIZE);
+        orientationRateY = orientationRate.initY(CommonModel.TRAJECTORY_SIZE);
+        orientationRateZ = orientationRate.initZ(CommonModel.TRAJECTORY_SIZE);
+        orientationRateT = orientationRate.initT(CommonModel.TRAJECTORY_SIZE);
+        accelerationX = acceleration.initX(CommonModel.TRAJECTORY_SIZE);
+        accelerationY = acceleration.initY(CommonModel.TRAJECTORY_SIZE);
+        accelerationZ = acceleration.initZ(CommonModel.TRAJECTORY_SIZE);
+        accelerationT = acceleration.initT(CommonModel.TRAJECTORY_SIZE);
 
         laneLines = modelDataV2.initLaneLines(4);
         laneLine1 = laneLines.get(0);
         laneLine2 = laneLines.get(1);
         laneLine3 = laneLines.get(2);
         laneLine4 = laneLines.get(3);
-        laneLineX1 = laneLine1.initX(Parser.TRAJECTORY_SIZE);
-        laneLineY1 = laneLine1.initY(Parser.TRAJECTORY_SIZE);
-        laneLineZ1 = laneLine1.initZ(Parser.TRAJECTORY_SIZE);
-        laneLineT1 = laneLine1.initT(Parser.TRAJECTORY_SIZE);
-        laneLineStds1 = modelDataV2.initLaneLineStds(Parser.TRAJECTORY_SIZE * 2);
-        laneLineX2 = laneLine2.initX(Parser.TRAJECTORY_SIZE);
-        laneLineY2 = laneLine2.initY(Parser.TRAJECTORY_SIZE);
-        laneLineZ2 = laneLine2.initZ(Parser.TRAJECTORY_SIZE);
-        laneLineT2 = laneLine2.initT(Parser.TRAJECTORY_SIZE);
-        laneLine2Stds = modelDataV2.initLaneLineStds(Parser.TRAJECTORY_SIZE * 2);
-        laneLineX3 = laneLine3.initX(Parser.TRAJECTORY_SIZE);
-        laneLineY3 = laneLine3.initY(Parser.TRAJECTORY_SIZE);
-        laneLineZ3 = laneLine3.initZ(Parser.TRAJECTORY_SIZE);
-        laneLineT3 = laneLine3.initT(Parser.TRAJECTORY_SIZE);
-        laneLine3Stds = modelDataV2.initLaneLineStds(Parser.TRAJECTORY_SIZE * 2);
-        laneLineX4 = laneLine4.initX(Parser.TRAJECTORY_SIZE);
-        laneLineY4 = laneLine4.initY(Parser.TRAJECTORY_SIZE);
-        laneLineZ4 = laneLine4.initZ(Parser.TRAJECTORY_SIZE);
-        laneLineT4 = laneLine4.initT(Parser.TRAJECTORY_SIZE);
-        laneLine4Stds = modelDataV2.initLaneLineStds(Parser.TRAJECTORY_SIZE * 2);
+        laneLineX1 = laneLine1.initX(CommonModel.TRAJECTORY_SIZE);
+        laneLineY1 = laneLine1.initY(CommonModel.TRAJECTORY_SIZE);
+        laneLineZ1 = laneLine1.initZ(CommonModel.TRAJECTORY_SIZE);
+        laneLineT1 = laneLine1.initT(CommonModel.TRAJECTORY_SIZE);
+        laneLineStds1 = modelDataV2.initLaneLineStds(CommonModel.TRAJECTORY_SIZE * 2);
+        laneLineX2 = laneLine2.initX(CommonModel.TRAJECTORY_SIZE);
+        laneLineY2 = laneLine2.initY(CommonModel.TRAJECTORY_SIZE);
+        laneLineZ2 = laneLine2.initZ(CommonModel.TRAJECTORY_SIZE);
+        laneLineT2 = laneLine2.initT(CommonModel.TRAJECTORY_SIZE);
+        laneLine2Stds = modelDataV2.initLaneLineStds(CommonModel.TRAJECTORY_SIZE * 2);
+        laneLineX3 = laneLine3.initX(CommonModel.TRAJECTORY_SIZE);
+        laneLineY3 = laneLine3.initY(CommonModel.TRAJECTORY_SIZE);
+        laneLineZ3 = laneLine3.initZ(CommonModel.TRAJECTORY_SIZE);
+        laneLineT3 = laneLine3.initT(CommonModel.TRAJECTORY_SIZE);
+        laneLine3Stds = modelDataV2.initLaneLineStds(CommonModel.TRAJECTORY_SIZE * 2);
+        laneLineX4 = laneLine4.initX(CommonModel.TRAJECTORY_SIZE);
+        laneLineY4 = laneLine4.initY(CommonModel.TRAJECTORY_SIZE);
+        laneLineZ4 = laneLine4.initZ(CommonModel.TRAJECTORY_SIZE);
+        laneLineT4 = laneLine4.initT(CommonModel.TRAJECTORY_SIZE);
+        laneLine4Stds = modelDataV2.initLaneLineStds(CommonModel.TRAJECTORY_SIZE * 2);
         laneLineProbs = modelDataV2.initLaneLineProbs(4);
         roadEdges = modelDataV2.initRoadEdges(4);
         roadEdge1 = roadEdges.get(0);
@@ -209,26 +209,26 @@ public class MsgModelDataV2 extends MessageBase {
         roadEdge3 = roadEdges.get(2);
         roadEdge4 = roadEdges.get(3);
 
-        roadEdgeX1 = roadEdge1.initX(Parser.TRAJECTORY_SIZE);
-        roadEdgeY1 = roadEdge1.initY(Parser.TRAJECTORY_SIZE);
-        roadEdgeZ1 = roadEdge1.initZ(Parser.TRAJECTORY_SIZE);
-        roadEdgeT1 = roadEdge1.initT(Parser.TRAJECTORY_SIZE);
-        roadEdge1Stds = modelDataV2.initRoadEdgeStds(Parser.TRAJECTORY_SIZE * 2);
-        roadEdgeX2 = roadEdge2.initX(Parser.TRAJECTORY_SIZE);
-        roadEdgeY2 = roadEdge2.initY(Parser.TRAJECTORY_SIZE);
-        roadEdgeZ2 = roadEdge2.initZ(Parser.TRAJECTORY_SIZE);
-        roadEdgeT2 = roadEdge2.initT(Parser.TRAJECTORY_SIZE);
-        roadEdge2Stds = modelDataV2.initRoadEdgeStds(Parser.TRAJECTORY_SIZE * 2);
-        roadEdgeX3 = roadEdge3.initX(Parser.TRAJECTORY_SIZE);
-        roadEdgeY3 = roadEdge3.initY(Parser.TRAJECTORY_SIZE);
-        roadEdgeZ3 = roadEdge3.initZ(Parser.TRAJECTORY_SIZE);
-        roadEdgeT3 = roadEdge3.initT(Parser.TRAJECTORY_SIZE);
-        roadEdge3Stds = modelDataV2.initRoadEdgeStds(Parser.TRAJECTORY_SIZE * 2);
-        roadEdgeX4 = roadEdge4.initX(Parser.TRAJECTORY_SIZE);
-        roadEdgeY4 = roadEdge4.initY(Parser.TRAJECTORY_SIZE);
-        roadEdgeZ4 = roadEdge4.initZ(Parser.TRAJECTORY_SIZE);
-        roadEdgeT4 = roadEdge4.initT(Parser.TRAJECTORY_SIZE);
-        roadEdge4Stds = modelDataV2.initRoadEdgeStds(Parser.TRAJECTORY_SIZE * 2);
+        roadEdgeX1 = roadEdge1.initX(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeY1 = roadEdge1.initY(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeZ1 = roadEdge1.initZ(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeT1 = roadEdge1.initT(CommonModel.TRAJECTORY_SIZE);
+        roadEdge1Stds = modelDataV2.initRoadEdgeStds(CommonModel.TRAJECTORY_SIZE * 2);
+        roadEdgeX2 = roadEdge2.initX(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeY2 = roadEdge2.initY(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeZ2 = roadEdge2.initZ(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeT2 = roadEdge2.initT(CommonModel.TRAJECTORY_SIZE);
+        roadEdge2Stds = modelDataV2.initRoadEdgeStds(CommonModel.TRAJECTORY_SIZE * 2);
+        roadEdgeX3 = roadEdge3.initX(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeY3 = roadEdge3.initY(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeZ3 = roadEdge3.initZ(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeT3 = roadEdge3.initT(CommonModel.TRAJECTORY_SIZE);
+        roadEdge3Stds = modelDataV2.initRoadEdgeStds(CommonModel.TRAJECTORY_SIZE * 2);
+        roadEdgeX4 = roadEdge4.initX(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeY4 = roadEdge4.initY(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeZ4 = roadEdge4.initZ(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeT4 = roadEdge4.initT(CommonModel.TRAJECTORY_SIZE);
+        roadEdge4Stds = modelDataV2.initRoadEdgeStds(CommonModel.TRAJECTORY_SIZE * 2);
 
         leads = modelDataV2.initLeads(3);
         leads1 = leads.get(0);
@@ -257,7 +257,7 @@ public class MsgModelDataV2 extends MessageBase {
     }
 
     public void fillParsed(ParsedOutputs parsed, Definitions.ModelDataV2.Reader msg, boolean full) { // TODO Avoid this
-        for (int i = 0; i < Parser.TRAJECTORY_SIZE; i++) {
+        for (int i = 0; i < CommonModel.TRAJECTORY_SIZE; i++) {
             parsed.position.get(0)[i] = msg.getPosition().getX().get(i);
             parsed.position.get(1)[i] = msg.getPosition().getY().get(i);
             parsed.position.get(2)[i] = msg.getPosition().getZ().get(i);
@@ -340,7 +340,7 @@ public class MsgModelDataV2 extends MessageBase {
 
         if (full) {
 
-            for (int i = 0; i < Parser.TRAJECTORY_SIZE * 2; i++) {
+            for (int i = 0; i < CommonModel.TRAJECTORY_SIZE * 2; i++) {
                 parsed.laneLineStds.get(0)[i] = msg.getLaneLineStds().get(i);
                 parsed.laneLineStds.get(1)[i] = msg.getLaneLineStds().get(i);
                 parsed.laneLineStds.get(2)[i] = msg.getLaneLineStds().get(i);
@@ -352,10 +352,10 @@ public class MsgModelDataV2 extends MessageBase {
                 parsed.roadEdgeStds.get(3)[i] = msg.getRoadEdgeStds().get(i);
             }
 
-            for (int i = 0; i < Parser.DESIRE_LEN; i++)
+            for (int i = 0; i < CommonModel.DESIRE_LEN; i++)
                 parsed.metaData.desireState[i] = desireState.get(i);
 
-            for (int i = 0; i < Parser.DESIRE_LEN*4; i++)
+            for (int i = 0; i < CommonModel.DESIRE_LEN*4; i++)
                 parsed.metaData.desirePrediction[i] = desirePredictions.get(i);
 
             for (int i = 0; i < 20; i++) {
@@ -388,7 +388,7 @@ public class MsgModelDataV2 extends MessageBase {
         modelDataV2.setTimestampEof(timestamp);
         modelDataV2.setGpuExecutionTime(gpuExecutionTime);
 
-        for (int i = 0; i < Parser.TRAJECTORY_SIZE; i++) {
+        for (int i = 0; i < CommonModel.TRAJECTORY_SIZE; i++) {
             positionX.set(i, parsed.position.get(0)[i]);
             positionY.set(i, parsed.position.get(1)[i]);
             positionZ.set(i, parsed.position.get(2)[i]);
@@ -455,7 +455,7 @@ public class MsgModelDataV2 extends MessageBase {
             roadEdgeT4.set(i, parsed.roadEdges.get(3).get(3)[i]);
         }
 
-        for (int i = 0; i < Parser.TRAJECTORY_SIZE * 2; i++) {
+        for (int i = 0; i < CommonModel.TRAJECTORY_SIZE * 2; i++) {
             laneLineStds1.set(i, parsed.laneLineStds.get(0)[i]);
             laneLine2Stds.set(i, parsed.laneLineStds.get(1)[i]);
             laneLine3Stds.set(i, parsed.laneLineStds.get(2)[i]);
@@ -480,10 +480,10 @@ public class MsgModelDataV2 extends MessageBase {
             xyvaStd3.set(i, parsed.leads.get(2).xyvaStd[i]);
         }
 
-        for (int i = 0; i < Parser.DESIRE_LEN; i++)
+        for (int i = 0; i < CommonModel.DESIRE_LEN; i++)
             desireState.set(i, parsed.metaData.desireState[i]);
 
-        for (int i = 0; i < Parser.DESIRE_LEN*4; i++)
+        for (int i = 0; i < CommonModel.DESIRE_LEN*4; i++)
             desirePredictions.set(i, parsed.metaData.desirePrediction[i]);
 
         for (int i = 0; i < 20; i++) {

@@ -1,5 +1,6 @@
 package ai.flow.app.headless;
 
+import ai.flow.common.transformatons.Camera;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.modeld.ModelRunner;
 import ai.flow.modeld.ONNXModelRunner;
@@ -30,7 +31,7 @@ public class HeadlessLauncher {
 	private static Application createApplication() throws IOException {
 		// Note: you can use a custom ApplicationListener implementation for the headless project instead of FlowUI.
 		SensorInterface cameraManager;
-		cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+		cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
 
 		SensorManager sensorManager = new SensorManager();
 		Map<String, SensorInterface> sensors = new HashMap<String, SensorInterface>() {{

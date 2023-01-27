@@ -39,10 +39,10 @@ public class ParsedOutputs {
         this.initRoadEdges();
     }
     public ArrayList<float[]> initXYZT(){
-        float[] x_arr = new float[Parser.TRAJECTORY_SIZE];
-        float[] y_arr = new float[Parser.TRAJECTORY_SIZE];
-        float[] z_arr = new float[Parser.TRAJECTORY_SIZE];
-        float[] t_arr = new float[Parser.TRAJECTORY_SIZE];
+        float[] x_arr = new float[CommonModel.TRAJECTORY_SIZE];
+        float[] y_arr = new float[CommonModel.TRAJECTORY_SIZE];
+        float[] z_arr = new float[CommonModel.TRAJECTORY_SIZE];
+        float[] t_arr = new float[CommonModel.TRAJECTORY_SIZE];
         return new ArrayList<float[]>(Arrays.asList(x_arr, y_arr, z_arr, t_arr));
     }
 
@@ -61,7 +61,7 @@ public class ParsedOutputs {
             laneLines.add(initXYZT());
 
         for (int i = 0; i < 4; i++)
-            laneLineStds.add(new float[2*Parser.TRAJECTORY_SIZE]);
+            laneLineStds.add(new float[2*CommonModel.TRAJECTORY_SIZE]);
     }
 
     public void initRoadEdges() {
@@ -71,7 +71,7 @@ public class ParsedOutputs {
             roadEdges.add(initXYZT());
 
         for (int i = 0; i < 4; i++)
-            roadEdgeStds.add(new float[2*Parser.TRAJECTORY_SIZE]);
+            roadEdgeStds.add(new float[2*CommonModel.TRAJECTORY_SIZE]);
     }
 
     public void initMeta() {
@@ -91,7 +91,7 @@ public class ParsedOutputs {
 
     public void initLeads(){
         leads = new ArrayList<LeadDataV2>();
-        for (int i=0; i<Parser.LEAD_MHP_SELECTION; i++){
+        for (int i=0; i<CommonModel.LEAD_MHP_SELECTION; i++){
             leads.add(new LeadDataV2());
         }
     }

@@ -1,5 +1,6 @@
 package ai.flow.modeld.messages;
 
+import ai.flow.common.transformatons.Camera;
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
 import org.capnproto.PrimitiveList;
@@ -88,7 +89,7 @@ public class MsgFrameData extends MessageBase {
             ByteBuffer bb = ByteBuffer.allocateDirect(0).order(ByteOrder.nativeOrder());
 
             address.setLong(bb, frameData.getNativeImageAddr());
-            capacity.setInt(bb, 1164*874*3);
+            capacity.setInt(bb, Camera.frameSize[0]*Camera.frameSize[1]*3);
             bb.clear();
             return bb;
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -106,7 +107,7 @@ public class MsgFrameData extends MessageBase {
             ByteBuffer bb = ByteBuffer.allocateDirect(0).order(ByteOrder.nativeOrder());
 
             address.setLong(bb, imgAddress);
-            capacity.setInt(bb, 1164*874*3);
+            capacity.setInt(bb, Camera.frameSize[0]*Camera.frameSize[1]*3);
             bb.clear();
             return bb;
         } catch (NoSuchFieldException | IllegalAccessException e) {

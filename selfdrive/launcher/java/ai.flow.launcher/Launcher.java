@@ -1,6 +1,7 @@
 package ai.flow.launcher;
 
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.transformatons.Camera;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.CameraManager;
 import ai.flow.sensor.SensorInterface;
@@ -57,7 +58,7 @@ public class Launcher {
 
     public void main(String[] args) throws IOException {
 
-        cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+        cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
         SensorManager sensorManager = new SensorManager();
         this.sensors = new HashMap<String, SensorInterface>() {{
             put("roadCamera", cameraManager);

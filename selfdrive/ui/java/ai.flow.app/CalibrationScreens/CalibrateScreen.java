@@ -1,5 +1,6 @@
 package ai.flow.app.CalibrationScreens;
 
+import ai.flow.common.transformatons.Camera;
 import ai.flow.definitions.Definitions;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -35,16 +36,18 @@ import java.util.concurrent.TimeUnit;
 public class CalibrateScreen extends ScreenAdapter {
     FlowUI appContext;
     // For camera frame receiving
-    MsgFrameData msgFrameData = new MsgFrameData(1164*874*3);
+    int frameWidth = Camera.frameSize[0];
+    int frameHeight = Camera.frameSize[1];
+    MsgFrameData msgFrameData = new MsgFrameData(frameWidth*frameHeight*3);
     ByteBuffer msgFrameDataBuffer = msgFrameData.getSerializedBuffer();
     Definitions.FrameData.Reader frameData;
     ByteBuffer imgBuffer;
-    Pixmap pixelMap = new Pixmap(1164, 874, Pixmap.Format.RGB888);
+    Pixmap pixelMap = new Pixmap(frameWidth, frameHeight, Pixmap.Format.RGB888);
     Texture texture = new Texture(pixelMap);
     Image texImage = new Image(texture);
     Mat imageMat;
     SpriteBatch batch = new SpriteBatch();
-    Stage stageFill = new Stage(new FillViewport(1164, 874));
+    Stage stageFill = new Stage(new FillViewport(frameWidth, frameHeight));
     Stage stageUI;
     TextButton btnInstructions;
     TextButton btnBack;
@@ -118,8 +121,8 @@ public class CalibrateScreen extends ScreenAdapter {
             if (frameData.getNativeImageAddr() != 0)
                 imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
             else
-                imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
-            imageMat = new Mat(874, 1164, CvType.CV_8UC3, imgBuffer);
+                imgBuffer = ByteBuffer.allocateDirect(frameWidth*frameHeight*3);
+            imageMat = new Mat(frameHeight, frameWidth, CvType.CV_8UC3, imgBuffer);
         }
         else {
             if (frameData.getNativeImageAddr() == 0)

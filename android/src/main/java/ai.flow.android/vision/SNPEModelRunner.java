@@ -20,6 +20,7 @@ public class SNPEModelRunner extends ModelRunner {
     NeuralNetwork network;
     String modelPath;
     public Map<String, FloatTensor> container = new HashMap<>();
+    public Map<String, float[]> containerArrs = new HashMap<>();
     public Map<String, int[]> shapes;
     public int warmupIters = 50;
     boolean useGPU;
@@ -33,6 +34,13 @@ public class SNPEModelRunner extends ModelRunner {
         this.context = context;
         this.modelPath = modelPath;
         this.useGPU = useGPU;
+    }
+
+    public static double numElements(int[] shape){
+        double ret = 1;
+        for (int i:shape)
+            ret *= i;
+        return ret;
     }
 
     @Override
@@ -58,10 +66,10 @@ public class SNPEModelRunner extends ModelRunner {
         assert builder != null;
         network = builder.build();
 
-        container.put("input_imgs", network.createFloatTensor(shapes.get("input_imgs")));
-        container.put("desire", network.createFloatTensor(shapes.get("desire")));
-        container.put("traffic_convention", network.createFloatTensor(shapes.get("traffic_convention")));
-        container.put("initial_state", network.createFloatTensor(shapes.get("initial_state")));
+        for (String inputName : shapes.keySet()) {
+            container.put(inputName, network.createFloatTensor(shapes.get(inputName)));
+            containerArrs.put(inputName, new float[(int)numElements(shapes.get(inputName))]);
+        }
     }
 
     public void BufferToFloatArr(float[] arr, ByteBuffer buffer){
@@ -80,24 +88,18 @@ public class SNPEModelRunner extends ModelRunner {
     }
 
     @Override
-    public void run(ByteBuffer inputImgs, ByteBuffer desire, ByteBuffer trafficConvention, ByteBuffer state, float[] netOutputs){
-        // not implemented
-    }
+    public void run(Map<String, INDArray> inputMap, Map<String, float[]> outputMap){
 
-    @Override
-    public void run(INDArray inputImgs, INDArray desire, INDArray trafficConvention, INDArray state, float[] netOutputs){
+        for (String inputName : inputMap.keySet()) {
+            inputMap.get(inputName).data().asNioFloat().get(containerArrs.get(inputName));
+            writeTensor(container.get("input_imgs"), containerArrs.get(inputName));
+        }
 
-        inputImgs.data().asNioFloat().get(imgTensorSequenceArr);
-        desire.data().asNioFloat().get(desireArr);
-        trafficConvention.data().asNioFloat().get(trafficArr);
-        state.data().asNioFloat().get(stateArr);
+        Map<String, FloatTensor> out = network.execute(container);
 
-        writeTensor(container.get("input_imgs"), imgTensorSequenceArr);
-        writeTensor(container.get("desire"), desireArr);
-        writeTensor(container.get("traffic_convention"), trafficArr);
-        writeTensor(container.get("initial_state"), stateArr);
-
-        network.execute(container).get("outputs").read(netOutputs, 0, netOutputs.length);
+        for (String inputName : outputMap.keySet()) {
+            out.get(inputName).read(outputMap.get(inputName), 0, outputMap.get(inputName).length);
+        }
     }
 
     @Override

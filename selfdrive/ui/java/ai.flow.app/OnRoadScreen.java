@@ -1,12 +1,25 @@
 package ai.flow.app;
 
 import ai.flow.common.Path;
+import ai.flow.common.transformatons.Camera;
+import ai.flow.definitions.Definitions;
+import ai.flow.definitions.MessageBase;
+import ai.flow.modeld.CommonModel;
+import ai.flow.modeld.DesireEnum;
+import ai.flow.modeld.ParsedOutputs;
+import ai.flow.modeld.Preprocess;
+import ai.flow.modeld.messages.MsgFrameData;
+import ai.flow.modeld.messages.MsgLiveCalibrationData;
+import ai.flow.modeld.messages.MsgModelDataV2;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Blending;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -16,15 +29,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.*;
-import ai.flow.definitions.MessageBase;
-import ai.flow.definitions.Definitions;
-import ai.flow.modeld.ParsedOutputs;
-import ai.flow.modeld.Parser;
-import ai.flow.modeld.Preprocess;
-
-import ai.flow.modeld.messages.MsgLiveCalibrationData;
+import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import messaging.ZMQPubHandler;
+import messaging.ZMQSubHandler;
 import org.capnproto.PrimitiveList;
 import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.api.memory.conf.WorkspaceConfiguration;
@@ -35,12 +45,6 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-
-import ai.flow.modeld.messages.MsgFrameData;
-import ai.flow.modeld.messages.MsgModelDataV2;
-import ai.flow.modeld.DesireEnum;
-
-import messaging.ZMQSubHandler;
 
 
 public class OnRoadScreen extends ScreenAdapter {
@@ -67,8 +71,8 @@ public class OnRoadScreen extends ScreenAdapter {
     float leadDrawScale = 6f; /** in meters (think of it as a 6m sign board) **/
     float borderWidth = 30;
     float expandedBorderWidth = 600;
-    int defaultImageWidth = 1164;
-    int defaultImageHeight = 874;
+    int defaultImageWidth = Camera.frameSize[0];
+    int defaultImageHeight = Camera.frameSize[1];
     // draw array buffers
     INDArray[] path, lane0, lane1, lane2, lane3;
     INDArray[] edge0, edge1;
@@ -91,7 +95,7 @@ public class OnRoadScreen extends ScreenAdapter {
     ZMQPubHandler ph;
     // initialize messages and respective buffers
     MsgModelDataV2 msgModelDataV2 = new MsgModelDataV2();
-    MsgFrameData msgFrameData = new MsgFrameData(1164*874*3);
+    MsgFrameData msgFrameData = new MsgFrameData(defaultImageHeight*defaultImageWidth*3);
     MsgLiveCalibrationData msgLiveCalib = new MsgLiveCalibrationData();
     Definitions.LiveCalibrationData.Reader liveCalib;
     Definitions.ModelDataV2.Reader modelDataV2;
@@ -122,11 +126,7 @@ public class OnRoadScreen extends ScreenAdapter {
     float uiWidth = 1280;
     float uiHeight = 720;
     float settingsBarWidth;
-
-    final float[][] K_buffer =  {{910.0f,  0.0f, 582.0f},
-            {0.0f,  910.0f, 437.0f},
-            {0.0f , 0.0f,  1.0f }};
-    final INDArray K = Nd4j.createFromArray(K_buffer);
+    final INDArray K = Camera.ecam_intrinsics.dup();
     boolean cameraMatrixUpdated = false;
     boolean isMetric;
     boolean laneLess;
@@ -360,7 +360,6 @@ public class OnRoadScreen extends ScreenAdapter {
         PrimitiveList.Float.Reader intrinsics = frameData.getIntrinsics();
         for (int i=0; i<3; i++){
             for (int j=0; j<3; j++){
-                K_buffer[i][j] = intrinsics.get(i*3 + j);
                 K.put(i, j, intrinsics.get(i*3 + j));
             }
         }
@@ -374,7 +373,7 @@ public class OnRoadScreen extends ScreenAdapter {
             if (frameData.getNativeImageAddr() != 0)
                 imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
             else
-                imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
+                imgBuffer = ByteBuffer.allocateDirect(defaultImageHeight*defaultImageWidth*3);
         }
         else {
             if (frameData.getNativeImageAddr() == 0) {
@@ -420,7 +419,7 @@ public class OnRoadScreen extends ScreenAdapter {
             INDArray Rt;
             Rt = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 0), -augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), 0.0, false);
             RtPath = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 0), -augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), 1.22, false);
-            for (int i=0; i<Parser.TRAJECTORY_SIZE; i++)
+            for (int i = 0; i< CommonModel.TRAJECTORY_SIZE; i++)
                 parsed.position.get(0)[i] = Math.max(parsed.position.get(0)[i], minZ);
             path = Draw.getLaneCameraFrame(parsed.position, K, RtPath, 0.9f);
             lane0 = Draw.getLaneCameraFrame(parsed.laneLines.get(0), K, Rt, 0.07f);

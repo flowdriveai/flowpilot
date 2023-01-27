@@ -2,6 +2,7 @@ package ai.flow.android.sensor;
 
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
+import ai.flow.common.transformatons.Camera;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.camera.MsgFrameData;
 import android.Manifest;
@@ -50,8 +51,8 @@ public class CameraManager extends SensorInterface {
     public String topic;
     public ZMQPubHandler ph;
     public boolean running = false;
-    public int defaultFrameWidth = 1164;
-    public int defaultFrameHeight = 874;
+    public int defaultFrameWidth = Camera.frameSize[0];
+    public int defaultFrameHeight = Camera.frameSize[1];
     public org.opencv.core.Size sz = new org.opencv.core.Size(defaultFrameWidth, defaultFrameHeight);
     public MsgFrameData msgFrameData = new MsgFrameData(0);
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
@@ -85,7 +86,7 @@ public class CameraManager extends SensorInterface {
 
     @SuppressLint("RestrictedApi")
     public VideoCapture videoCapture = new VideoCapture.Builder()
-            .setTargetResolution(new Size(1164, 874))
+            .setTargetResolution(new Size(Camera.frameSize[0], Camera.frameSize[1]))
             .setVideoFrameRate(20)
             .setBitRate(2000_000)
             .setTargetRotation(Surface.ROTATION_90)
@@ -98,7 +99,7 @@ public class CameraManager extends SensorInterface {
         this.topic = topic;
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         frame = new Mat();
-        frameCropContinuous = new Mat(874, 1164, CvType.CV_8UC3);
+        frameCropContinuous = new Mat(Camera.frameSize[1], Camera.frameSize[0], CvType.CV_8UC3);
         msgFrameData.frameData.setNativeImageAddr(frameCropContinuous.dataAddr());
         ph = new ZMQPubHandler();
         ph.createPublisher(topic);

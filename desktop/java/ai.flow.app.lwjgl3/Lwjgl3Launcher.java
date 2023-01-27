@@ -1,5 +1,6 @@
 package ai.flow.app.lwjgl3;
 
+import ai.flow.common.transformatons.Camera;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.modeld.ModelRunner;
 import ai.flow.modeld.ONNXModelRunner;
@@ -27,11 +28,11 @@ public class Lwjgl3Launcher {
 
 	private static Lwjgl3Application createApplication() throws IOException {
 		SensorInterface cameraManager;
-		cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+		cameraManager = new CameraManager("wideRoadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
 		SensorManager sensorManager = new SensorManager();
 
 		Map<String, SensorInterface> sensors = new HashMap<String, SensorInterface>() {{
-			put("roadCamera", cameraManager);
+			put("wideRoadCamera", cameraManager);
 			put("motionSensors", sensorManager);
 		}};
 
