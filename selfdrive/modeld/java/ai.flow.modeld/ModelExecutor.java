@@ -211,7 +211,9 @@ public class ModelExecutor implements Runnable{
         params.putBool("ModelDReady", true);
         while (!stopped) {
 
-            sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
+            sh.recvBuffer("wideRoadCameraState", msgWideFrameDataBuffer);
+            if (!wideCameraOnly)
+                sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
             frameData = msgFrameData.deserialize().getFrameData();
             if (frameWideData.getNativeImageAddr() == 0) {
                 wideImgBuffer.put(frameWideData.getImage().asByteBuffer());
@@ -253,7 +255,9 @@ public class ModelExecutor implements Runnable{
             stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
             for (int i=0; i<CommonModel.FEATURE_LEN; i++)
                 stateNDArr.putScalar(0, CommonModel.HISTORY_BUFFER_LEN-1, i, netOutputs[CommonModel.OUTPUT_SIZE+i]);
+
             imgTensorSequence.put(imgTensor0Slices, imgTensorSequence.get(imgTensor1Slices));
+            imgWideTensorSequence.put(imgTensor0Slices, imgWideTensorSequence.get(imgTensor1Slices));
 
             // publish outputs
             timestamp = System.currentTimeMillis();

@@ -109,7 +109,7 @@ public class OnRoadScreen extends ScreenAdapter {
     ByteBuffer imgBuffer;
 
     String modelTopic = "modelV2";
-    String cameraTopic = "roadCameraState";
+    String cameraTopic = "wideRoadCameraState";
     String calibrationTopic = "liveCalibration";
     String desireTopic = "pulseDesire";
     String carStateTopic = "carState";

@@ -33,6 +33,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"UserEmail", PERSISTENT},  
     {"UserToken", PERSISTENT},
     {"CameraMatrix", PERSISTENT},
+    {"WideCameraOnly", PERSISTENT},
     {"DistortionCoefficients", PERSISTENT},
     {"ModelDReady", CLEAR_ON_MANAGER_START},
     {"RecordFrontLock", PERSISTENT},
