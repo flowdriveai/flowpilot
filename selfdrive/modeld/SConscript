@@ -9,6 +9,6 @@ common_src = [
   "models/nav.cc",
 ]
 
-parser = lenv.SharedLibrary('modelpaerse', common_src, LIBS=libs)
+parser = lenv.SharedLibrary('modelparser', common_src, LIBS=libs)
 
 lenv.Program('modelparsed', ["modelparsed.cc"]+common_src, LIBS=libs)

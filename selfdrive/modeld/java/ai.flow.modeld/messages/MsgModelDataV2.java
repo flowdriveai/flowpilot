@@ -308,17 +308,6 @@ public class MsgModelDataV2 extends MessageBase {
                 parsed.roadEdges.get(1).get(1)[i] = msg.getRoadEdges().get(1).getY().get(i);
                 parsed.roadEdges.get(1).get(2)[i] = msg.getRoadEdges().get(1).getZ().get(i);
                 parsed.roadEdges.get(1).get(3)[i] = msg.getRoadEdges().get(1).getT().get(i);
-
-                parsed.roadEdges.get(2).get(0)[i] = msg.getRoadEdges().get(2).getX().get(i);
-                parsed.roadEdges.get(2).get(1)[i] = msg.getRoadEdges().get(2).getY().get(i);
-                parsed.roadEdges.get(2).get(2)[i] = msg.getRoadEdges().get(2).getZ().get(i);
-                parsed.roadEdges.get(2).get(3)[i] = msg.getRoadEdges().get(2).getT().get(i);
-
-                parsed.roadEdges.get(3).get(0)[i] = msg.getRoadEdges().get(3).getX().get(i);
-                parsed.roadEdges.get(3).get(1)[i] = msg.getRoadEdges().get(3).getY().get(i);
-                parsed.roadEdges.get(3).get(2)[i] = msg.getRoadEdges().get(3).getZ().get(i);
-                parsed.roadEdges.get(3).get(3)[i] = msg.getRoadEdges().get(3).getT().get(i);
-
             }
         }
 

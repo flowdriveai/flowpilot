@@ -46,13 +46,13 @@ public class ONNXModelRunner extends ModelRunner{
 
     @Override
     public void run(Map<String, INDArray> inputMap, Map<String, float[]> outputMap) {
-        float[] netOutputsCpy = null;
+        float[] netOutputs = null;
         try {
             for (String inputName : inputMap.keySet()) {
                 container.put(inputName, OnnxTensor.createTensor(env, inputMap.get(inputName).data().asNioFloat(), shapes.get(inputName)));
             }
             try (OrtSession.Result netOutputsTensor = session.run(container);){
-                netOutputsCpy = ((float[][])netOutputsTensor.get(0).getValue())[0];
+                netOutputs = ((float[][])netOutputsTensor.get(0).getValue())[0];
             } catch(OrtException e){
                 System.out.println(e);
             }
@@ -60,7 +60,8 @@ public class ONNXModelRunner extends ModelRunner{
         } catch (OrtException e) {
             throw new RuntimeException(e);
         }
-        System.arraycopy(netOutputsCpy, 0, outputMap.get("outputs"), 0, outputMap.get("outputs").length);
+        assert netOutputs != null;
+        System.arraycopy(netOutputs, 0, outputMap.get("outputs"), 0, outputMap.get("outputs").length);
     }
 
     @Override

@@ -30,7 +30,6 @@ public class ModelExecutor implements Runnable{
     public Thread thread;
     public final String threadName = "modeld";
     public boolean initialized = false;
-    public float[] netOutputs;
     public long timePerIt = 0;
     public long iterationNum = 1;
 
@@ -48,6 +47,7 @@ public class ModelExecutor implements Runnable{
     public final INDArray desireNDArr = Nd4j.zeros(desireTensorShape);
     public final INDArray trafficNDArr = Nd4j.zeros(trafficTensorShape);
     public final INDArray stateNDArr = Nd4j.zeros(stateTensorShape);
+    public final float[] netOutputs = new float[(int)numElements(outputTensorShape)];
     public final INDArray transformedYUVNDArr = Nd4j.zeros(DataType.UINT8, YUVimgShape);
     public final INDArray transformedWideYUVNDArr = Nd4j.zeros(DataType.UINT8, YUVimgShape);
     public final INDArray augmentRot = Nd4j.zeros(3);
@@ -154,22 +154,20 @@ public class ModelExecutor implements Runnable{
 
         shapeMap.put("input_imgs", imgTensorShape);
         shapeMap.put("big_input_imgs", imgTensorShape);
-        shapeMap.put("initial_state", stateTensorShape);
+        shapeMap.put("features_buffer", stateTensorShape);
         shapeMap.put("desire", desireTensorShape);
         shapeMap.put("traffic_convention", trafficTensorShape);
         shapeMap.put("outputs", outputTensorShape);
 
         inputMap.put("input_imgs", imgTensorSequence);
         inputMap.put("big_input_imgs", imgWideTensorSequence);
-        inputMap.put("initial_state", desireNDArr);
-        inputMap.put("desire", trafficNDArr);
-        inputMap.put("traffic_convention", stateNDArr);
+        inputMap.put("features_buffer", stateNDArr);
+        inputMap.put("desire", desireNDArr);
+        inputMap.put("traffic_convention", trafficNDArr);
         outputMap.put("outputs", netOutputs);
 
         modelRunner.init(shapeMap);
         modelRunner.warmup();
-
-        netOutputs = new float[(int)numElements(outputTensorShape)];
 
         INDArray wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
         INDArray wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, true);
@@ -214,7 +212,8 @@ public class ModelExecutor implements Runnable{
             sh.recvBuffer("wideRoadCameraState", msgWideFrameDataBuffer);
             if (!wideCameraOnly)
                 sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
-            frameData = msgFrameData.deserialize().getFrameData();
+            frameWideData = msgWideFrameData.deserialize().getFrameData();
+            frameData = wideCameraOnly ? frameWideData : msgFrameData.deserialize().getFrameData();
             if (frameWideData.getNativeImageAddr() == 0) {
                 wideImgBuffer.put(frameWideData.getImage().asByteBuffer());
                 wideImgBuffer.rewind();
@@ -246,11 +245,12 @@ public class ModelExecutor implements Runnable{
             Preprocess.TransformImg(imageCurr, transformed, wrapMatrix, outputSize);
             Preprocess.TransformImg(wideimageCurr, transformedWide, wrapMatrixWide, outputSize);
             Preprocess.RGB888toYUV420(transformed, transformedYUV);
-            Preprocess.RGB888toYUV420(wideimageCurr, transformedWideYUV);
+            Preprocess.RGB888toYUV420(transformedWide, transformedWideYUV);
             Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 0);
             Preprocess.YUV420toTensor(transformedWideYUVNDArr, imgWideTensorSequence, 0);
 
             modelRunner.run(inputMap, outputMap);
+
             // TODO: Add desire.
             stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
             for (int i=0; i<CommonModel.FEATURE_LEN; i++)
