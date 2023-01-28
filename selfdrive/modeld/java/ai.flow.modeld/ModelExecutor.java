@@ -66,7 +66,7 @@ public class ModelExecutor implements Runnable{
     public final INDArrayIndex[] featureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0,CommonModel.HISTORY_BUFFER_LEN-1)};
     public final INDArrayIndex[] featureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1,CommonModel.HISTORY_BUFFER_LEN)};
 
-    public static final float[] FULL_FRAME_SIZE = {1080, 1920};
+    public static final int[] FULL_FRAME_SIZE = Camera.frameSize;
     public static INDArray fcam_intrinsics = Camera.fcam_intrinsics.dup(); // telephoto
     public static INDArray ecam_intrinsics = Camera.ecam_intrinsics.dup(); // wide
     public final ZMQPubHandler ph = new ZMQPubHandler();
@@ -191,8 +191,8 @@ public class ModelExecutor implements Runnable{
             imgBuffer = wideCameraOnly ?  wideImgBuffer : ByteBuffer.allocateDirect((int)FULL_FRAME_SIZE[0]*(int)FULL_FRAME_SIZE[1]*3);
         }
 
-        Mat wideimageCurr = new Mat((int)FULL_FRAME_SIZE[0], (int)FULL_FRAME_SIZE[1], CvType.CV_8UC3,  wideImgBuffer);
-        Mat imageCurr = wideCameraOnly ? wideimageCurr : new Mat((int)FULL_FRAME_SIZE[0], (int)FULL_FRAME_SIZE[1], CvType.CV_8UC3,  imgBuffer);
+        Mat wideimageCurr = new Mat(FULL_FRAME_SIZE[1], FULL_FRAME_SIZE[0], CvType.CV_8UC3,  wideImgBuffer);
+        Mat imageCurr = wideCameraOnly ? wideimageCurr : new Mat(FULL_FRAME_SIZE[1], FULL_FRAME_SIZE[0], CvType.CV_8UC3,  imgBuffer);
         updateCameraMatrix(frameWideData.getIntrinsics(), true);
         updateCameraMatrix(frameData.getIntrinsics(), false);
         lastWideFrameID = frameWideData.getFrameId();

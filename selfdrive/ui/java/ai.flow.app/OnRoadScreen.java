@@ -480,7 +480,7 @@ public class OnRoadScreen extends ScreenAdapter {
 
 
     public void drawStrip(INDArray[] strip, int[] color, float alpha, int drawLength, int res) {
-        for (int i = 2; i < drawLength; i += res) {
+        for (int i = 0; i < drawLength; i += res) {
             appContext.shapeRenderer.setColor(color[0] / 255f, color[1] / 255f, color[2] / 255f, alpha);
             appContext.shapeRenderer.triangle(strip[0].getFloat(i, 0), strip[0].getFloat(i, 1),
                     strip[1].getFloat(i, 0), strip[1].getFloat(i, 1),

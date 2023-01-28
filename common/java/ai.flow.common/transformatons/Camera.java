@@ -6,7 +6,7 @@ import org.nd4j.linalg.factory.Nd4j;
 public class Camera {
     public static final float f_focal_length = 2648.0f;
     public static final float e_focal_length = 567.0f;
-    public static final int[] frameSize = new int[]{1920, 1080};
+    public static final int[] frameSize = new int[]{1928, 1208};
     public static INDArray fcam_intrinsics = Nd4j.createFromArray(new float[][]{
             {f_focal_length,  0.0f,  frameSize[0]/2f},
             {0.0f,  f_focal_length,  frameSize[1]/2f},
