@@ -1,4 +1,3 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/controls/lib/latcontrol_indi.py
 import math
 import numpy as np
 
@@ -6,7 +5,7 @@ from cereal import log
 from common.filter_simple import FirstOrderFilter
 from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
-from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
+from selfdrive.controls.lib.latcontrol import LatControl
 
 
 class LatControlINDI(LatControl):
@@ -64,7 +63,7 @@ class LatControlINDI(LatControl):
     self.steer_filter.x = 0.
     self.speed = 0.
 
-  def update(self, active, CS, VM, params, last_actuators, desired_curvature, desired_curvature_rate, llk):
+  def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
     self.speed = CS.vEgo
     # Update Kalman filter
     y = np.array([[math.radians(CS.steeringAngleDeg)], [math.radians(CS.steeringRateDeg)]])
@@ -79,10 +78,11 @@ class LatControlINDI(LatControl):
     steers_des += math.radians(params.angleOffsetDeg)
     indi_log.steeringAngleDesiredDeg = math.degrees(steers_des)
 
+    # desired rate is the desired rate of change in the setpoint, not the absolute desired curvature
     rate_des = VM.get_steer_from_curvature(-desired_curvature_rate, CS.vEgo, 0)
     indi_log.steeringRateDesiredDeg = math.degrees(rate_des)
 
-    if CS.vEgo < MIN_STEER_SPEED or not active:
+    if not active:
       indi_log.active = False
       self.steer_filter.x = 0.0
       output_steer = 0
@@ -115,6 +115,6 @@ class LatControlINDI(LatControl):
       indi_log.delayedOutput = float(self.steer_filter.x)
       indi_log.delta = float(delta_u)
       indi_log.output = float(output_steer)
-      indi_log.saturated = self._check_saturation(self.steer_max - abs(output_steer) < 1e-3, CS)
+      indi_log.saturated = self._check_saturation(self.steer_max - abs(output_steer) < 1e-3, CS, steer_limited)
 
     return float(output_steer), float(steers_des), indi_log
