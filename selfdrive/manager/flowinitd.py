@@ -192,7 +192,7 @@ def main():
             params.put_bool("RecordFront", True)
 
         if not params.get_bool("DisableRadar_Allow"):
-            params.delete("DisableRadar")
+            params.remove("DisableRadar")
         
         # android specififc
         if system.is_android():
