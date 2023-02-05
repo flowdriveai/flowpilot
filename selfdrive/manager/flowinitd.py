@@ -21,9 +21,9 @@ from selfdrive.manager.filelock import FileLock
 from selfdrive.manager.utils import get_cpu_times, get_device_state_msg, get_memory_logs
 from selfdrive.manager.services import Service, killswitch
 
-from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
+from system.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.sentry import sentry_init, capture_error
 
 logger = logging.getLogger(__name__)

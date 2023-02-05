@@ -4,7 +4,7 @@ import numpy as np
 
 from common.realtime import sec_since_boot
 from common.numpy_fast import clip, interp
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.modeld.constants import index_function
 
 if __name__ == '__main__':  # generating code

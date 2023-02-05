@@ -7,7 +7,7 @@ from selfdrive.car.vin import get_vin, VIN_UNKNOWN
 from selfdrive.car.fw_versions import get_fw_versions, match_fw_to_car
 import cereal.messaging as messaging
 from selfdrive.car import gen_empty_fingerprint
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 
 from cereal import car
 EventName = car.CarEvent.EventName

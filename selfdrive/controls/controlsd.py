@@ -11,7 +11,7 @@ from common.profiler import Profiler
 from common.params import Params
 from common.conversions import Conversions as CV
 from panda import ALTERNATIVE_EXPERIENCE
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
 from selfdrive.controls.lib.lane_planner import CAMERA_OFFSET
 from selfdrive.controls.lib.drive_helpers import update_v_cruise, initialize_v_cruise

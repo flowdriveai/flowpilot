@@ -7,7 +7,7 @@ from cereal import log, car
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from common.realtime import DT_CTRL
-from selfdrive.version import get_short_branch
+from system.version import get_short_branch
 
 MIN_SPEED_FILTER = 15 * CV.MPH_TO_MS
 

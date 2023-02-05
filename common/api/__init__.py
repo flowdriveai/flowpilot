@@ -1,7 +1,7 @@
 import os
 import json
 
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from common.params import Params
 
 import urllib3

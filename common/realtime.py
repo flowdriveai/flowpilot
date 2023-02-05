@@ -7,7 +7,7 @@ import multiprocessing
 from typing import Optional, List
 from common.clock import sec_since_boot
 from collections import deque
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 
 
 # time step for each process

@@ -2,7 +2,7 @@ import psutil
 
 from cereal import log
 import cereal.messaging as messaging
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from common.system import is_android, is_android_rooted
 
 

@@ -204,12 +204,23 @@ if arch != "larch64":
 Export('rednose_config')
 SConscript(['rednose/SConscript'])
 
+# Build system services
+SConscript([
+  'system/clocksd/SConscript',
+])
+
+# build submodules
+SConscript([
+  'cereal/SConscript',
+  'opendbc/can/SConscript',
+  'panda/SConscript',
+])
+
+# build thirdparty
 SConscript(['third_party/SConscript'])
 
+# build flowpilot
 SConscript(['SConscript'])
-SConscript(['cereal/SConscript'])
-SConscript(['panda/board/SConscript'])
-SConscript(['opendbc/can/SConscript'])
 
 SConscript(['common/kalman/SConscript'])
 SConscript(['common/transformations/SConscript'])
