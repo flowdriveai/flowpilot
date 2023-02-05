@@ -32,16 +32,16 @@ SHARED = False
 
 lenv = {
   "PATH": os.environ['PATH'] + ":" + Dir(f"#libs/capnpc-java/{arch}/bin").abspath,
-  "LD_LIBRARY_PATH": [Dir(f"#libs/acados/{arch}/lib").abspath],
-  "PYTHONPATH": Dir("#").abspath + ":" + Dir("#pyextra/").abspath,
+  "LD_LIBRARY_PATH": [Dir(f"#third_party/acados/{arch}/lib").abspath],
+  "PYTHONPATH": Dir("#").abspath + ":" + Dir("#third_party/acados").abspath,
 
-  "ACADOS_SOURCE_DIR": Dir("#libs/acados/include/acados").abspath,
-  "ACADOS_PYTHON_INTERFACE_PATH": Dir("#pyextra/acados_template").abspath,
-  "TERA_PATH": Dir("#").abspath + f"/libs/acados/{arch}/t_renderer",
+  "ACADOS_SOURCE_DIR": Dir("#third_party/acados/include/acados").abspath,
+  "ACADOS_PYTHON_INTERFACE_PATH": Dir("#third_party/acados/acados_template").abspath,
+  "TERA_PATH": Dir("#").abspath + f"/third_party/acados/{arch}/t_renderer",
 }
 
 libpath = [
-      f"#libs/acados/{arch}/lib",
+      f"#third_party/acados/{arch}/lib",
       ]
 
 cflags = []
@@ -104,9 +104,9 @@ env = Environment(
   CXXFLAGS=["-std=c++1z"],
   CPPPATH=cpppath + [
     "#",
-    "#libs/acados/include",
-    "#libs/acados/include/blasfeo/include",
-    "#libs/acados/include/hpipm/include",
+    "#third_party/acados/include",
+    "#third_party/acados/include/blasfeo/include",
+    "#third_party/acados/include/hpipm/include",
     "#cereal",
     "#opendbc/can",
     "#common",

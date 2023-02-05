@@ -19,6 +19,6 @@ sourceSets {
 
 dependencies {
     implementation 'org.deephacks.lmdbjni:lmdbjni-linux64:0.4.6'
-    implementation files("$rootProject.projectDir/libs/zmq.jar")
+    implementation files("$rootProject.projectDir/third_party/zmq.jar")
     implementation project(":messaging")
 }
