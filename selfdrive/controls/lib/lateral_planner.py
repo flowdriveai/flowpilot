@@ -4,6 +4,7 @@ from common.numpy_fast import interp
 from system.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc
 from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import N as LAT_MPC_N
+from selfdrive.controls.lib.lane_planner import LanePlanner
 from selfdrive.controls.lib.drive_helpers import CONTROL_N, MIN_SPEED
 from selfdrive.controls.lib.desire_helper import DesireHelper
 import cereal.messaging as messaging
@@ -27,6 +28,7 @@ STEERING_RATE_COST = 800.0
 class LateralPlanner:
   def __init__(self, CP, use_lanelines=True):
     self.DH = DesireHelper()
+    self.LP = LanePlanner()
 
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront

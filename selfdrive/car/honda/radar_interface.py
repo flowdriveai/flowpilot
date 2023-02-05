@@ -1,4 +1,4 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/honda/radar_interface.py
+#!/usr/bin/env python3
 from cereal import car
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import RadarInterfaceBase
@@ -21,7 +21,7 @@ class RadarInterface(RadarInterfaceBase):
     self.track_id = 0
     self.radar_fault = False
     self.radar_wrong_config = False
-    self.radar_off_can = CP.radarOffCan
+    self.radar_off_can = CP.radarUnavailable
     self.radar_ts = CP.radarTimeStep
 
     self.delay = int(round(0.1 / CP.radarTimeStep))   # 0.1s delay of radar
