@@ -81,7 +81,8 @@ class Controls:
     self.params = Params()
     self.sm = sm
     if self.sm is None:
-      ignore = ['driverCameraState', 'managerState', 'liveLocationKalman', 'liveParameters', 'radarState', 'testJoystick'] if SIMULATION else None
+      ignore = ['driverCameraState', 'managerState', 'liveLocationKalman', 
+              'liveParameters', 'radarState', 'testJoystick', 'driverMonitoringState'] if SIMULATION else None
       # Fake: pandaStates, peripheralState, driverMonitoringState
       # See liveLocationKalman, liveParameters
       self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
