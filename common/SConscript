@@ -7,8 +7,10 @@ else:
 
 common_libs = [
   'params.cc',
+  'statlog.cc',
   'swaglog.cc',
   'util.cc',
+  'watchdog.cc',
 ]
 
 _common = fxn('common', common_libs, LIBS=["json11", "lmdb"])
