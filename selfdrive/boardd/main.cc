@@ -1,4 +1,3 @@
-// hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/boardd/main.cc
 #include <cassert>
 
 #include "selfdrive/boardd/boardd.h"
@@ -20,7 +19,7 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> usb_devs(argv + 1, argv + argc);
   bool int_fd = usb_devs.size() != 0; // if no arguements are provided through termux-usb, fds cannot be used. 
   for (std::string usb_dev : usb_devs){
-    if (usb_dev.length() > 5){ // TODO: is this ok to differentiate between serials and fds.
+    if (usb_dev.length() > 5){ // TODO: is this ok to differentiate between serials and fds ?
       int_fd = false;
       break;
     }
