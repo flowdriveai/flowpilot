@@ -39,7 +39,8 @@ public class ModelExecutor implements Runnable{
     public static final int[] stateTensorShape = {1, CommonModel.HISTORY_BUFFER_LEN, CommonModel.FEATURE_LEN};
     public static final int[] outputTensorShape = {1, CommonModel.NET_OUTPUT_SIZE};
 
-    public static final Map<String, int[]> shapeMap = new HashMap<>();
+    public static final Map<String, int[]> inputShapeMap = new HashMap<>();
+    public static final Map<String, int[]> outputShapeMap = new HashMap<>();
     public static final long[] YUVimgShape = {384, 512, 1};
 
     public final INDArray imgTensorSequence = Nd4j.zeros(imgTensorShape);
@@ -152,12 +153,12 @@ public class ModelExecutor implements Runnable{
 
         final Size outputSize = new Size(512, 256);
 
-        shapeMap.put("input_imgs", imgTensorShape);
-        shapeMap.put("big_input_imgs", imgTensorShape);
-        shapeMap.put("features_buffer", stateTensorShape);
-        shapeMap.put("desire", desireTensorShape);
-        shapeMap.put("traffic_convention", trafficTensorShape);
-        shapeMap.put("outputs", outputTensorShape);
+        inputShapeMap.put("input_imgs", imgTensorShape);
+        inputShapeMap.put("big_input_imgs", imgTensorShape);
+        inputShapeMap.put("features_buffer", stateTensorShape);
+        inputShapeMap.put("desire", desireTensorShape);
+        inputShapeMap.put("traffic_convention", trafficTensorShape);
+        outputShapeMap.put("outputs", outputTensorShape);
 
         inputMap.put("input_imgs", imgTensorSequence);
         inputMap.put("big_input_imgs", imgWideTensorSequence);
@@ -166,7 +167,7 @@ public class ModelExecutor implements Runnable{
         inputMap.put("traffic_convention", trafficNDArr);
         outputMap.put("outputs", netOutputs);
 
-        modelRunner.init(shapeMap);
+        modelRunner.init(inputShapeMap, outputShapeMap);
         modelRunner.warmup();
 
         INDArray wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);

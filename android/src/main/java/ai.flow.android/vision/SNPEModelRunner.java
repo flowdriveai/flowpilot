@@ -21,14 +21,9 @@ public class SNPEModelRunner extends ModelRunner {
     String modelPath;
     public Map<String, FloatTensor> container = new HashMap<>();
     public Map<String, float[]> containerArrs = new HashMap<>();
-    public Map<String, int[]> shapes;
+    public Map<String, int[]> inputShapes;
     public int warmupIters = 50;
     boolean useGPU;
-
-    float[] imgTensorSequenceArr = new float[128*256*12];
-    float[] desireArr = new float[8];
-    float[] trafficArr = new float[2];
-    float[] stateArr = new float[512];
 
     public SNPEModelRunner(Application context, String modelPath, boolean useGPU){
         this.context = context;
@@ -44,8 +39,8 @@ public class SNPEModelRunner extends ModelRunner {
     }
 
     @Override
-    public void init(Map<String, int[]> shapes) {
-        this.shapes = shapes;
+    public void init(Map<String, int[]> inputShapes, Map<String, int[]> outputShapes) {
+        this.inputShapes = inputShapes;
 
         SNPE.NeuralNetworkBuilder builder = null;
         File modelStream = new File(modelPath + ".dlc");
@@ -66,9 +61,9 @@ public class SNPEModelRunner extends ModelRunner {
         assert builder != null;
         network = builder.build();
 
-        for (String inputName : shapes.keySet()) {
-            container.put(inputName, network.createFloatTensor(shapes.get(inputName)));
-            containerArrs.put(inputName, new float[(int)numElements(shapes.get(inputName))]);
+        for (String inputName : this.inputShapes.keySet()) {
+            container.put(inputName, network.createFloatTensor(this.inputShapes.get(inputName)));
+            containerArrs.put(inputName, new float[(int)numElements(this.inputShapes.get(inputName))]);
         }
     }
 
@@ -89,16 +84,15 @@ public class SNPEModelRunner extends ModelRunner {
 
     @Override
     public void run(Map<String, INDArray> inputMap, Map<String, float[]> outputMap){
-
         for (String inputName : inputMap.keySet()) {
             inputMap.get(inputName).data().asNioFloat().get(containerArrs.get(inputName));
-            writeTensor(container.get("input_imgs"), containerArrs.get(inputName));
+            writeTensor(container.get(inputName), containerArrs.get(inputName));
         }
 
         Map<String, FloatTensor> out = network.execute(container);
 
-        for (String inputName : outputMap.keySet()) {
-            out.get(inputName).read(outputMap.get(inputName), 0, outputMap.get(inputName).length);
+        for (String outputName : outputMap.keySet()) {
+            out.get(outputName).read(outputMap.get(outputName), 0, outputMap.get(outputName).length);
         }
     }
 

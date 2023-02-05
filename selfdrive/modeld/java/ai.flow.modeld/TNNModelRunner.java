@@ -22,7 +22,7 @@ public class TNNModelRunner extends ModelRunner{
     }
 
     @Override
-    public void init(Map<String, int[]> shapes){
+    public void init(Map<String, int[]> inputShapes, Map<String, int[]> outputShapes){
         System.loadLibrary("tnnjni");
         model = new TNN();
 
@@ -38,8 +38,11 @@ public class TNNModelRunner extends ModelRunner{
 
         model.init(modelPath, deviceType, IODeviceType);
 
-        for (String inputName : shapes.keySet()) {
-            model.createInput(inputName, shapes.get(inputName));
+        for (String inputName : inputShapes.keySet()) {
+            model.createInput(inputName, inputShapes.get(inputName));
+        }
+        for (String outputName : outputShapes.keySet()) {
+            model.createOutput(outputName, outputShapes.get(outputName));
         }
     }
 

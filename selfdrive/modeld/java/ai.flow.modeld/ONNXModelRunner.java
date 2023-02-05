@@ -23,7 +23,7 @@ public class ONNXModelRunner extends ModelRunner{
     }
 
     @Override
-    public void init(Map<String, int[]> shapes) {
+    public void init(Map<String, int[]> shapes, Map<String, int[]> outputShapes) {
         try {
             OrtSession.SessionOptions opts = new OrtSession.SessionOptions();
             opts.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT);
