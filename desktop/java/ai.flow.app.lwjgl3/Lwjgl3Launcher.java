@@ -1,18 +1,18 @@
 package ai.flow.app.lwjgl3;
 
+import ai.flow.app.FlowUI;
+import ai.flow.common.SystemUtils;
 import ai.flow.common.transformatons.Camera;
+import ai.flow.launcher.Launcher;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.modeld.ModelRunner;
 import ai.flow.modeld.ONNXModelRunner;
 import ai.flow.modeld.TNNModelRunner;
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import ai.flow.common.SystemUtils;
-import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
-import ai.flow.sensor.camera.CameraManager;
-import ai.flow.app.FlowUI;
+import ai.flow.sensor.camera.DualCameraManager;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,7 +28,8 @@ public class Lwjgl3Launcher {
 
 	private static Lwjgl3Application createApplication() throws IOException {
 		SensorInterface cameraManager;
-		cameraManager = new CameraManager("wideRoadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
+		//cameraManager = new CameraManager("wideRoadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
+		cameraManager = new DualCameraManager(System.getenv("WIDE_ROAD_CAMERA_SOURCE"), System.getenv("ROAD_CAMERA_SOURCE"), "wideRoadCameraState", "roadCameraState", 20, Camera.frameSize[0], Camera.frameSize[1]);
 		SensorManager sensorManager = new SensorManager();
 
 		Map<String, SensorInterface> sensors = new HashMap<String, SensorInterface>() {{

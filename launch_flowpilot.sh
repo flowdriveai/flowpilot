@@ -4,7 +4,8 @@ source ./.env
 # build changes
 scons
 
-export ROAD_CAMERA_SOURCE="selfdrive/assets/tmp" # no affect on android
+export WIDE_ROAD_CAMERA_SOURCE="selfdrive/assets/fcam.avi" # no affect on android
+export ROAD_CAMERA_SOURCE="selfdrive/assets/ecam.avi" # no affect on android
 export USE_GPU="0" # no affect on android, gpu always used on android
 export PASSIVE="0"
 #export MSGQ="1"

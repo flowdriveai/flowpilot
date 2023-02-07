@@ -4,7 +4,10 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.sensor.SensorInterface;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
-import org.opencv.core.*;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.VideoWriter;
@@ -125,7 +128,7 @@ public class CameraManager extends SensorInterface implements Runnable {
                     ph.releaseAll();}
             }
             else if ((diff - deltaTime) > 5){
-                System.out.println("[WARNING]: camera lagging by " + (diff-deltaTime) + " ms");
+                System.out.println("[WARNING]: " + topic + " camera lagging by " + (diff-deltaTime) + " ms");
             }
         }
     }
@@ -144,7 +147,8 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void loadIntrinsics(){
         if (params.exists("CameraMatrix")) {
-            float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
+            //float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
+            float[] cameraMatrix = new float[]{2648.0f, 0f, 964f, 0f, 2648.0f, 604.0f, 0f, 0f, 1f};
             updateProperty("intrinsics", cameraMatrix);
         }
     }
@@ -159,7 +163,7 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void start() {
         if (thread == null) {
-            thread = new Thread(this, "camerad");
+            thread = new Thread(this, "camerad:" + topic);
             thread.setDaemon(false);
             thread.start();
         }

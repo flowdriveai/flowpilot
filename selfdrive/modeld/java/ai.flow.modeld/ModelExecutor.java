@@ -171,7 +171,7 @@ public class ModelExecutor implements Runnable{
         modelRunner.warmup();
 
         INDArray wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
-        INDArray wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, true);
+        INDArray wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
 
         ByteBuffer imgBuffer;
         ByteBuffer wideImgBuffer;
@@ -240,7 +240,7 @@ public class ModelExecutor implements Runnable{
                     augmentRot.putScalar(i, rpy.get(i));
                 }
                 wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
-                wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, true);
+                wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
             }
 
             Preprocess.TransformImg(imageCurr, transformed, wrapMatrix, outputSize);
