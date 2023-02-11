@@ -1,31 +1,20 @@
 package ai.flow.android.sensor;
 
-import android.media.Image;
-
 import androidx.camera.core.ImageProxy;
-
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import java.nio.ByteBuffer;
 
-public class ImUtils {
+public class YUV2RGBProcessor {
+    private Mat yuv_mat = null;
 
-    public static void cloneByteBuffer(ByteBuffer source, ByteBuffer target) {
-        int sourceP = source.position();
-        int sourceL = source.limit();
-        target.put(source);
-        target.flip();
-        source.position(sourceP);
-        source.limit(sourceL);
-    }
-
-    public static void Image2RGB(ImageProxy image, Mat matRGB) {
+    public void Image2RGB(ImageProxy image, Mat matRGB) {
         ImageProxy.PlaneProxy[] planes = image.getPlanes();
+        int chromaPixelStride = planes[1].getPixelStride();
         int w = image.getWidth();
         int h = image.getHeight();
-        int chromaPixelStride = planes[1].getPixelStride();
 
         if (chromaPixelStride == 2) { // Chroma channels are interleaved
             assert(planes[0].getPixelStride() == 1);
@@ -98,10 +87,10 @@ public class ImUtils {
                 }
             }
 
-            Mat yuv_mat = new Mat(h+h/2, w, CvType.CV_8UC1);
+            if (yuv_mat==null)
+                yuv_mat = new Mat(h+h/2, w, CvType.CV_8UC1);
             yuv_mat.put(0, 0, yuv_bytes);
-            Imgproc.cvtColor(yuv_mat, matRGB, Imgproc.COLOR_YUV2RGBA_I420, 4);
+            Imgproc.cvtColor(yuv_mat, matRGB, Imgproc.COLOR_YUV2RGB_I420, 3);
         }
     }
-
 }
