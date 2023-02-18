@@ -9,15 +9,11 @@ import ai.flow.modeld.messages.MsgModelRaw;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
 import org.capnproto.PrimitiveList;
-import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;
 import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -41,16 +37,10 @@ public class ModelExecutor implements Runnable{
 
     public static final Map<String, int[]> inputShapeMap = new HashMap<>();
     public static final Map<String, int[]> outputShapeMap = new HashMap<>();
-    public static final long[] YUVimgShape = {384, 512, 1};
-
-    public final INDArray imgTensorSequence = Nd4j.zeros(imgTensorShape);
-    public final INDArray imgWideTensorSequence = Nd4j.zeros(imgTensorShape);
     public final INDArray desireNDArr = Nd4j.zeros(desireTensorShape);
     public final INDArray trafficNDArr = Nd4j.zeros(trafficTensorShape);
     public final INDArray stateNDArr = Nd4j.zeros(stateTensorShape);
     public final float[] netOutputs = new float[(int)numElements(outputTensorShape)];
-    public final INDArray transformedYUVNDArr = Nd4j.zeros(DataType.UINT8, YUVimgShape);
-    public final INDArray transformedWideYUVNDArr = Nd4j.zeros(DataType.UINT8, YUVimgShape);
     public final INDArray augmentRot = Nd4j.zeros(3);
     public final INDArray augmentTrans = Nd4j.zeros(3);
     public final float[][] prevDesire = new float[1][8];
@@ -58,11 +48,6 @@ public class ModelExecutor implements Runnable{
     public final Map<String, float[]> outputMap =  new HashMap<>();
 
     public final ParamsInterface params = ParamsInterface.getInstance();
-
-    public final INDArrayIndex[] imgTensor0Slices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0,6),
-            NDArrayIndex.all(), NDArrayIndex.all()};
-    public final INDArrayIndex[] imgTensor1Slices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(6,12),
-            NDArrayIndex.all(), NDArrayIndex.all()};
 
     public final INDArrayIndex[] featureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0,CommonModel.HISTORY_BUFFER_LEN-1)};
     public final INDArrayIndex[] featureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1,CommonModel.HISTORY_BUFFER_LEN)};
@@ -124,15 +109,18 @@ public class ModelExecutor implements Runnable{
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
+        INDArray netInputBuffer, netInputWideBuffer;
+
         ph.createPublishers(Arrays.asList("modelRaw"));
         sh.createSubscribers(Arrays.asList("roadCameraState", "wideRoadCameraState", "pulseDesire", "liveCalibration"));
 
         boolean wideCameraOnly = params.getBool("WideCameraOnly");
+        ImagePrepare imagePrepare = new ImagePrepare(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]);
 
         MsgFrameData msgFrameData;
         Definitions.FrameData.Reader frameData;
 
-        MsgFrameData msgWideFrameData = new MsgFrameData((int)FULL_FRAME_SIZE[0]*(int)FULL_FRAME_SIZE[1]*3);
+        MsgFrameData msgWideFrameData = new MsgFrameData(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
         Definitions.FrameData.Reader frameWideData;
 
         ByteBuffer msgWideFrameDataBuffer = msgWideFrameData.getSerializedBuffer();
@@ -142,16 +130,9 @@ public class ModelExecutor implements Runnable{
             msgFrameDataBuffer = msgWideFrameDataBuffer;
         }
         else {
-            msgFrameData = new MsgFrameData((int) FULL_FRAME_SIZE[0] * (int) FULL_FRAME_SIZE[1] * 3);
+            msgFrameData = new MsgFrameData(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
             msgFrameDataBuffer = msgFrameData.getSerializedBuffer();
         }
-
-        Mat transformed = new Mat(256, 512, CvType.CV_8UC3);
-        Mat transformedWide = new Mat(256, 512, CvType.CV_8UC3);
-        Mat transformedYUV = new Mat(384, 512, CvType.CV_8UC1, transformedYUVNDArr.data().asNio());
-        Mat transformedWideYUV = new Mat(384, 512, CvType.CV_8UC1, transformedWideYUVNDArr.data().asNio());
-
-        final Size outputSize = new Size(512, 256);
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("big_input_imgs", imgTensorShape);
@@ -160,8 +141,6 @@ public class ModelExecutor implements Runnable{
         inputShapeMap.put("traffic_convention", trafficTensorShape);
         outputShapeMap.put("outputs", outputTensorShape);
 
-        inputMap.put("input_imgs", imgTensorSequence);
-        inputMap.put("big_input_imgs", imgWideTensorSequence);
         inputMap.put("features_buffer", stateNDArr);
         inputMap.put("desire", desireNDArr);
         inputMap.put("traffic_convention", trafficNDArr);
@@ -192,19 +171,10 @@ public class ModelExecutor implements Runnable{
             imgBuffer = wideCameraOnly ?  wideImgBuffer : ByteBuffer.allocateDirect((int)FULL_FRAME_SIZE[0]*(int)FULL_FRAME_SIZE[1]*3);
         }
 
-        Mat wideimageCurr = new Mat(FULL_FRAME_SIZE[1], FULL_FRAME_SIZE[0], CvType.CV_8UC3,  wideImgBuffer);
-        Mat imageCurr = wideCameraOnly ? wideimageCurr : new Mat(FULL_FRAME_SIZE[1], FULL_FRAME_SIZE[0], CvType.CV_8UC3,  imgBuffer);
         updateCameraMatrix(frameWideData.getIntrinsics(), true);
-        updateCameraMatrix(frameData.getIntrinsics(), false);
+        updateCameraMatrix(frameData.getIntrinsics(), wideCameraOnly);
         lastWideFrameID = frameWideData.getFrameId();
         lastFrameID = frameData.getFrameId();
-
-        Preprocess.TransformImg(imageCurr, transformed, wrapMatrix, outputSize);
-        Preprocess.TransformImg(wideimageCurr, transformedWide, wrapMatrixWide, outputSize);
-        Preprocess.RGB888toYUV420(transformed, transformedYUV);
-        Preprocess.RGB888toYUV420(wideimageCurr, transformedWideYUV);
-        Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 0);
-        Preprocess.YUV420toTensor(transformedWideYUVNDArr, imgWideTensorSequence, 0);
 
         initialized = true;
         params.putBool("ModelDReady", true);
@@ -243,22 +213,17 @@ public class ModelExecutor implements Runnable{
                 wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
             }
 
-            Preprocess.TransformImg(imageCurr, transformed, wrapMatrix, outputSize);
-            Preprocess.TransformImg(wideimageCurr, transformedWide, wrapMatrixWide, outputSize);
-            Preprocess.RGB888toYUV420(transformed, transformedYUV);
-            Preprocess.RGB888toYUV420(transformedWide, transformedWideYUV);
-            Preprocess.YUV420toTensor(transformedYUVNDArr, imgTensorSequence, 0);
-            Preprocess.YUV420toTensor(transformedWideYUVNDArr, imgWideTensorSequence, 0);
+            netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix, true);
+            netInputWideBuffer = imagePrepare.prepare(wideImgBuffer, wrapMatrixWide, true);
 
+            inputMap.put("input_imgs", netInputBuffer);
+            inputMap.put("big_input_imgs", netInputWideBuffer);
             modelRunner.run(inputMap, outputMap);
 
             // TODO: Add desire.
             stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
             for (int i=0; i<CommonModel.FEATURE_LEN; i++)
                 stateNDArr.putScalar(0, CommonModel.HISTORY_BUFFER_LEN-1, i, netOutputs[CommonModel.OUTPUT_SIZE+i]);
-
-            imgTensorSequence.put(imgTensor0Slices, imgTensorSequence.get(imgTensor1Slices));
-            imgWideTensorSequence.put(imgTensor0Slices, imgWideTensorSequence.get(imgTensor1Slices));
 
             // publish outputs
             timestamp = System.currentTimeMillis();
@@ -286,19 +251,12 @@ public class ModelExecutor implements Runnable{
         wrapMatrix.close();
         wrapMatrixWide.close();
 
-        imgTensorSequence.close();
-        imgWideTensorSequence.close();
-        transformedYUVNDArr.close();
-        transformedWideYUVNDArr.close();
         for (String inputName : inputMap.keySet()) {
             inputMap.get(inputName).close();
         }
         modelRunner.dispose();
+        imagePrepare.dispose();
         ph.releaseAll();
-        transformed.release();
-        transformedYUV.release();
-        imageCurr.release();
-        wideimageCurr.release();
     }
 
     public void start() {

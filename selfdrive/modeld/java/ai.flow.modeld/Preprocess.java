@@ -57,6 +57,8 @@ public class Preprocess {
         Mat M_inv_mat = new Mat(3, 3, CvType.CV_32F);
         M_inv_mat.put(0, 0, M_inv.data().asFloat());
         Imgproc.warpPerspective(imgRGB888, transformedRGB888, M_inv_mat, output_size);
+        M_inv_mat.release();
+        M_inv.close();
     }
 
     public static void RGB888toYUV420(Mat imgRGB888, Mat imgYUV420){
