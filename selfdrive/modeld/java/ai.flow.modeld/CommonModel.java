@@ -1,14 +1,9 @@
 package ai.flow.modeld;
 
 // Core java classes
+
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
-
-import java.lang.Math;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
 
 public class CommonModel {
 
@@ -33,5 +28,24 @@ public class CommonModel {
     public static final float[] X_IDXS = {0.f, 0.1875f, 0.75f, 1.6875f, 3.f, 4.6875f, 6.75f, 9.1875f, 12.f,  15.1875f, 18.75f, 22.6875f,
         27.f,  31.6875f,  36.75f, 42.1875f, 48.f, 54.1875f, 60.75f,  67.6875f,  75.f, 82.6875f, 90.75f, 99.1875f, 108.f, 117.1875f,
         126.75f, 136.6875f, 147.f, 157.6875f, 168.75f, 180.1875f, 192.0f};
+
+    public static final int MODEL_WIDTH = 512;
+    public static final int MODEL_HEIGHT = 256;
+    public static final int MODEL_FRAME_SIZE = MODEL_WIDTH * MODEL_HEIGHT * 3 / 2;
+    public static final int BUF_SIZE = MODEL_FRAME_SIZE * 2;
+
+    public static INDArray transform_scale_buffer(INDArray M, float s) {
+        INDArray transform_out = Nd4j.create(new float[]{
+                                            1.0f / s, 0.0f, 0.5f,
+                                            0.0f, 1.0f / s, 0.5f,
+                                            0.0f, 0.0f, 1.0f}, 3, 3);
+
+        INDArray transform_in = Nd4j.create(new float[]{
+                s, 0.0f, -0.5f * s,
+                0.0f, s, -0.5f * s,
+                0.0f, 0.0f, 1.0f}, 3, 3);
+
+        return transform_in.mmul(M.mmul(transform_out));
+    }
 }
 

@@ -39,6 +39,7 @@ dependencies {
     implementation 'org.yaml:snakeyaml:1.18:android'
     implementation 'org.slf4j:slf4j-api:1.7.30'
     implementation 'org.slf4j:slf4j-simple:1.7.30'
+    implementation 'org.jocl:jocl:2.0.4'
     implementation project(":messaging")
     implementation project(':definitions')
     implementation project(":sensord")

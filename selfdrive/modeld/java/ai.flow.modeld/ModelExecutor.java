@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static ai.flow.common.SystemUtils.getUseGPU;
+
 public class ModelExecutor implements Runnable{
 
     public boolean stopped = false;
@@ -115,7 +117,17 @@ public class ModelExecutor implements Runnable{
         sh.createSubscribers(Arrays.asList("roadCameraState", "wideRoadCameraState", "pulseDesire", "liveCalibration"));
 
         boolean wideCameraOnly = params.getBool("WideCameraOnly");
-        ImagePrepare imagePrepare = new ImagePrepare(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]);
+
+        ImagePrepare imagePrepare;
+        ImagePrepare imageWidePrepare;
+        if (getUseGPU()){
+            imagePrepare = new ImagePrepareGPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
+            imageWidePrepare = new ImagePrepareGPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
+        }
+        else{
+            imagePrepare = new ImagePrepareCPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
+            imageWidePrepare = new ImagePrepareCPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
+        }
 
         MsgFrameData msgFrameData;
         Definitions.FrameData.Reader frameData;
@@ -167,8 +179,8 @@ public class ModelExecutor implements Runnable{
             imgBuffer = wideCameraOnly ?  wideImgBuffer : MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
         }
         else {
-            wideImgBuffer = ByteBuffer.allocateDirect((int)FULL_FRAME_SIZE[0]*(int)FULL_FRAME_SIZE[1]*3);
-            imgBuffer = wideCameraOnly ?  wideImgBuffer : ByteBuffer.allocateDirect((int)FULL_FRAME_SIZE[0]*(int)FULL_FRAME_SIZE[1]*3);
+            wideImgBuffer = ByteBuffer.allocateDirect(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
+            imgBuffer = wideCameraOnly ?  wideImgBuffer : ByteBuffer.allocateDirect(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
         }
 
         updateCameraMatrix(frameWideData.getIntrinsics(), true);
@@ -213,8 +225,8 @@ public class ModelExecutor implements Runnable{
                 wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
             }
 
-            netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix, true);
-            netInputWideBuffer = imagePrepare.prepare(wideImgBuffer, wrapMatrixWide, true);
+            netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix);
+            netInputWideBuffer = imageWidePrepare.prepare(wideImgBuffer, wrapMatrixWide);
 
             inputMap.put("input_imgs", netInputBuffer);
             inputMap.put("big_input_imgs", netInputWideBuffer);
@@ -256,6 +268,7 @@ public class ModelExecutor implements Runnable{
         }
         modelRunner.dispose();
         imagePrepare.dispose();
+        imageWidePrepare.dispose();
         ph.releaseAll();
     }
 
