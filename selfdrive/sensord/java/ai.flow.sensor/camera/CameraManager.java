@@ -1,6 +1,7 @@
 package ai.flow.sensor.camera;
 
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.transformatons.Camera;
 import ai.flow.sensor.SensorInterface;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
@@ -148,7 +149,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     public void loadIntrinsics(){
         if (params.exists("CameraMatrix")) {
             //float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
-            float[] cameraMatrix = new float[]{2648.0f, 0f, 964f, 0f, 2648.0f, 604.0f, 0f, 0f, 1f};
+            float[] cameraMatrix = Camera.ecam_intrinsics.reshape(3*3).toFloatVector();
             updateProperty("intrinsics", cameraMatrix);
         }
     }

@@ -35,12 +35,14 @@ public class ModelExecutor implements Runnable{
     public static final int[] desireTensorShape = {1, 100, CommonModel.DESIRE_LEN};
     public static final int[] trafficTensorShape = {1, CommonModel.TRAFFIC_CONVENTION_LEN};
     public static final int[] stateTensorShape = {1, CommonModel.HISTORY_BUFFER_LEN, CommonModel.FEATURE_LEN};
+    public static final int[] featureTensorShape = {1, 8, CommonModel.FEATURE_LEN};
     public static final int[] outputTensorShape = {1, CommonModel.NET_OUTPUT_SIZE};
 
     public static final Map<String, int[]> inputShapeMap = new HashMap<>();
     public static final Map<String, int[]> outputShapeMap = new HashMap<>();
     public final INDArray desireNDArr = Nd4j.zeros(desireTensorShape);
     public final INDArray trafficNDArr = Nd4j.zeros(trafficTensorShape);
+    public final INDArray featuresNDArr = Nd4j.zeros(featureTensorShape);
     public final INDArray stateNDArr = Nd4j.zeros(stateTensorShape);
     public final float[] netOutputs = new float[(int)numElements(outputTensorShape)];
     public final INDArray augmentRot = Nd4j.zeros(3);
@@ -54,6 +56,8 @@ public class ModelExecutor implements Runnable{
     public final INDArrayIndex[] featureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0,CommonModel.HISTORY_BUFFER_LEN-1)};
     public final INDArrayIndex[] featureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1,CommonModel.HISTORY_BUFFER_LEN)};
 
+    public final INDArrayIndex[] gatherFeatureSlices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.indices(94, 89, 84, 79, 74, 69, 64, 59)};
+    public final INDArrayIndex[] gatherFeatureSlices0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.all()};
     public static final int[] FULL_FRAME_SIZE = Camera.frameSize;
     public static INDArray fcam_intrinsics = Camera.fcam_intrinsics.dup(); // telephoto
     public static INDArray ecam_intrinsics = Camera.ecam_intrinsics.dup(); // wide
@@ -148,12 +152,12 @@ public class ModelExecutor implements Runnable{
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("big_input_imgs", imgTensorShape);
-        inputShapeMap.put("features_buffer", stateTensorShape);
+        inputShapeMap.put("features_buffer", featureTensorShape);
         inputShapeMap.put("desire", desireTensorShape);
         inputShapeMap.put("traffic_convention", trafficTensorShape);
         outputShapeMap.put("outputs", outputTensorShape);
 
-        inputMap.put("features_buffer", stateNDArr);
+        inputMap.put("features_buffer", featuresNDArr);
         inputMap.put("desire", desireNDArr);
         inputMap.put("traffic_convention", trafficNDArr);
         outputMap.put("outputs", netOutputs);
@@ -236,6 +240,7 @@ public class ModelExecutor implements Runnable{
             stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
             for (int i=0; i<CommonModel.FEATURE_LEN; i++)
                 stateNDArr.putScalar(0, CommonModel.HISTORY_BUFFER_LEN-1, i, netOutputs[CommonModel.OUTPUT_SIZE+i]);
+            featuresNDArr.put(gatherFeatureSlices0, stateNDArr.get(gatherFeatureSlices));
 
             // publish outputs
             timestamp = System.currentTimeMillis();
