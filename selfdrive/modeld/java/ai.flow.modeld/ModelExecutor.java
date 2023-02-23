@@ -4,7 +4,6 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformatons.Camera;
 import ai.flow.definitions.Definitions;
 import ai.flow.modeld.messages.MsgFrameData;
-import ai.flow.modeld.messages.MsgLiveCalibrationData;
 import ai.flow.modeld.messages.MsgModelRaw;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
@@ -64,8 +63,6 @@ public class ModelExecutor implements Runnable{
     public final ZMQPubHandler ph = new ZMQPubHandler();
     public final ZMQSubHandler sh = new ZMQSubHandler(true);
     public MsgModelRaw msgModelRaw = new MsgModelRaw();
-    public MsgLiveCalibrationData msgLiveCalibrationData = new MsgLiveCalibrationData();
-    public ByteBuffer msgLiveCalibrationDataBuffer = msgLiveCalibrationData.getSerializedBuffer();
     public Definitions.LiveCalibrationData.Reader liveCalib;
 
     public long start, end, timestamp;
@@ -133,22 +130,8 @@ public class ModelExecutor implements Runnable{
             imageWidePrepare = new ImagePrepareCPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
         }
 
-        MsgFrameData msgFrameData;
         Definitions.FrameData.Reader frameData;
-
-        MsgFrameData msgWideFrameData = new MsgFrameData(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
         Definitions.FrameData.Reader frameWideData;
-
-        ByteBuffer msgWideFrameDataBuffer = msgWideFrameData.getSerializedBuffer();
-        ByteBuffer msgFrameDataBuffer;
-        if (wideCameraOnly) {
-            msgFrameData = msgWideFrameData;
-            msgFrameDataBuffer = msgWideFrameDataBuffer;
-        }
-        else {
-            msgFrameData = new MsgFrameData(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
-            msgFrameDataBuffer = msgFrameData.getSerializedBuffer();
-        }
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("big_input_imgs", imgTensorShape);
@@ -168,23 +151,18 @@ public class ModelExecutor implements Runnable{
         INDArray wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
         INDArray wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
 
-        ByteBuffer imgBuffer;
-        ByteBuffer wideImgBuffer;
+        ByteBuffer imgBuffer = null;
+        ByteBuffer wideImgBuffer = null;
 
-        sh.recvBuffer("wideRoadCameraState", msgWideFrameDataBuffer);
+        frameWideData = sh.recv("wideRoadCameraState").getFrameData();
         if (!wideCameraOnly)
-            sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
-
-        frameWideData = msgWideFrameData.deserialize().getFrameData();
-        frameData = wideCameraOnly ? frameWideData : msgFrameData.deserialize().getFrameData();
+            frameData = sh.recv("roadCameraState").getFrameData();
+        else
+            frameData = frameWideData;
 
         if (frameData.getNativeImageAddr() != 0) {
             wideImgBuffer = MsgFrameData.getImgBufferFromAddr(frameWideData.getNativeImageAddr());
             imgBuffer = wideCameraOnly ?  wideImgBuffer : MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
-        }
-        else {
-            wideImgBuffer = ByteBuffer.allocateDirect(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
-            imgBuffer = wideCameraOnly ?  wideImgBuffer : ByteBuffer.allocateDirect(FULL_FRAME_SIZE[0]*FULL_FRAME_SIZE[1]*3);
         }
 
         updateCameraMatrix(frameWideData.getIntrinsics(), true);
@@ -196,19 +174,11 @@ public class ModelExecutor implements Runnable{
         params.putBool("ModelDReady", true);
         while (!stopped) {
 
-            sh.recvBuffer("wideRoadCameraState", msgWideFrameDataBuffer);
+            frameWideData = sh.recv("wideRoadCameraState").getFrameData();
             if (!wideCameraOnly)
-                sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
-            frameWideData = msgWideFrameData.deserialize().getFrameData();
-            frameData = wideCameraOnly ? frameWideData : msgFrameData.deserialize().getFrameData();
-            if (frameWideData.getNativeImageAddr() == 0) {
-                wideImgBuffer.put(frameWideData.getImage().asByteBuffer());
-                wideImgBuffer.rewind();
-                if (!wideCameraOnly && frameData.getNativeImageAddr() == 0){
-                    imgBuffer.put(frameData.getImage().asByteBuffer());
-                    imgBuffer.rewind();
-                }
-            }
+                frameData = sh.recv("roadCameraState").getFrameData();
+            else
+                frameData = frameWideData;
 
             start = System.currentTimeMillis();
 
@@ -219,8 +189,7 @@ public class ModelExecutor implements Runnable{
 //            }
 
             if (sh.updated("liveCalibration")) {
-                sh.recvBuffer("liveCalibration", msgLiveCalibrationDataBuffer);
-                liveCalib = msgLiveCalibrationData.deserialize().getLiveCalibration();
+                liveCalib = sh.recv("liveCalibration").getLiveCalibration();
                 PrimitiveList.Float.Reader rpy = liveCalib.getRpyCalib();
                 for (int i=0; i<3; i++) {
                     augmentRot.putScalar(i, rpy.get(i));

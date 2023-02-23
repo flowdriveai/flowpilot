@@ -115,8 +115,7 @@ public class CalibrateScreen extends ScreenAdapter {
     }
 
     public void updateCamera() {
-        sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
-        frameData = msgFrameData.deserialize().getFrameData();
+        frameData = sh.recv("roadCameraState").getFrameData();
         if (imgBuffer == null){
             if (frameData.getNativeImageAddr() != 0)
                 imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());

@@ -3,7 +3,6 @@ package ai.flow.app;
 import ai.flow.common.Path;
 import ai.flow.common.transformatons.Camera;
 import ai.flow.definitions.Definitions;
-import ai.flow.definitions.MessageBase;
 import ai.flow.modeld.CommonModel;
 import ai.flow.modeld.DesireEnum;
 import ai.flow.modeld.ParsedOutputs;
@@ -101,9 +100,6 @@ public class OnRoadScreen extends ScreenAdapter {
     Definitions.ModelDataV2.Reader modelDataV2;
     Definitions.FrameData.Reader frameData;
     Definitions.ControlsState.Reader controlState;
-    ByteBuffer msgFrameDataBuffer = msgFrameData.getSerializedBuffer();
-    ByteBuffer modelMsgByteBuffer = msgModelDataV2.getSerializedBuffer();
-    ByteBuffer msgLiveCalibBuffer = msgLiveCalib.getSerializedBuffer();
     ByteBuffer msgCarStateBuffer = ByteBuffer.allocateDirect(1000);
     ByteBuffer msgControlsStateBuffer = ByteBuffer.allocateDirect(1000);
     ByteBuffer imgBuffer;
@@ -367,11 +363,10 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCamera() {
-        sh.recvBuffer(cameraTopic, msgFrameDataBuffer);
-        frameData = MessageBase.deserialize(msgFrameDataBuffer).getFrameData();
+        frameData = sh.recv(cameraTopic).getFrameData();
         if (imgBuffer == null){
             if (frameData.getNativeImageAddr() != 0)
-                imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
+                imgBuffer = MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
             else
                 imgBuffer = ByteBuffer.allocateDirect(defaultImageHeight*defaultImageWidth*3);
         }
@@ -390,16 +385,14 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCarState() {
-        sh.recvBuffer(carStateTopic, msgCarStateBuffer);
-        Definitions.Event.Reader event = MessageBase.deserialize(msgCarStateBuffer);
+        Definitions.Event.Reader event = sh.recv(carStateTopic);
         float vel = event.getCarState().getVEgo();
         vel = isMetric ? vel * 3.6f : vel * 2.237f;
         velocityLabel.setText(Integer.toString((int)vel));
     }
 
     public void updateControls() {
-        sh.recvBuffer(controlsStateTopic, msgControlsStateBuffer);
-        controlState = MessageBase.deserialize(msgControlsStateBuffer).getControlsState();
+        controlState = sh.recv(controlsStateTopic).getControlsState();
         canErrCount = controlState.getCanErrorCounter();
         if (canErrCount != canErrCountPrev)
             updateStatusLabel(statusLabelCan, "CAN\nOFFLINE", StatusColors.colorStatusCritical);
@@ -409,10 +402,8 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateModelOutputs(){
-        sh.recvBuffer(modelTopic, modelMsgByteBuffer);
-
-        Definitions.Event.Reader eventReader = MessageBase.deserialize(modelMsgByteBuffer);
-        msgModelDataV2.fillParsed(parsed, eventReader.getModelV2(), !laneLess);
+        Definitions.Event.Reader event = sh.recv(modelTopic);
+        msgModelDataV2.fillParsed(parsed, event.getModelV2(), !laneLess);
 
         try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "DrawUI")) {
             INDArray RtPath;
@@ -565,8 +556,7 @@ public class OnRoadScreen extends ScreenAdapter {
         stageFill.draw();
 
         if (sh.updated(calibrationTopic)) {
-            sh.recvBuffer(calibrationTopic, msgLiveCalibBuffer);
-            liveCalib = msgLiveCalib.deserialize().getLiveCalibration();
+            liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
             updateAugmentVectors(liveCalib);
         }
 
