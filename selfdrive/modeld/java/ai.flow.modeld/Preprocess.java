@@ -1,7 +1,7 @@
 package ai.flow.modeld;
 
-import ai.flow.common.transformatons.Camera;
-import ai.flow.common.transformatons.Model;
+import ai.flow.common.transformations.Camera;
+import ai.flow.common.transformations.Model;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.INDArrayIndex;

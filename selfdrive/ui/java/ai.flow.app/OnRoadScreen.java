@@ -1,7 +1,7 @@
 package ai.flow.app;
 
 import ai.flow.common.Path;
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.Definitions;
 import ai.flow.modeld.CommonModel;
 import ai.flow.modeld.DesireEnum;

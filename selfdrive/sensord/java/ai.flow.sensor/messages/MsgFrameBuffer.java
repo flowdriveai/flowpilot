@@ -1,6 +1,6 @@
 package ai.flow.sensor.messages;
 
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
 

@@ -2,7 +2,7 @@ package ai.flow.android.sensor;
 
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.camera.MsgFrameData;
 import android.Manifest;

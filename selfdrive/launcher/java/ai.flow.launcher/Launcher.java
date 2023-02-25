@@ -1,7 +1,7 @@
 package ai.flow.launcher;
 
 import ai.flow.common.ParamsInterface;
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.modeld.ModelRunner;
 import ai.flow.modeld.TNNModelRunner;

@@ -35,4 +35,5 @@ dependencies {
     implementation "org.nd4j:nd4j-native:$rootProject.nd4j_version:$rootProject.javacpp_platform_suffix"
     implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version"
     implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version:$rootProject.javacpp_platform_suffix"
+    implementation 'org.jocl:jocl:2.0.4'
 }

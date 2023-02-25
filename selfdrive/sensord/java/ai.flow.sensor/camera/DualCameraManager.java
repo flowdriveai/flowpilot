@@ -1,6 +1,6 @@
 package ai.flow.sensor.camera;
 
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.sensor.SensorInterface;
 
 public class DualCameraManager extends SensorInterface {

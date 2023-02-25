@@ -2,7 +2,7 @@ package ai.flow.app.lwjgl3;
 
 import ai.flow.app.FlowUI;
 import ai.flow.common.SystemUtils;
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.modeld.ModelRunner;
