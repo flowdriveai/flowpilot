@@ -132,8 +132,9 @@ public class LoginScreen extends ScreenAdapter {
                         try {
                             String responseString = httpResponse.getResultAsString();
                             JsonValue response = HttpUtils.parseGenericResponse(responseString);
+                            String user_id = response.get("message").getString("user_id");
                             String auth_token = response.get("message").getString("auth_token");
-                            LoginSucceeded(email, auth_token);
+                            LoginSucceeded(email, user_id, auth_token);
 
                         } catch (Exception exception) {
                             progressVal = 0;
@@ -153,8 +154,9 @@ public class LoginScreen extends ScreenAdapter {
                 });
     }
 
-    private void LoginSucceeded(String email, String auth_token) {
+    private void LoginSucceeded(String email, String user_id, String auth_token) {
         appContext.params.put("UserEmail", email);
+        appContext.params.put("UserID", user_id);
         appContext.params.put("UserToken", auth_token);
         progressVal++;
     }
