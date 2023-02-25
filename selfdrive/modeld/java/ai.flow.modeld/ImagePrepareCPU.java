@@ -1,5 +1,6 @@
 package ai.flow.modeld;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -27,10 +28,14 @@ public class ImagePrepareCPU implements ImagePrepare{
             NDArrayIndex.all(), NDArrayIndex.all()};
     boolean rgb;
 
-    public ImagePrepareCPU(int W, int H, boolean rgb){
+    public ImagePrepareCPU(int W, int H, boolean rgb, int y_width, int y_height, int y_px_stride, int uv_width,
+                           int uv_height, int uv_px_stride, int u_offset, int v_offset, int stride){
         this.H = H;
         this.W = W;
         this.rgb = rgb;
+
+        if (!rgb)
+            throw new NotImplementedException("yuv processing not yet implemented on cpu");
 
         transformed = new Mat(MODEL_HEIGHT, MODEL_WIDTH, CvType.CV_8UC3);
         transformedYUV = new Mat(MODEL_HEIGHT*3/2, MODEL_WIDTH, CvType.CV_8UC1, transformedYUVNDArr.data().asNio());

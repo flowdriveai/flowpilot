@@ -83,6 +83,17 @@ public class CameraManager extends SensorInterface implements Runnable {
         frameProcessed = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
         msgFrameBuffer.setImageBufferAddress(frameProcessed.dataAddr());
         msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.RGB);
+        msgFrameBuffer.frameBuffer.setFrameHeight(frameHeight);
+        msgFrameBuffer.frameBuffer.setFrameWidth(frameWidth);
+        msgFrameBuffer.frameBuffer.setYHeight(frameHeight);
+        msgFrameBuffer.frameBuffer.setYWidth(frameWidth);
+        msgFrameBuffer.frameBuffer.setYPixelStride(1);
+        msgFrameBuffer.frameBuffer.setUvWidth(frameWidth/2);
+        msgFrameBuffer.frameBuffer.setUvHeight(frameHeight/2);
+        msgFrameBuffer.frameBuffer.setUvPixelStride(2);
+        msgFrameBuffer.frameBuffer.setUOffset(frameHeight*frameHeight);
+        msgFrameBuffer.frameBuffer.setVOffset(frameHeight*frameHeight+1);
+        msgFrameBuffer.frameBuffer.setStride(frameWidth);
 
         deltaTime = (long) 1000/frequency; //ms
         loadIntrinsics();

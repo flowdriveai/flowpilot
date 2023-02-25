@@ -257,7 +257,6 @@ public class MsgModelDataV2 extends MessageBase {
     }
 
     public static void fillParsed(ParsedOutputs parsed, Definitions.ModelDataV2.Reader msg, boolean full) { // TODO Avoid this
-        System.out.println("here");
         for (int i = 0; i < CommonModel.TRAJECTORY_SIZE; i++) {
             parsed.position.get(0)[i] = msg.getPosition().getX().get(i);
             parsed.position.get(1)[i] = msg.getPosition().getY().get(i);
@@ -323,7 +322,6 @@ public class MsgModelDataV2 extends MessageBase {
         }
 
         parsed.leads.get(0).prob = msg.getLeads().get(0).getProb();
-        System.out.println(parsed.leads.get(0).prob);
         parsed.leads.get(1).prob = msg.getLeads().get(1).getProb();
         parsed.leads.get(2).prob = msg.getLeads().get(2).getProb();
 

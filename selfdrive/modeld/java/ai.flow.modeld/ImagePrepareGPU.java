@@ -31,7 +31,8 @@ public class ImagePrepareGPU implements ImagePrepare{
     public boolean rgb;
     ByteBuffer yuv;
 
-    public ImagePrepareGPU(int W, int H, boolean rgb) {
+    public ImagePrepareGPU(int W, int H, boolean rgb, int y_width, int y_height, int y_px_stride, int uv_width,
+                           int uv_height, int uv_px_stride, int u_offset, int v_offset, int stride) {
         this.H = H;
         this.W = W;
         this.rgb = rgb;
@@ -42,7 +43,7 @@ public class ImagePrepareGPU implements ImagePrepare{
             rgb2yuv = new RGB2YUV(context, this.commandQueue, H, W);
         else
             yuv_cl = clCreateBuffer(context, CL_MEM_READ_WRITE, H*W*3/2, null, null);
-        transformCL = new TransformCL(context, commandQueue, W, H, 1, W/2, H/2, 2, W*H, W*H+1, W);
+        transformCL = new TransformCL(context, commandQueue, y_width, y_height, y_px_stride, uv_width, uv_height, uv_px_stride, u_offset, v_offset, stride);
         loadYUVCL = new LoadYUVCL(context, commandQueue);
 
         yuv = ByteBuffer.allocateDirect(MODEL_HEIGHT*MODEL_WIDTH);
