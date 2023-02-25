@@ -167,7 +167,7 @@ class Uploader():
             data = f
 
           # api.get_credentials should populate api.email field, saving us a DB call
-          object_name = self.api.email.decode("utf-8") + "/" + key
+          object_name = "unprocessed/" + self.api.user_id.decode("utf-8") + "/" + key
           bucket = "fdusermedia"
 
           self.last_resp = FakeResponse()

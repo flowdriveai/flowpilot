@@ -17,22 +17,25 @@ class Api():
     self.http_client = urllib3.PoolManager()
 
   def get_credentials(self):
-    # get userdata
-    self.email = self.params.get("UserEmail")
+    # Get auth token
+    self.user_id = self.params.get("UserID")
     self.token = self.params.get("UserToken")
 
-    if self.email is None or self.token is None:
-      logger.error(f"Error retrieving Email and/or Token")
+    if self.token is None:
+      logger.error(f"Error retrieving auth token")
     
-    logger.debug(f"Fetched email {self.email} and token ***")
+    logger.debug(f"Fetched auth token ***")
 
     # Get STS
     r = self.http_client.request(
-        'POST',
+        'GET',
         f"{API_HOST}/auth/sts",
-        fields={'email': self.email, 'token': self.token}
+        headers={'Authorization': f"Bearer {self.token}"}
     )
     cloudlog.info("api init statuscode %d", r.status)
 
-    credentials = json.loads(r.data.decode('utf-8'))
-    return credentials
+    r_data = json.loads(r.data.decode('utf-8'))
+    if r_data["success"] == True:
+      return r_data["message"]
+    else:
+      raise Exception(f"Fetching token from STS endpoint unsuccessful: {r_data['message']}")
