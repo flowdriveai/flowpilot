@@ -2,7 +2,10 @@ package ai.flow.sensor.camera;
 
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformatons.Camera;
+import ai.flow.definitions.Definitions;
+import ai.flow.modeld.messages.MsgFrameData;
 import ai.flow.sensor.SensorInterface;
+import ai.flow.sensor.messages.MsgFrameBuffer;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
 import org.opencv.core.Core;
@@ -16,6 +19,7 @@ import org.opencv.videoio.Videoio;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
@@ -23,15 +27,17 @@ public class CameraManager extends SensorInterface implements Runnable {
     public boolean initialized = false;
     public VideoCapture capture;
     public static ZMQPubHandler ph = new ZMQPubHandler();
-    public String topic;
     public long deltaTime;
     public int defaultFrameWidth;
     public int defaultFrameHeight;
-    public MsgFrameData msgFrameData = new MsgFrameData(0);
+    public MsgFrameData msgFrameData = new MsgFrameData();
+    public MsgFrameBuffer msgFrameBuffer;
     public Mat frame, frameProcessed, frameCrop, framePadded;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
     public int frameID = 0;
     public ParamsInterface params = ParamsInterface.getInstance();
+    public String frameDataTopic = null;
+    public String frameBufferTopic = null;
 
     public void setIntrinsics(float[] intrinsics){
         assert (intrinsics.length == 9) : "invalid intrinsic matrix length";
@@ -39,9 +45,19 @@ public class CameraManager extends SensorInterface implements Runnable {
             K.set(i, intrinsics[i]);
     }
 
-    public CameraManager(String topic, int frequency, String videoSrc, int frameWidth, int frameHeight) {
+    public CameraManager(int cameraType, int frequency, String videoSrc, int frameWidth, int frameHeight) {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        this.topic = topic;
+
+        if (cameraType == Camera.CAMERA_TYPE_WIDE){
+            this.frameDataTopic = "wideRoadCameraState";
+            this.frameBufferTopic = "wideRoadCameraBuffer";
+        } else if (cameraType == Camera.CAMERA_TYPE_ROAD) {
+            this.frameDataTopic = "roadCameraState";
+            this.frameBufferTopic = "roadCameraBuffer";
+        }
+
+        msgFrameBuffer = new MsgFrameBuffer(0, cameraType);
+
         this.defaultFrameWidth = frameWidth;
         this.defaultFrameHeight = frameHeight;
 
@@ -65,7 +81,8 @@ public class CameraManager extends SensorInterface implements Runnable {
         frame = new Mat();
         framePadded = new Mat();
         frameProcessed = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
-        msgFrameData.frameData.setNativeImageAddr(frameProcessed.dataAddr());
+        msgFrameBuffer.setImageBufferAddress(frameProcessed.dataAddr());
+        msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.RGB);
 
         deltaTime = (long) 1000/frequency; //ms
         loadIntrinsics();
@@ -111,7 +128,7 @@ public class CameraManager extends SensorInterface implements Runnable {
         initialized = true;
         if (capture==null)
             return;
-        ph.createPublisher(topic);
+        ph.createPublishers(Arrays.asList(frameDataTopic, frameBufferTopic));
         long start, end, diff;
         while (!stopped){
             start = System.currentTimeMillis();
@@ -120,7 +137,8 @@ public class CameraManager extends SensorInterface implements Runnable {
             frameID += 1;
             processFrame(frame);
             msgFrameData.frameData.setFrameId(frameID);
-            ph.publishBuffer(topic, msgFrameData.serialize(true));
+            ph.publishBuffer(frameDataTopic, msgFrameData.serialize(true));
+            ph.publishBuffer(frameBufferTopic, msgFrameBuffer.serialize(true));
             diff = end - start;
             if (diff < deltaTime){
                 try{
@@ -129,7 +147,7 @@ public class CameraManager extends SensorInterface implements Runnable {
                     ph.releaseAll();}
             }
             else if ((diff - deltaTime) > 5){
-                System.out.println("[WARNING]: " + topic + " camera lagging by " + (diff-deltaTime) + " ms");
+                System.out.println("[WARNING]: " + frameDataTopic + " camera lagging by " + (diff-deltaTime) + " ms");
             }
         }
     }
@@ -164,7 +182,7 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void start() {
         if (thread == null) {
-            thread = new Thread(this, "camerad:" + topic);
+            thread = new Thread(this, "camerad:" + frameDataTopic);
             thread.setDaemon(false);
             thread.start();
         }

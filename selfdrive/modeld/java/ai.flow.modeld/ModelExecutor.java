@@ -3,7 +3,6 @@ package ai.flow.modeld;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformatons.Camera;
 import ai.flow.definitions.Definitions;
-import ai.flow.modeld.messages.MsgFrameData;
 import ai.flow.modeld.messages.MsgModelRaw;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
@@ -20,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static ai.flow.common.SystemUtils.getUseGPU;
+import static ai.flow.common.utils.numElements;
+import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 public class ModelExecutor implements Runnable{
 
@@ -73,14 +74,16 @@ public class ModelExecutor implements Runnable{
     public int wideFrameDrops = 0;
     public int frameDrops = 0;
     public ModelRunner modelRunner;
+    Definitions.FrameData.Reader frameData;
+    Definitions.FrameData.Reader frameWideData;
+    Definitions.FrameBuffer.Reader msgFrameBuffer;
+    Definitions.FrameBuffer.Reader msgFrameWideBuffer;
+    ByteBuffer imgBuffer;
+    ByteBuffer wideImgBuffer;
+    boolean wideCameraOnly;
 
     public ModelExecutor(ModelRunner modelRunner){
         this.modelRunner = modelRunner;
-    }
-
-    public void floatArrToBuffer(float[] arr, ByteBuffer buffer){
-        for (int i=0; i<arr.length; i++)
-            buffer.putFloat(i*4, arr[i]);
     }
 
     public boolean isIntrinsicsValid(PrimitiveList.Float.Reader intrinsics){
@@ -101,23 +104,26 @@ public class ModelExecutor implements Runnable{
         }
     }
 
-    public static double numElements(int[] shape){
-        double ret = 1;
-        for (int i:shape)
-            ret *= i;
-        return ret;
+    public void updateCameraState(){
+        frameWideData = sh.recv("wideRoadCameraState").getFrameData();
+        msgFrameWideBuffer = sh.recv("wideRoadCameraBuffer").getWideRoadCameraBuffer();
+        frameData = wideCameraOnly ? frameWideData : sh.recv("roadCameraState").getFrameData();
+        msgFrameBuffer = wideCameraOnly ? msgFrameWideBuffer : sh.recv("roadCameraBuffer").getRoadCameraBuffer();
+        imgBuffer = updateImageBuffer(msgFrameBuffer, imgBuffer);
+        wideImgBuffer = updateImageBuffer(msgFrameWideBuffer, wideImgBuffer);
     }
 
     public void run(){
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
+        wideCameraOnly = params.getBool("WideCameraOnly");
+
         INDArray netInputBuffer, netInputWideBuffer;
 
         ph.createPublishers(Arrays.asList("modelRaw"));
-        sh.createSubscribers(Arrays.asList("roadCameraState", "wideRoadCameraState", "pulseDesire", "liveCalibration"));
-
-        boolean wideCameraOnly = params.getBool("WideCameraOnly");
+        sh.createSubscribers(Arrays.asList("roadCameraState", "wideRoadCameraState", "roadCameraBuffer",
+                                           "wideRoadCameraBuffer", "pulseDesire", "liveCalibration"));
 
         ImagePrepare imagePrepare;
         ImagePrepare imageWidePrepare;
@@ -129,9 +135,6 @@ public class ModelExecutor implements Runnable{
             imagePrepare = new ImagePrepareCPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
             imageWidePrepare = new ImagePrepareCPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], true);
         }
-
-        Definitions.FrameData.Reader frameData;
-        Definitions.FrameData.Reader frameWideData;
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("big_input_imgs", imgTensorShape);
@@ -151,20 +154,7 @@ public class ModelExecutor implements Runnable{
         INDArray wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
         INDArray wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
 
-        ByteBuffer imgBuffer = null;
-        ByteBuffer wideImgBuffer = null;
-
-        frameWideData = sh.recv("wideRoadCameraState").getFrameData();
-        if (!wideCameraOnly)
-            frameData = sh.recv("roadCameraState").getFrameData();
-        else
-            frameData = frameWideData;
-
-        if (frameData.getNativeImageAddr() != 0) {
-            wideImgBuffer = MsgFrameData.getImgBufferFromAddr(frameWideData.getNativeImageAddr());
-            imgBuffer = wideCameraOnly ?  wideImgBuffer : MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
-        }
-
+        updateCameraState();
         updateCameraMatrix(frameWideData.getIntrinsics(), true);
         updateCameraMatrix(frameData.getIntrinsics(), wideCameraOnly);
         lastWideFrameID = frameWideData.getFrameId();
@@ -174,12 +164,7 @@ public class ModelExecutor implements Runnable{
         params.putBool("ModelDReady", true);
         while (!stopped) {
 
-            frameWideData = sh.recv("wideRoadCameraState").getFrameData();
-            if (!wideCameraOnly)
-                frameData = sh.recv("roadCameraState").getFrameData();
-            else
-                frameData = frameWideData;
-
+            updateCameraState();
             start = System.currentTimeMillis();
 
             // TODO: Fix this

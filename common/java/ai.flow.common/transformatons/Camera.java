@@ -4,6 +4,10 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 public class Camera {
+
+    public static final int CAMERA_TYPE_ROAD = 0;
+    public static final int CAMERA_TYPE_WIDE = 1;
+    public static final int CAMERA_TYPE_DRIVER = 2;
     public static final float f_focal_length = 2648.0f;
     public static final float e_focal_length = 567.0f;
     public static final int[] frameSize = new int[]{1928, 1208};
@@ -24,5 +28,4 @@ public class Camera {
             {0.0f,  0.0f,  1.0f},
             {1.0f,  0.0f,  0.0f}
     });
-
 }

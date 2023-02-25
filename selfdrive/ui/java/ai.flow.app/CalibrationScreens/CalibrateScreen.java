@@ -1,5 +1,8 @@
 package ai.flow.app.CalibrationScreens;
 
+import ai.flow.app.FlowUI;
+import ai.flow.app.SetUpScreen;
+import ai.flow.calibration.CameraCalibratorIntrinsic;
 import ai.flow.common.transformatons.Camera;
 import ai.flow.definitions.Definitions;
 import com.badlogic.gdx.Gdx;
@@ -18,19 +21,17 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
-import ai.flow.app.FlowUI;
-import ai.flow.app.SetUpScreen;
-import ai.flow.calibration.CameraCalibratorIntrinsic;
-import ai.flow.modeld.messages.MsgFrameData;
 import messaging.ZMQSubHandler;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static ai.flow.common.BufferUtils.MatToByte;
+import static ai.flow.common.BufferUtils.byteToFloat;
+import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 
 public class CalibrateScreen extends ScreenAdapter {
@@ -38,10 +39,6 @@ public class CalibrateScreen extends ScreenAdapter {
     // For camera frame receiving
     int frameWidth = Camera.frameSize[0];
     int frameHeight = Camera.frameSize[1];
-    MsgFrameData msgFrameData = new MsgFrameData(frameWidth*frameHeight*3);
-    ByteBuffer msgFrameDataBuffer = msgFrameData.getSerializedBuffer();
-    Definitions.FrameData.Reader frameData;
-    ByteBuffer imgBuffer;
     Pixmap pixelMap = new Pixmap(frameWidth, frameHeight, Pixmap.Format.RGB888);
     Texture texture = new Texture(pixelMap);
     Image texImage = new Image(texture);
@@ -60,8 +57,9 @@ public class CalibrateScreen extends ScreenAdapter {
     ZMQSubHandler sh = new ZMQSubHandler(true);
     // calibrator object
     CameraCalibratorIntrinsic calibrator;
-
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+    Definitions.FrameBuffer.Reader msgFrameBuffer;
+    ByteBuffer imgBuffer;
 
     public CalibrateScreen(FlowUI appContext, boolean enableCancel) {
         this.appContext = appContext;
@@ -106,7 +104,7 @@ public class CalibrateScreen extends ScreenAdapter {
         stageUI.addActor(tableProgressBar);
         stageUI.addActor(tableMenuBar);
 
-        sh.createSubscriber("roadCameraState");
+        sh.createSubscriber("wideRoadCameraBuffer");
     }
 
     @Override
@@ -114,41 +112,9 @@ public class CalibrateScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(stageUI);
     }
 
-    public void updateCamera() {
-        frameData = sh.recv("roadCameraState").getFrameData();
-        if (imgBuffer == null){
-            if (frameData.getNativeImageAddr() != 0)
-                imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
-            else
-                imgBuffer = ByteBuffer.allocateDirect(frameWidth*frameHeight*3);
-            imageMat = new Mat(frameHeight, frameWidth, CvType.CV_8UC3, imgBuffer);
-        }
-        else {
-            if (frameData.getNativeImageAddr() == 0)
-                imgBuffer.put(frameData.getImage().asByteBuffer());
-            imgBuffer.rewind();
-        }
-        currFrameID = frameData.getFrameId();
-        pixelMap.setPixels(imgBuffer);
-        texture.draw(pixelMap, 0, 0);
-    }
-
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length / 4];
-        for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        }
-        return ret;
-    }
-
-    public static byte[] MatToByte(Mat mat){
-        byte[] ret = new byte[(int)(mat.total() * mat.channels()) * 4];
-        for(int i = 0; i < mat.rows(); i++) {
-            for(int j = 0; j < mat.cols(); j++) {
-                ByteBuffer.wrap(ret, (i * mat.cols() + j)*4, 4).order(ByteOrder.LITTLE_ENDIAN).putFloat((float) mat.get(i, j)[0]);
-            }
-        }
-        return ret;
+    public void updateCamera(){
+        msgFrameBuffer = sh.recv("wideRoadCameraBuffer").getWideRoadCameraBuffer();
+        updateImageBuffer(msgFrameBuffer, imgBuffer);
     }
 
     @Override

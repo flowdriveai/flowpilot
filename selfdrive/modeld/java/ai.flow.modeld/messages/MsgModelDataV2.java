@@ -256,7 +256,8 @@ public class MsgModelDataV2 extends MessageBase {
         brake5MetersPerSecondSquaredProbs = disengagePredictions.initBrake5MetersPerSecondSquaredProbs(44); // SIZE NOT DETERMINED
     }
 
-    public void fillParsed(ParsedOutputs parsed, Definitions.ModelDataV2.Reader msg, boolean full) { // TODO Avoid this
+    public static void fillParsed(ParsedOutputs parsed, Definitions.ModelDataV2.Reader msg, boolean full) { // TODO Avoid this
+        System.out.println("here");
         for (int i = 0; i < CommonModel.TRAJECTORY_SIZE; i++) {
             parsed.position.get(0)[i] = msg.getPosition().getX().get(i);
             parsed.position.get(1)[i] = msg.getPosition().getY().get(i);
@@ -322,6 +323,7 @@ public class MsgModelDataV2 extends MessageBase {
         }
 
         parsed.leads.get(0).prob = msg.getLeads().get(0).getProb();
+        System.out.println(parsed.leads.get(0).prob);
         parsed.leads.get(1).prob = msg.getLeads().get(1).getProb();
         parsed.leads.get(2).prob = msg.getLeads().get(2).getProb();
 
@@ -341,29 +343,10 @@ public class MsgModelDataV2 extends MessageBase {
                 parsed.roadEdgeStds.get(3)[i] = msg.getRoadEdgeStds().get(i);
             }
 
-            for (int i = 0; i < CommonModel.DESIRE_LEN; i++)
-                parsed.metaData.desireState[i] = desireState.get(i);
-
-            for (int i = 0; i < CommonModel.DESIRE_LEN*4; i++)
-                parsed.metaData.desirePrediction[i] = desirePredictions.get(i);
-
-            for (int i = 0; i < 20; i++) {
-                parsed.metaData.disengagePredictions.t[i] = t.get(i);
-                parsed.metaData.disengagePredictions.brakeDisengageProbs[i] = brakeDisengageProbs.get(i);
-                parsed.metaData.disengagePredictions.gasDesengageProbs[i] = gasDesengageProbs.get(i);
-                parsed.metaData.disengagePredictions.steerOverrideProbs[i] = steerOverrideProbs.get(i);
-                parsed.metaData.disengagePredictions.brake3MetersPerSecondSquaredProbs[i] = brake3MetersPerSecondSquaredProbs.get(i);
-                parsed.metaData.disengagePredictions.brake4MetersPerSecondSquaredProbs[i] = brake4MetersPerSecondSquaredProbs.get(i);
-                parsed.metaData.disengagePredictions.brake5MetersPerSecondSquaredProbs[i] = brake5MetersPerSecondSquaredProbs.get(i);
-            }
-
             parsed.laneLineProbs[0] = msg.getLaneLineProbs().get(0);
             parsed.laneLineProbs[1] = msg.getLaneLineProbs().get(1);
             parsed.laneLineProbs[2] = msg.getLaneLineProbs().get(2);
             parsed.laneLineProbs[3] = msg.getLaneLineProbs().get(3);
-
-            parsed.metaData.engagedProb = meta.getEngagedProb();
-            parsed.metaData.hardBrakePredicted = meta.getHardBrakePredicted();
         }
     }
 

@@ -27,6 +27,13 @@ public class utils {
         return System.nanoTime();
     }
 
+    public static double numElements(int[] shape){
+        double ret = 1;
+        for (int i:shape)
+            ret *= i;
+        return ret;
+    }
+
     public static String readFile(String fileName)
     {
         BufferedReader br = null;

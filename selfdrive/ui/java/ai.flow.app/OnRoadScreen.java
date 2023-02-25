@@ -7,8 +7,6 @@ import ai.flow.modeld.CommonModel;
 import ai.flow.modeld.DesireEnum;
 import ai.flow.modeld.ParsedOutputs;
 import ai.flow.modeld.Preprocess;
-import ai.flow.modeld.messages.MsgFrameData;
-import ai.flow.modeld.messages.MsgLiveCalibrationData;
 import ai.flow.modeld.messages.MsgModelDataV2;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -44,6 +42,8 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 
 public class OnRoadScreen extends ScreenAdapter {
@@ -92,20 +92,10 @@ public class OnRoadScreen extends ScreenAdapter {
     boolean modelAlive, controlsAlive;
     ZMQSubHandler sh;
     ZMQPubHandler ph;
-    // initialize messages and respective buffers
-    MsgModelDataV2 msgModelDataV2 = new MsgModelDataV2();
-    MsgFrameData msgFrameData = new MsgFrameData(defaultImageHeight*defaultImageWidth*3);
-    MsgLiveCalibrationData msgLiveCalib = new MsgLiveCalibrationData();
-    Definitions.LiveCalibrationData.Reader liveCalib;
-    Definitions.ModelDataV2.Reader modelDataV2;
-    Definitions.FrameData.Reader frameData;
     Definitions.ControlsState.Reader controlState;
-    ByteBuffer msgCarStateBuffer = ByteBuffer.allocateDirect(1000);
-    ByteBuffer msgControlsStateBuffer = ByteBuffer.allocateDirect(1000);
-    ByteBuffer imgBuffer;
-
     String modelTopic = "modelV2";
     String cameraTopic = "wideRoadCameraState";
+    String cameraBufferTopic = "wideRoadCameraBuffer";
     String calibrationTopic = "liveCalibration";
     String desireTopic = "pulseDesire";
     String carStateTopic = "carState";
@@ -126,6 +116,7 @@ public class OnRoadScreen extends ScreenAdapter {
     boolean cameraMatrixUpdated = false;
     boolean isMetric;
     boolean laneLess;
+    ByteBuffer imgBuffer;
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -327,7 +318,7 @@ public class OnRoadScreen extends ScreenAdapter {
 
         sh = new ZMQSubHandler(true);
         ph = new ZMQPubHandler();
-        sh.createSubscribers(Arrays.asList(cameraTopic, modelTopic, calibrationTopic, carStateTopic, controlsStateTopic, canTopic));
+        sh.createSubscribers(Arrays.asList(cameraTopic, cameraBufferTopic, modelTopic, calibrationTopic, carStateTopic, controlsStateTopic, canTopic));
         ph.createPublisher(desireTopic);
     }
 
@@ -363,22 +354,12 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCamera() {
-        frameData = sh.recv(cameraTopic).getFrameData();
-        if (imgBuffer == null){
-            if (frameData.getNativeImageAddr() != 0)
-                imgBuffer = MsgFrameData.getImgBufferFromAddr(frameData.getNativeImageAddr());
-            else
-                imgBuffer = ByteBuffer.allocateDirect(defaultImageHeight*defaultImageWidth*3);
-        }
-        else {
-            if (frameData.getNativeImageAddr() == 0) {
-                imgBuffer.put(frameData.getImage().asByteBuffer());
-                imgBuffer.rewind();
-            }
-        }
+        Definitions.FrameBuffer.Reader msgframeBuffer = sh.recv(cameraBufferTopic).getWideRoadCameraBuffer();
+        Definitions.FrameData.Reader msgframeData = sh.recv(cameraTopic).getFrameData();
+        imgBuffer = updateImageBuffer(msgframeBuffer, imgBuffer);
         // update K only once.
         if (!cameraMatrixUpdated){
-            updateCameraMatrix(frameData);
+            updateCameraMatrix(msgframeData);
         }
         pixelMap.setPixels(imgBuffer);
         texture.draw(pixelMap, 0, 0);
@@ -403,7 +384,7 @@ public class OnRoadScreen extends ScreenAdapter {
 
     public void updateModelOutputs(){
         Definitions.Event.Reader event = sh.recv(modelTopic);
-        msgModelDataV2.fillParsed(parsed, event.getModelV2(), !laneLess);
+        MsgModelDataV2.fillParsed(parsed, event.getModelV2(), !laneLess);
 
         try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "DrawUI")) {
             INDArray RtPath;
@@ -556,7 +537,7 @@ public class OnRoadScreen extends ScreenAdapter {
         stageFill.draw();
 
         if (sh.updated(calibrationTopic)) {
-            liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
+            Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
             updateAugmentVectors(liveCalib);
         }
 
