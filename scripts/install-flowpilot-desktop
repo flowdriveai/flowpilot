@@ -35,6 +35,7 @@ echo 'export ANDROID_SDK_ROOT=$HOME/Android/Sdk' >> ~/.bashrc
 echo 'export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin' >> ~/.bashrc
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin
+yes | sdkmanager --licenses
 sdkmanager --install "platform-tools"
 sdkmanager --install "build-tools;32.0.0"
 

@@ -60,6 +60,7 @@ public class CameraManager extends SensorInterface {
     public boolean recording = false;
     public Context context;
     public ParamsInterface params = ParamsInterface.getInstance();
+    public YUV2RGBProcessor imProcessor = new YUV2RGBProcessor();
 
     static class CustomLifecycle implements LifecycleOwner {
 
@@ -160,7 +161,7 @@ public class CameraManager extends SensorInterface {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                ImUtils.Image2RGB(image, frame);
+                imProcessor.Image2RGB(image, frame);
                 if (frameCrop==null) {
                     frameCrop = frame.submat(new Rect((frame.width() - defaultFrameWidth) / 2, (frame.height() - defaultFrameHeight) / 2,
                             defaultFrameWidth, defaultFrameHeight));

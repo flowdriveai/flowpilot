@@ -9,7 +9,6 @@ def create_steering_control(packer, apply_steer, frame, steer_step):
   idx = (frame / steer_step) % 16
 
   values = {
-    "Counter": idx,
     "LKAS_Output": apply_steer,
     "LKAS_Request": 1 if apply_steer != 0 else 0,
     "SET_1": 1
@@ -23,6 +22,7 @@ def create_steering_status(packer, apply_steer, frame, steer_step):
 def create_es_distance(packer, es_distance_msg, pcm_cancel_cmd):
 
   values = copy.copy(es_distance_msg)
+  values["COUNTER"] = (values["COUNTER"] + 1) % 0x10
   if pcm_cancel_cmd:
     values["Cruise_Cancel"] = 1
 
@@ -70,10 +70,7 @@ def subaru_preglobal_checksum(packer, values, addr):
 
 def create_preglobal_steering_control(packer, apply_steer, frame, steer_step):
 
-  idx = (frame / steer_step) % 8
-
   values = {
-    "Counter": idx,
     "LKAS_Command": apply_steer,
     "LKAS_Active": 1 if apply_steer != 0 else 0
   }

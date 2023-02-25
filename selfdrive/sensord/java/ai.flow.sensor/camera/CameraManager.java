@@ -43,7 +43,7 @@ public class CameraManager extends SensorInterface implements Runnable {
 
         // start capturing from video / webcam or ip cam.
         if (videoSrc == null)
-            videoSrc = "tmp"; // use a sample video file.
+            return; // use stream from external custom source.
         try {
             capture = new VideoCapture(Integer.parseInt(videoSrc));
         } catch (Exception e){
@@ -105,6 +105,8 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void run(){
         initialized = true;
+        if (capture==null)
+            return;
         ph.createPublisher(topic);
         long start, end, diff;
         while (!stopped){
@@ -166,7 +168,9 @@ public class CameraManager extends SensorInterface implements Runnable {
     public void stop() {
         stopped = true;
         ph.releaseAll();
-        capture.release();
-        frame.release();
+        if (capture!=null)
+            capture.release();
+        if (frame!=null)
+            frame.release();
     }
 }
