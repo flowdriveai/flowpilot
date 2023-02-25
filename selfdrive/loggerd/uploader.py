@@ -2,11 +2,14 @@
 import bz2
 import io
 import os
+import sys
+import argparse
 import random
 import threading
 import time
 import traceback
 import boto3
+import logging
 
 from cereal import log
 import cereal.messaging as messaging
@@ -17,6 +20,7 @@ from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
 from selfdrive.swaglog import cloudlog
 
+logger = logging.getLogger(__name__)
 
 NetworkType = log.DeviceState.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
@@ -39,6 +43,7 @@ def listdir_by_creation(d):
     return paths
   except OSError:
     cloudlog.exception("listdir_by_creation failed")
+    logger.warning("listdir_by_creation failed")
     return list()
 
 def clear_locks(root):
@@ -50,6 +55,7 @@ def clear_locks(root):
           os.unlink(os.path.join(path, fname))
     except OSError:
       cloudlog.exception("clear_locks failed")
+      logger.warning("clear_locks failed")
 
 class FakeResponse():
         def __init__(self):
@@ -170,7 +176,7 @@ class Uploader():
 
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
-      raise
+      raise e
 
   def normal_upload(self, key, fn):
     self.last_resp = None
@@ -178,8 +184,9 @@ class Uploader():
 
     try:
       self.do_upload(key, fn)
-    except Exception:
-      pass
+      logger.debug(f"S3 event successful for {key}")
+    except Exception as e:
+      logger.warning(f"S3 event failed for {key}: {e}")
 
     return self.last_resp
 
@@ -188,6 +195,7 @@ class Uploader():
       sz = os.path.getsize(fn)
     except OSError:
       cloudlog.exception("upload: getsize failed")
+      logger.warning("upload: getsize failed")
       return False
 
     cloudlog.event("upload_start", key=key, fn=fn, sz=sz, network_type=network_type, metered=metered)
@@ -215,7 +223,9 @@ class Uploader():
       # tag file as uploaded
       try:
         setxattr(fn, UPLOAD_ATTR_NAME, UPLOAD_ATTR_VALUE)
+        logger.debug(f"Successfully set attr on {key}")
       except OSError:
+        logger.warning(f"Successfully set attr on {key}")
         cloudlog.event("uploader_setxattr_failed", exc=self.last_exc, key=key, fn=fn, sz=sz)
 
     return success
@@ -236,6 +246,7 @@ def uploader_fn(exit_event):
     set_core_affinity([0, 1, 2, 3])
   except Exception:
     cloudlog.exception("failed to set core affinity")
+    logger.warning("failed to set core affinity")
 
   clear_locks(ROOT)
 
@@ -269,8 +280,10 @@ def uploader_fn(exit_event):
 
     success = uploader.upload(name, key, fn, sm['deviceState'].networkType.raw, sm['deviceState'].networkMetered)
     if success:
+      print("\033[92m" + f"Uploaded {key} !" + "\033[0m")
       backoff = 0.1
     elif allow_sleep:
+      logger.warning(f"Failed to upload {key}, retrying with a backoff")
       cloudlog.info("upload backoff %r", backoff)
       time.sleep(backoff + random.uniform(0, backoff))
       backoff = min(backoff*2, 120)
@@ -279,6 +292,17 @@ def uploader_fn(exit_event):
 
 
 def main():
+  parser = argparse.ArgumentParser(prog='Flowpilot loggerd')
+  parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Get verbose logs",)
+
+  args = parser.parse_args()
+
+  log_level = logging.DEBUG if args.verbose else logging.ERROR
+  logging.basicConfig(
+      level=log_level,
+      format="%(asctime)s %(filename)s [%(levelname)s] %(message)s",
+  )
+
   uploader_fn(threading.Event())
 
 
