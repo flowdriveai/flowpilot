@@ -15,7 +15,6 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Pixmap.Blending;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -117,6 +116,9 @@ public class OnRoadScreen extends ScreenAdapter {
     boolean isMetric;
     boolean laneLess;
     ByteBuffer imgBuffer;
+    NV12Renderer nv12Renderer;
+    Definitions.FrameBuffer.Reader msgframeBuffer;
+    Definitions.FrameData.Reader msgframeData;
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -188,10 +190,10 @@ public class OnRoadScreen extends ScreenAdapter {
 
     public OnRoadScreen(FlowUI appContext) {
         this.appContext = appContext;
-        pixelMap = new Pixmap(defaultImageWidth, defaultImageHeight, Pixmap.Format.RGB888);
-        pixelMap.setBlending(Blending.None);
-        texture = new Texture(pixelMap);
         batch = new SpriteBatch();
+        pixelMap = new Pixmap(defaultImageWidth, defaultImageHeight, Pixmap.Format.RGB888);
+        pixelMap.setBlending(Pixmap.Blending.None);
+        texture = new Texture(pixelMap);
         settingsBarWidth = uiWidth / 3f * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
 
         infoTable = new Table();
@@ -354,15 +356,23 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCamera() {
-        Definitions.FrameBuffer.Reader msgframeBuffer = sh.recv(cameraBufferTopic).getWideRoadCameraBuffer();
-        Definitions.FrameData.Reader msgframeData = sh.recv(cameraTopic).getFrameData();
+        msgframeBuffer = sh.recv(cameraBufferTopic).getWideRoadCameraBuffer();
+        msgframeData = sh.recv(cameraTopic).getFrameData();
         imgBuffer = updateImageBuffer(msgframeBuffer, imgBuffer);
-        // update K only once.
-        if (!cameraMatrixUpdated){
-            updateCameraMatrix(msgframeData);
+
+        updateCameraMatrix(msgframeData);
+    }
+
+    public void renderImage(boolean rgb) {
+        if (!rgb) {
+            if (nv12Renderer==null)
+                nv12Renderer = new NV12Renderer(Camera.frameSize[0], Camera.frameSize[1]);
+            nv12Renderer.render(imgBuffer);
         }
-        pixelMap.setPixels(imgBuffer);
-        texture.draw(pixelMap, 0, 0);
+        else{
+            pixelMap.setPixels(imgBuffer);
+            texture.draw(pixelMap, 0, 0);
+        }
     }
 
     public void updateCarState() {
@@ -398,8 +408,8 @@ public class OnRoadScreen extends ScreenAdapter {
             lane1 = Draw.getLaneCameraFrame(parsed.laneLines.get(1), K, Rt, 0.05f);
             lane2 = Draw.getLaneCameraFrame(parsed.laneLines.get(2), K, Rt, 0.05f);
             lane3 = Draw.getLaneCameraFrame(parsed.laneLines.get(3), K, Rt, 0.07f);
-            edge0 = Draw.getLaneCameraFrame(parsed.roadEdges.get(0), K, Rt, 0.3f);
-            edge1 = Draw.getLaneCameraFrame(parsed.roadEdges.get(1), K, Rt, 0.3f);
+            edge0 = Draw.getLaneCameraFrame(parsed.roadEdges.get(0), K, Rt, 0.1f);
+            edge1 = Draw.getLaneCameraFrame(parsed.roadEdges.get(1), K, Rt, 0.1f);
 
             lead1s = Draw.getTriangleCameraFrame(parsed.leads.get(0), K, Rt, leadDrawScale);
             lead2s = Draw.getTriangleCameraFrame(parsed.leads.get(1), K, Rt, leadDrawScale);
@@ -528,18 +538,20 @@ public class OnRoadScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | (Gdx.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
 
-        if (sh.updated(cameraTopic)) {
-            updateCamera();
-        }
-
         stageFill.getViewport().apply();
         stageFill.act(delta);
         stageFill.draw();
+
+        if (sh.updated(cameraTopic)) {
+            updateCamera();
+        }
 
         if (sh.updated(calibrationTopic)) {
             Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
             updateAugmentVectors(liveCalib);
         }
+        
+        renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
 
         if (sh.updated(modelTopic)){
             updateModelOutputs();

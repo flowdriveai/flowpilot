@@ -1,9 +1,10 @@
 package ai.flow.sensor.camera;
 
 import ai.flow.common.ParamsInterface;
-import ai.flow.common.transformatons.Camera;
+import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.Definitions;
 import ai.flow.modeld.messages.MsgFrameData;
+import ai.flow.modeld.transforms.RGB2YUV;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.messages.MsgFrameBuffer;
 import messaging.ZMQPubHandler;
@@ -21,10 +22,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import static ai.flow.common.BufferUtils.addressFromBuffer;
+import static ai.flow.common.BufferUtils.bufferFromAddress;
+
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
     public boolean stopped = false;
     public boolean initialized = false;
+    private boolean useYUV = true;
     public VideoCapture capture;
     public static ZMQPubHandler ph = new ZMQPubHandler();
     public long deltaTime;
@@ -38,6 +43,9 @@ public class CameraManager extends SensorInterface implements Runnable {
     public ParamsInterface params = ParamsInterface.getInstance();
     public String frameDataTopic = null;
     public String frameBufferTopic = null;
+    public RGB2YUV rgb2yuv;
+    ByteBuffer yuvBuffer;
+    ByteBuffer rgbBuffer;
 
     public void setIntrinsics(float[] intrinsics){
         assert (intrinsics.length == 9) : "invalid intrinsic matrix length";
@@ -61,6 +69,11 @@ public class CameraManager extends SensorInterface implements Runnable {
         this.defaultFrameWidth = frameWidth;
         this.defaultFrameHeight = frameHeight;
 
+        if (useYUV) {
+            rgb2yuv = new RGB2YUV(null, null, frameHeight, frameWidth);
+            yuvBuffer = ByteBuffer.allocateDirect(frameWidth * frameHeight * 3/2);
+        }
+
         // start capturing from video / webcam or ip cam.
         if (videoSrc == null)
             return; // use stream from external custom source.
@@ -81,8 +94,14 @@ public class CameraManager extends SensorInterface implements Runnable {
         frame = new Mat();
         framePadded = new Mat();
         frameProcessed = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
-        msgFrameBuffer.setImageBufferAddress(frameProcessed.dataAddr());
-        msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.RGB);
+        if (useYUV) {
+            msgFrameBuffer.setImageBufferAddress(addressFromBuffer(yuvBuffer));
+            msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.YUV);
+        }
+        else {
+            msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.RGB);
+            msgFrameBuffer.setImageBufferAddress(frameProcessed.dataAddr());
+        }
         msgFrameBuffer.frameBuffer.setFrameHeight(frameHeight);
         msgFrameBuffer.frameBuffer.setFrameWidth(frameWidth);
         msgFrameBuffer.frameBuffer.setYHeight(frameHeight);
@@ -94,6 +113,8 @@ public class CameraManager extends SensorInterface implements Runnable {
         msgFrameBuffer.frameBuffer.setUOffset(frameHeight*frameHeight);
         msgFrameBuffer.frameBuffer.setVOffset(frameHeight*frameHeight+1);
         msgFrameBuffer.frameBuffer.setStride(frameWidth);
+
+        rgbBuffer = bufferFromAddress(frameProcessed.dataAddr(), frameHeight*frameWidth*3);
 
         deltaTime = (long) 1000/frequency; //ms
         loadIntrinsics();
@@ -137,7 +158,7 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void run(){
         initialized = true;
-        if (capture==null)
+        if (frameProcessed==null)
             return;
         ph.createPublishers(Arrays.asList(frameDataTopic, frameBufferTopic));
         long start, end, diff;
@@ -147,6 +168,10 @@ public class CameraManager extends SensorInterface implements Runnable {
             end = System.currentTimeMillis();
             frameID += 1;
             processFrame(frame);
+            if (useYUV) {
+                rgb2yuv.run(rgbBuffer);
+                rgb2yuv.read_buffer(yuvBuffer);
+            }
             msgFrameData.frameData.setFrameId(frameID);
             ph.publishBuffer(frameDataTopic, msgFrameData.serialize(true));
             ph.publishBuffer(frameBufferTopic, msgFrameBuffer.serialize(true));
