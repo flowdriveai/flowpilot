@@ -138,7 +138,7 @@ public class ModelExecutor implements Runnable{
         outputMap.put("outputs", netOutputs);
 
         modelRunner.init(inputShapeMap, outputShapeMap);
-        modelRunner.warmup();
+        //modelRunner.warmup();
 
         INDArray wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
         INDArray wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
@@ -203,7 +203,7 @@ public class ModelExecutor implements Runnable{
 
             inputMap.put("input_imgs", netInputBuffer);
             inputMap.put("big_input_imgs", netInputWideBuffer);
-            modelRunner.run(inputMap, outputMap);
+            //modelRunner.run(inputMap, outputMap);
 
             // TODO: Add desire.
             stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));

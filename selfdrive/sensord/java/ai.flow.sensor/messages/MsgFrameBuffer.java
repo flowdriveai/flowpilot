@@ -38,12 +38,13 @@ public class MsgFrameBuffer extends MessageBase {
     public static ByteBuffer updateImageBuffer(Definitions.FrameBuffer.Reader msgFrameBuffer, ByteBuffer imgBuffer){
         if (imgBuffer == null){
             if (msgFrameBuffer.getImageAddress() != 0) {
-                imgBuffer = bufferFromAddress(msgFrameBuffer.getImageAddress(), Camera.frameSize[0]*Camera.frameSize[1]*3);
+                imgBuffer = bufferFromAddress(msgFrameBuffer.getImageAddress(), Camera.frameSize[0]*Camera.frameSize[1]*3/2);
             }
             else
                 imgBuffer = ByteBuffer.allocateDirect(msgFrameBuffer.getImage().size());
         }
         if (msgFrameBuffer.getImageAddress() == 0 & msgFrameBuffer.hasImage()) {
+            // TODO: avoid this copy.
             imgBuffer.put(msgFrameBuffer.getImage().asByteBuffer());
             imgBuffer.rewind();
         }

@@ -1,5 +1,6 @@
 package ai.flow.modeld.transforms;
 
+import ai.flow.common.Path;
 import org.jocl.*;
 
 import java.nio.ByteBuffer;
@@ -28,7 +29,7 @@ public class LoadYUVCL {
         this.context = context;
         this.commandQueue = commandQueue;
 
-        String programSource = readFile("selfdrive/assets/clkernels/loadyuv.cl");
+        String programSource = readFile(Path.internal("selfdrive/assets/clkernels/loadyuv.cl"));
         program = clCreateProgramWithSource(context,
                 1, new String[]{ programSource }, null, null);
 

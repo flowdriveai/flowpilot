@@ -1,7 +1,7 @@
 package ai.flow.modeld;
 
+import ai.flow.common.transformations.RGB2YUV;
 import ai.flow.modeld.transforms.LoadYUVCL;
-import ai.flow.modeld.transforms.RGB2YUV;
 import ai.flow.modeld.transforms.TransformCL;
 import org.jocl.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -70,8 +70,8 @@ public class ImagePrepareGPU implements ImagePrepare{
 
     public void initCL(){
         final int platformIndex = 0;
-        final long deviceType = CL_DEVICE_TYPE_ALL;
         final int deviceIndex = 0;
+        final long deviceType = CL_DEVICE_TYPE_GPU;
 
         // Enable exceptions and subsequently omit error checks in this sample
         CL.setExceptionsEnabled(true);

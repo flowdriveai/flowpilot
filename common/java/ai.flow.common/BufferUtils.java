@@ -60,4 +60,13 @@ public class BufferUtils {
         }
         return ret;
     }
+
+    public static void cloneByteBuffer(ByteBuffer source, ByteBuffer target) {
+        int sourceP = source.position();
+        int sourceL = source.limit();
+        target.put(source);
+        target.flip();
+        source.position(sourceP);
+        source.limit(sourceL);
+    }
 }

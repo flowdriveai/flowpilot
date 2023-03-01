@@ -2,9 +2,9 @@ package ai.flow.sensor.camera;
 
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformations.Camera;
+import ai.flow.common.transformations.RGB2YUV;
 import ai.flow.definitions.Definitions;
 import ai.flow.modeld.messages.MsgFrameData;
-import ai.flow.modeld.transforms.RGB2YUV;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.messages.MsgFrameBuffer;
 import messaging.ZMQPubHandler;
@@ -22,14 +22,13 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import static ai.flow.common.BufferUtils.addressFromBuffer;
 import static ai.flow.common.BufferUtils.bufferFromAddress;
 
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
     public boolean stopped = false;
     public boolean initialized = false;
-    private boolean useYUV = true;
+    private final boolean useYUV = true;
     public VideoCapture capture;
     public static ZMQPubHandler ph = new ZMQPubHandler();
     public long deltaTime;
@@ -44,8 +43,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     public String frameDataTopic = null;
     public String frameBufferTopic = null;
     public RGB2YUV rgb2yuv;
-    ByteBuffer yuvBuffer;
-    ByteBuffer rgbBuffer;
+    ByteBuffer yuvBuffer, rgbBuffer;
 
     public void setIntrinsics(float[] intrinsics){
         assert (intrinsics.length == 9) : "invalid intrinsic matrix length";
@@ -64,14 +62,13 @@ public class CameraManager extends SensorInterface implements Runnable {
             this.frameBufferTopic = "roadCameraBuffer";
         }
 
-        msgFrameBuffer = new MsgFrameBuffer(0, cameraType);
+        msgFrameBuffer = new MsgFrameBuffer(frameWidth*frameHeight*3/2, cameraType);
 
         this.defaultFrameWidth = frameWidth;
         this.defaultFrameHeight = frameHeight;
 
         if (useYUV) {
             rgb2yuv = new RGB2YUV(null, null, frameHeight, frameWidth);
-            yuvBuffer = ByteBuffer.allocateDirect(frameWidth * frameHeight * 3/2);
         }
 
         // start capturing from video / webcam or ip cam.
@@ -95,7 +92,7 @@ public class CameraManager extends SensorInterface implements Runnable {
         framePadded = new Mat();
         frameProcessed = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
         if (useYUV) {
-            msgFrameBuffer.setImageBufferAddress(addressFromBuffer(yuvBuffer));
+            yuvBuffer = msgFrameBuffer.frameBuffer.getImage().asByteBuffer();
             msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.YUV);
         }
         else {

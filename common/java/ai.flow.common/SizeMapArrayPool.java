@@ -1,11 +1,10 @@
-package ai.flow.modeld;
+package ai.flow.common;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class SizeMapArrayPool {
-
     private final HashMap<Integer, List<float[]>> pool = new HashMap<>();
     private final HashMap<Integer, List<Boolean>> inUse = new HashMap<>();
 

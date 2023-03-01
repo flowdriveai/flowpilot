@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import static com.badlogic.gdx.graphics.GL20.GL_TEXTURE_2D;
 
+// TODO: Make it generalized for different yuv formats.
 public class NV12Renderer {
     public ShaderProgram shader;
     public Mesh mesh;
@@ -100,11 +101,10 @@ public class NV12Renderer {
         yTexture.bind();
         Gdx.gl.glTexImage2D(GL_TEXTURE_2D, 0, GL20.GL_LUMINANCE, W, H, 0, GL20.GL_LUMINANCE, GL20.GL_UNSIGNED_BYTE, yBuffer);
 
-        shader.begin();
+        shader.bind();
         shader.setUniformi("y_texture", 0);
         shader.setUniformi("uv_texture", 1);
 
         mesh.render(shader, GL20.GL_TRIANGLES);
-        shader.end();
     }
 }

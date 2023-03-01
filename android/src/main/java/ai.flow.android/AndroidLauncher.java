@@ -6,6 +6,7 @@ import ai.flow.android.vision.SNPEModelRunner;
 import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
+import ai.flow.common.transformations.Camera;
 import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.modeld.ModelExecutor;
@@ -20,6 +21,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.provider.Settings;
+import android.system.ErrnoException;
 import android.system.Os;
 import android.telephony.TelephonyManager;
 import android.view.WindowManager;
@@ -71,6 +73,12 @@ public class AndroidLauncher extends AndroidApplication {
 			}
 		}
 
+		try {
+			Os.setenv("USE_GPU", "1", true);
+		} catch (ErrnoException e) {
+			throw new RuntimeException(e);
+		}
+
 		// keep app from dimming due to inactivity.
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -102,7 +110,7 @@ public class AndroidLauncher extends AndroidApplication {
 		params.put("DeviceModel", Build.MODEL);
 
 		AndroidApplicationConfiguration configuration = new AndroidApplicationConfiguration();
-		CameraManager cameraManager = new CameraManager(appContext, 20, "roadCameraState");
+		CameraManager cameraManager = new CameraManager(appContext, 20, Camera.CAMERA_TYPE_WIDE);
 		SensorManager sensorManager = new SensorManager(appContext, "sensorEvents", 50);
 		sensors = new HashMap<String, SensorInterface>() {{
 			put("roadCamera", cameraManager);
@@ -181,7 +189,6 @@ public class AndroidLauncher extends AndroidApplication {
 	private boolean checkPermissions() {
 		for (String permission: requiredPermissions){
 			if (ContextCompat.checkSelfPermission(appContext, permission) != PackageManager.PERMISSION_GRANTED) {
-				System.out.println(permission);
 				return false;
 			}
 		}

@@ -1,5 +1,6 @@
 package ai.flow.modeld.transforms;
 
+import ai.flow.common.Path;
 import org.jocl.*;
 import org.nd4j.linalg.api.ndarray.INDArray;
 
@@ -49,7 +50,7 @@ public class TransformCL {
         in_v_offset[0] = v_offset;
         in_stride[0] = stride;
 
-        String programSource = readFile("selfdrive/assets/clkernels/transform.cl");
+        String programSource = readFile(Path.internal("selfdrive/assets/clkernels/transform.cl"));
         program = clCreateProgramWithSource(context,
                 1, new String[]{ programSource }, null, null);
 

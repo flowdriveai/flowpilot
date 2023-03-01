@@ -3,8 +3,10 @@ package ai.flow.android.sensor;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
+import ai.flow.definitions.Definitions;
+import ai.flow.modeld.messages.MsgFrameData;
 import ai.flow.sensor.SensorInterface;
-import ai.flow.sensor.camera.MsgFrameData;
+import ai.flow.sensor.messages.MsgFrameBuffer;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -32,35 +34,35 @@ import com.google.common.util.concurrent.ListenableFuture;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.concurrent.ExecutionException;
+
+import static ai.flow.android.sensor.ImUtils.fillYUVBuffer;
 
 
 public class CameraManager extends SensorInterface {
 
     public ProcessCameraProvider cameraProvider;
-    public Mat frame, frameCrop, frameCropContinuous;
-    public String topic;
+    public String frameDataTopic, frameBufferTopic;
     public ZMQPubHandler ph;
     public boolean running = false;
-    public int defaultFrameWidth = Camera.frameSize[0];
-    public int defaultFrameHeight = Camera.frameSize[1];
-    public org.opencv.core.Size sz = new org.opencv.core.Size(defaultFrameWidth, defaultFrameHeight);
-    public MsgFrameData msgFrameData = new MsgFrameData(0);
+    public int W = Camera.frameSize[0];
+    public int H = Camera.frameSize[1];
+    public MsgFrameData msgFrameData = new MsgFrameData();
+    public MsgFrameBuffer msgFrameBuffer;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
     public int frequency;
     public int frameID = 0;
     public boolean recording = false;
     public Context context;
     public ParamsInterface params = ParamsInterface.getInstance();
+    ByteBuffer yuvBuffer;
 
     static class CustomLifecycle implements LifecycleOwner {
 
@@ -93,16 +95,27 @@ public class CameraManager extends SensorInterface {
             .setAudioBitRate(0)
             .build();
 
-    public CameraManager(Context context, int frequency, String topic){
+    public CameraManager(Context context, int frequency, int cameraType){
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         this.context = context;
         this.frequency = frequency;
-        this.topic = topic;
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        frame = new Mat();
-        frameCropContinuous = new Mat(Camera.frameSize[1], Camera.frameSize[0], CvType.CV_8UC3);
-        msgFrameData.frameData.setNativeImageAddr(frameCropContinuous.dataAddr());
+
+        if (cameraType == Camera.CAMERA_TYPE_WIDE){
+            this.frameDataTopic = "wideRoadCameraState";
+            this.frameBufferTopic = "wideRoadCameraBuffer";
+        } else if (cameraType == Camera.CAMERA_TYPE_ROAD) {
+            this.frameDataTopic = "roadCameraState";
+            this.frameBufferTopic = "roadCameraBuffer";
+        }
+
+        msgFrameBuffer = new MsgFrameBuffer(W * H * 3/2, cameraType);
+        yuvBuffer = msgFrameBuffer.frameBuffer.getImage().asByteBuffer();
+        msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.YUV);
+        msgFrameBuffer.frameBuffer.setFrameHeight(H);
+        msgFrameBuffer.frameBuffer.setFrameWidth(W);
+
         ph = new ZMQPubHandler();
-        ph.createPublisher(topic);
+        ph.createPublishers(Arrays.asList(frameDataTopic, frameBufferTopic));
 
         loadIntrinsics();
     }
@@ -152,7 +165,7 @@ public class CameraManager extends SensorInterface {
     private void bindImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
         ImageAnalysis.Builder builder = new ImageAnalysis.Builder();
         builder.setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST);
-        builder.setTargetResolution(new Size(1280, 960));
+        builder.setTargetResolution(new Size(W, H));
         Camera2Interop.Extender<ImageAnalysis> ext = new Camera2Interop.Extender<>(builder);
         ext.setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, new Range<>(frequency, frequency));
         ImageAnalysis imageAnalysis = builder.build();
@@ -161,14 +174,29 @@ public class CameraManager extends SensorInterface {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                ImUtils.Image2RGB(image, frame);
-                if (frameCrop==null) {
-                    frameCrop = frame.submat(new Rect((frame.width() - defaultFrameWidth) / 2, (frame.height() - defaultFrameHeight) / 2,
-                            defaultFrameWidth, defaultFrameHeight));
-                }
-                frameCrop.copyTo(frameCropContinuous); // make sub-mat continuous.
+
+                fillYUVBuffer(image, yuvBuffer);
+
+                ImageProxy.PlaneProxy yPlane = image.getPlanes()[0];
+
+                msgFrameBuffer.frameBuffer.setYWidth(W);
+                msgFrameBuffer.frameBuffer.setYHeight(H);
+                msgFrameBuffer.frameBuffer.setYPixelStride(yPlane.getPixelStride());
+                msgFrameBuffer.frameBuffer.setUvWidth(W /2);
+                msgFrameBuffer.frameBuffer.setUvHeight(H /2);
+                msgFrameBuffer.frameBuffer.setUvPixelStride(image.getPlanes()[1].getPixelStride());
+                msgFrameBuffer.frameBuffer.setUOffset(W * H);
+                if (image.getPlanes()[1].getPixelStride() == 2)
+                    msgFrameBuffer.frameBuffer.setVOffset(W * H +1);
+                else
+                    msgFrameBuffer.frameBuffer.setVOffset(W * H + W * H /4);
+                msgFrameBuffer.frameBuffer.setStride(yPlane.getRowStride());
+
                 msgFrameData.frameData.setFrameId(frameID);
-                ph.publishBuffer(topic, msgFrameData.serialize(true));
+
+                ph.publishBuffer(frameDataTopic, msgFrameData.serialize(true));
+                ph.publishBuffer(frameBufferTopic, msgFrameBuffer.serialize(true));
+
                 image.close();
                 frameID += 1;
             }
@@ -256,8 +284,6 @@ public class CameraManager extends SensorInterface {
         videoCapture.stopRecording();
         cameraProvider.unbindAll();
         ph.releaseAll();
-        frame.release();
-        frameCrop.release();
         running = false;
     }
 }

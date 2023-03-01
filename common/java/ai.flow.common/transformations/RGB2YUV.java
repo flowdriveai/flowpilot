@@ -1,5 +1,6 @@
-package ai.flow.modeld.transforms;
+package ai.flow.common.transformations;
 
+import ai.flow.common.Path;
 import org.jocl.*;
 
 import java.nio.ByteBuffer;
@@ -27,7 +28,7 @@ public class RGB2YUV {
         if (context == null || commandQueue == null)
             initCL();
 
-        String programSource = readFile("selfdrive/assets/clkernels/rgb_to_nv12.cl");
+        String programSource = readFile(Path.internal("selfdrive/assets/clkernels/rgb_to_nv12.cl"));
         program = clCreateProgramWithSource(this.context,
                 1, new String[]{ programSource }, null, null);
 
@@ -40,7 +41,10 @@ public class RGB2YUV {
         yuv_cl = clCreateBuffer(this.context, CL_MEM_READ_WRITE, H*W*3/2, null, null);
         rgb_cl = clCreateBuffer(this.context, CL_MEM_READ_WRITE, H*W*3, null, null);
 
-        work_size = new long[]{W/4, H/4};
+        if (W % 4 == 0)
+            work_size = new long[]{W/4, H/4};
+        else
+            work_size = new long[]{(W + (4 - W % 4)) / 4, (H + (4 - H % 4)) / 4};
     }
 
     public void run(ByteBuffer rgb){
@@ -56,10 +60,11 @@ public class RGB2YUV {
         clEnqueueReadBuffer(commandQueue, yuv_cl, CL_TRUE, 0, H*W*3/2, Pointer.to(yuv_buffer), 0, null, null);
     }
 
+    // TODO: move initCL to common
     public void initCL(){
         final int platformIndex = 0;
-        final long deviceType = CL_DEVICE_TYPE_ALL;
         final int deviceIndex = 0;
+        final long deviceType = CL_DEVICE_TYPE_GPU;
 
         // Enable exceptions and subsequently omit error checks in this sample
         CL.setExceptionsEnabled(true);
