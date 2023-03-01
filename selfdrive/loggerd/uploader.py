@@ -166,8 +166,12 @@ class Uploader():
           else:
             data = f
 
+          # Params are fetched as bytes, have to convert them to string
+          user_id_san = self.api.user_id.decode("utf-8")
+          dongle_id_san = self.api.dongle_id.decode("utf-8")
+
           # api.get_credentials should populate api.email field, saving us a DB call
-          object_name = "unprocessed/" + self.api.user_id.decode("utf-8") + "/" + key
+          object_name = f"unprocessed/{user_id_san}/{dongle_id_san}/{key}"
           bucket = "fdusermedia"
 
           self.last_resp = FakeResponse()

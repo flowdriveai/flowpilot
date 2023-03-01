@@ -20,6 +20,7 @@ class Api():
     # Get auth token
     self.user_id = self.params.get("UserID")
     self.token = self.params.get("UserToken")
+    self.dongle_id = self.params.get("DongleId")
 
     if self.token is None:
       logger.error(f"Error retrieving auth token")
