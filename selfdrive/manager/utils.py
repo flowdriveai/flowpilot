@@ -20,7 +20,6 @@ def get_cpu_times():
 
         ret.append(cpu_time_msg)
     return ret
-        
 
 
 def get_memory_logs():

@@ -16,6 +16,7 @@ import java.nio.ByteOrder;
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
     public boolean stopped = false;
+    public boolean exit = false;
     public boolean initialized = false;
     public VideoCapture capture;
     public static ZMQPubHandler ph = new ZMQPubHandler();
@@ -109,7 +110,15 @@ public class CameraManager extends SensorInterface implements Runnable {
             return;
         ph.createPublisher(topic);
         long start, end, diff;
-        while (!stopped){
+        while (!exit){
+            if (stopped){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
             start = System.currentTimeMillis();
             capture.read(frame);
             end = System.currentTimeMillis();
@@ -158,6 +167,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     }
 
     public void start() {
+        stopped = false;
         if (thread == null) {
             thread = new Thread(this, "camerad");
             thread.setDaemon(false);
@@ -167,10 +177,17 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void stop() {
         stopped = true;
+    }
+
+    public void dispose(){
+        exit = true;
+        stopped = true;
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        thread = null;
         ph.releaseAll();
-        if (capture!=null)
-            capture.release();
-        if (frame!=null)
-            frame.release();
     }
 }

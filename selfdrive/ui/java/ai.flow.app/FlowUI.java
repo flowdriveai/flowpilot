@@ -1,11 +1,13 @@
 package ai.flow.app;
 
+import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
+import ai.flow.launcher.Launcher;
 import ai.flow.modeld.ModelExecutor;
+import ai.flow.sensor.SensorInterface;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -13,18 +15,9 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import ai.flow.common.ParamsInterface;
-import ai.flow.launcher.Launcher;
-import ai.flow.sensor.SensorInterface;
-
 import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Core;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Map;
 
 
@@ -44,28 +37,45 @@ public class FlowUI extends Game {
     public SettingsScreen settingsScreen;
     public OnRoadScreen onRoadScreen;
     public ParamsInterface params = ParamsInterface.getInstance();
+    public boolean isOnRoad = false;
+    public Thread updateOnroadThread = null;
 
     public FlowUI(Launcher launcher, int pid) {
         this.pid = pid;
         this.launcher = launcher;
         this.modelExecutor = launcher.modeld;
         this.sensors = launcher.sensors;
-    }
 
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length / 4];
-        for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        }
-        return ret;
-    }
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        Nd4j.zeros(1); // init nd4j (any better ways?)
 
-    public static double[] byteToDouble(byte[] input) {
-        double[] ret = new double[input.length / 8];
-        for (int x = 0; x < input.length; x += 8) {
-            ret[x / 8] = ByteBuffer.wrap(input, x, 8).order(ByteOrder.LITTLE_ENDIAN).getDouble();
-        }
-        return ret;
+        updateOnroadThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.interrupted()){
+                    if (params.exists("IsOnroad"))
+                        isOnRoad = params.getBool("IsOnroad");
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    if (!isOnRoad){
+                        modelExecutor.stop();
+                        for (String name : sensors.keySet()) {
+                            sensors.get(name).stop();
+                        }
+                    }
+                    else{
+                        modelExecutor.start();
+                        for (String name : sensors.keySet()) {
+                            sensors.get(name).start();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public static void loadFont(String fontPath, String fontName, int size, Skin skin){
@@ -91,10 +101,9 @@ public class FlowUI extends Game {
 
     @Override
     public void create() {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        Nd4j.zeros(1); // init nd4j (any better ways?)
-
         params.putInt("FlowpilotPID", pid);
+
+        updateOnroadThread.start();
 
         if (Gdx.gl != null) { // else headless mode
             sound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/click.mp3")));

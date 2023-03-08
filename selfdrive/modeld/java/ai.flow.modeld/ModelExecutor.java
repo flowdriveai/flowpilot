@@ -104,6 +104,7 @@ public class ModelExecutor implements Runnable{
     public int pulseDesireInput;
 
     Mat deviceToCalibTransform;
+    boolean exit = false;
 
     public ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
     public ModelRunner modelRunner;
@@ -198,7 +199,15 @@ public class ModelExecutor implements Runnable{
 
         initialized = true;
         params.putBool("ModelDReady", true);
-        while (!stopped) {
+        while (!exit) {
+            if (stopped){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
 
             sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
             frameData = msgFrameData.deserialize().getFrameData();
@@ -256,8 +265,8 @@ public class ModelExecutor implements Runnable{
             lastFrameID = frameData.getFrameId();
             iterationNum++;
         }
-        deviceToCalibTransform.release();
 
+        deviceToCalibTransform.release();
         // dispose
         backgroundExecutor.shutdown();
         imgTensorSequence.close();
@@ -269,6 +278,7 @@ public class ModelExecutor implements Runnable{
     }
 
     public void start() {
+        stopped = false;
         if (thread == null) {
             thread = new Thread(this, threadName);
             thread.setDaemon(false);
@@ -298,8 +308,11 @@ public class ModelExecutor implements Runnable{
         return initialized;
     }
 
+    public void dispose(){
+        exit = true;
+    }
+
     public void stop() {
         stopped = true;
-        params.putBool("ModelDReady", false);
     }
 }

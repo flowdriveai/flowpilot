@@ -1,12 +1,24 @@
 package ai.flow.app;
 
 import ai.flow.common.Path;
+import ai.flow.definitions.Definitions;
+import ai.flow.definitions.MessageBase;
+import ai.flow.modeld.DesireEnum;
+import ai.flow.modeld.ParsedOutputs;
+import ai.flow.modeld.Parser;
+import ai.flow.modeld.Preprocess;
+import ai.flow.modeld.messages.MsgFrameData;
+import ai.flow.modeld.messages.MsgLiveCalibrationData;
+import ai.flow.modeld.messages.MsgModelDataV2;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Blending;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -16,15 +28,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.*;
-import ai.flow.definitions.MessageBase;
-import ai.flow.definitions.Definitions;
-import ai.flow.modeld.ParsedOutputs;
-import ai.flow.modeld.Parser;
-import ai.flow.modeld.Preprocess;
-
-import ai.flow.modeld.messages.MsgLiveCalibrationData;
+import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import messaging.ZMQPubHandler;
+import messaging.ZMQSubHandler;
 import org.capnproto.PrimitiveList;
 import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.api.memory.conf.WorkspaceConfiguration;
@@ -35,12 +44,6 @@ import org.nd4j.linalg.factory.Nd4j;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-
-import ai.flow.modeld.messages.MsgFrameData;
-import ai.flow.modeld.messages.MsgModelDataV2;
-import ai.flow.modeld.DesireEnum;
-
-import messaging.ZMQSubHandler;
 
 
 public class OnRoadScreen extends ScreenAdapter {
@@ -557,56 +560,61 @@ public class OnRoadScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | (Gdx.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
 
-        if (sh.updated(cameraTopic)) {
-            updateCamera();
+        if (appContext.isOnRoad) {
+            if (sh.updated(cameraTopic)) {
+                updateCamera();
+            }
+
+            stageFill.getViewport().apply();
+            stageFill.act(delta);
+            stageFill.draw();
+
+            if (sh.updated(calibrationTopic)) {
+                sh.recvBuffer(calibrationTopic, msgLiveCalibBuffer);
+                liveCalib = msgLiveCalib.deserialize().getLiveCalibration();
+                updateAugmentVectors(liveCalib);
+            }
+
+            if (sh.updated(modelTopic)) {
+                updateModelOutputs();
+                modelAlive = true;
+            }
+
+            if (modelAlive)
+                drawModelOutputs();
+
+            if (sh.updated(controlsStateTopic)) {
+                controlsAlive = true;
+                updateControls();
+            }
+
+            setUnits();
+
+            if (sh.updated(carStateTopic))
+                updateCarState();
+
+            drawAlert(controlState);
+
+            stageUI.getViewport().apply();
+            stageUI.draw();
+
+            batch.begin();
+            appContext.font.draw(batch, String.valueOf(appContext.launcher.modeld.getIterationRate()),
+                    Gdx.graphics.getWidth() - 200,
+                    Gdx.graphics.getHeight() - 200);
+
+            appContext.font.draw(batch, "% " + appContext.launcher.modeld.getFrameDropPercent(),
+                    Gdx.graphics.getWidth() - 200,
+                    Gdx.graphics.getHeight() - 230);
+            batch.end();
         }
+        else{
 
-        stageFill.getViewport().apply();
-        stageFill.act(delta);
-        stageFill.draw();
-
-        if (sh.updated(calibrationTopic)) {
-            sh.recvBuffer(calibrationTopic, msgLiveCalibBuffer);
-            liveCalib = msgLiveCalib.deserialize().getLiveCalibration();
-            updateAugmentVectors(liveCalib);
         }
-
-        if (sh.updated(modelTopic)){
-            updateModelOutputs();
-            modelAlive = true;
-        }
-
-        if (modelAlive)
-            drawModelOutputs();
-
-        if (sh.updated(controlsStateTopic)) {
-            controlsAlive = true;
-            updateControls();
-        }
-
-        setUnits();
-
-        if (sh.updated(carStateTopic))
-            updateCarState();
-
-        drawAlert(controlState);
-
-        stageUI.getViewport().apply();
-        stageUI.draw();
 
         stageSettings.getViewport().apply();
         stageSettings.act(delta);
         stageSettings.draw();
-
-        batch.begin();
-        appContext.font.draw(batch, String.valueOf(appContext.launcher.modeld.getIterationRate()),
-                Gdx.graphics.getWidth() - 200,
-                Gdx.graphics.getHeight() - 200);
-
-        appContext.font.draw(batch, "% " + appContext.launcher.modeld.getFrameDropPercent(),
-                Gdx.graphics.getWidth() - 200,
-                Gdx.graphics.getHeight() - 230);
-        batch.end();
 
         handleDesire();
     }

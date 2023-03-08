@@ -255,9 +255,14 @@ public class CameraManager extends SensorInterface {
     public void stop() {
         videoCapture.stopRecording();
         cameraProvider.unbindAll();
+        running = false;
+    }
+
+    @Override
+    public void dispose(){
+        stop();
         ph.releaseAll();
         frame.release();
         frameCrop.release();
-        running = false;
     }
 }
