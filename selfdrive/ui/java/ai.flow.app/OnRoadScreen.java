@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Blending;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -43,6 +44,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 
@@ -133,6 +136,9 @@ public class OnRoadScreen extends ScreenAdapter {
     boolean cameraMatrixUpdated = false;
     boolean isMetric;
     boolean laneLess;
+    Animation<TextureRegion> animationNight, animationNoon, animationSunset;
+    float elapsed;
+    private static final DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -332,10 +338,24 @@ public class OnRoadScreen extends ScreenAdapter {
             }
         });
 
+        animationNoon = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/noon.gif")).read());
+        animationSunset = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/sunset.gif")).read());
+        animationNight = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/night.gif")).read());
+
         sh = new ZMQSubHandler(true);
         ph = new ZMQPubHandler();
         sh.createSubscribers(Arrays.asList(cameraTopic, modelTopic, calibrationTopic, carStateTopic, controlsStateTopic, canTopic));
         ph.createPublisher(desireTopic);
+    }
+
+    public Animation<TextureRegion> getCurrentAnimation(){
+        int hour = LocalDateTime.now().getHour();
+        if (hour >= 22 || hour < 7)
+            return  animationNight;
+        else if (hour < 15)
+            return animationNoon;
+        else
+            return animationSunset;
     }
 
     @Override
@@ -559,6 +579,7 @@ public class OnRoadScreen extends ScreenAdapter {
     public void render(float delta) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | (Gdx.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
+        elapsed += Gdx.graphics.getDeltaTime();
 
         if (appContext.isOnRoad) {
             if (sh.updated(cameraTopic)) {
@@ -603,13 +624,16 @@ public class OnRoadScreen extends ScreenAdapter {
                     Gdx.graphics.getWidth() - 200,
                     Gdx.graphics.getHeight() - 200);
 
-            appContext.font.draw(batch, "% " + appContext.launcher.modeld.getFrameDropPercent(),
+            appContext.font.draw(batch, "% " + decimalFormat.format(appContext.launcher.modeld.getFrameDropPercent()),
                     Gdx.graphics.getWidth() - 200,
                     Gdx.graphics.getHeight() - 230);
             batch.end();
         }
         else{
-
+            batch.begin();
+            batch.setColor(1, 1, 1, 0.6f);
+            batch.draw(getCurrentAnimation().getKeyFrame(elapsed), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            batch.end();
         }
 
         stageSettings.getViewport().apply();
