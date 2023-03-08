@@ -39,10 +39,16 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"RecordFront", PERSISTENT},
     {"DisableRadar_Allow", PERSISTENT},
     {"DisableRadar", PERSISTENT},
+    {"DisableUpdates", PERSISTENT},
+    {"DoUninstall", PERSISTENT},
+    {"SnoozeUpdate", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
     {"Passive", PERSISTENT},
     {"CompletedTrainingVersion", PERSISTENT},
     {"DisengageOnAccelerator", PERSISTENT},
     {"UseSNPE", PERSISTENT},
+    {"IsOffroad", CLEAR_ON_MANAGER_START},    
+    {"IsOnroad", PERSISTENT},   
+    {"IsEngaged", PERSISTENT},
     {"HasAcceptedTerms", PERSISTENT},
     {"OpenpilotEnabledToggle", PERSISTENT},
     {"PandaHeartbeatLost", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
@@ -67,8 +73,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"Offroad_StorageMissing", CLEAR_ON_MANAGER_START},
     {"Offroad_TemperatureTooHigh", CLEAR_ON_MANAGER_START},
     {"Offroad_UnofficialHardware", CLEAR_ON_MANAGER_START},
-    {"Offroad_UpdateFailed", CLEAR_ON_MANAGER_START}, 
-    {"IsOffroad", PERSISTENT},     
+    {"Offroad_UpdateFailed", CLEAR_ON_MANAGER_START},   
 };
 
 lmdb::env Params::env = nullptr;

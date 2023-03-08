@@ -1,39 +1,5 @@
 import psutil
-
 from cereal import log
-import cereal.messaging as messaging
-from selfdrive.swaglog import cloudlog
-from common.system import is_android, is_android_rooted
-
-
-def get_device_state_msg():
-    # System utilization
-    msg = messaging.new_message("deviceState")
-    du = psutil.disk_usage('/')
-    
-    msg.deviceState.freeSpacePercent = du.free / du.total * 100
-    msg.deviceState.memoryUsagePercent = int(round(psutil.virtual_memory().percent))
-    msg.deviceState.cpuUsagePercent = [int(round(n)) for n in psutil.cpu_percent(percpu=True)]
-
-    # Power
-    if is_android() and is_android_rooted():
-        battery = psutil.sensors_battery()
-        msg.deviceState.batteryPercent = int(battery.percent)
-        msg.deviceState.chargingDisabled = battery.power_plugged
-
-    # Device Thermals
-    temps = psutil.sensors_temperatures()
-    if temps.get("coretemp", None) is not None:
-        msg.deviceState.cpuTempC = [cpu[1] for cpu in psutil.sensors_temperatures()['coretemp']][1:]
-
-    fans = psutil.sensors_fans()
-    if fans:
-        msg.deviceState.fanSpeedPercentDesired = list(psutil.sensors_fans().values())[0][0][1]
-
-    msg.deviceState.networkType = log.DeviceState.NetworkType.none
-    msg.deviceState.networkStrength = log.DeviceState.NetworkStrength.unknown
-
-    return msg
 
 def get_cpu_times():
     """system-wide vitals on CPU"""

@@ -18,7 +18,7 @@ import cereal.messaging as messaging
 from selfdrive.manager.config import Config
 from selfdrive.manager.daemon import Daemon, DaemonSig
 from selfdrive.manager.filelock import FileLock
-from selfdrive.manager.utils import get_cpu_times, get_device_state_msg, get_memory_logs
+from selfdrive.manager.utils import get_cpu_times, get_memory_logs
 from selfdrive.manager.services import Service, killswitch
 
 from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
@@ -255,7 +255,7 @@ def main():
             for service in services:
                 service.start()
 
-            pm = messaging.PubMaster(["procLog", "deviceState", "managerState"])
+            pm = messaging.PubMaster(["procLog", "managerState"])
             params.put_bool("FlowinitReady", True)
             
             # Event loop
@@ -290,11 +290,8 @@ def main():
                 proc_log_msg.procLog.cpuTimes = get_cpu_times()
                 proc_log_msg.procLog.mem = get_memory_logs()
 
-                device_state_msg = get_device_state_msg()
-
                 # Publishing topics
                 pm.send("procLog", proc_log_msg)
-                pm.send("deviceState", device_state_msg)
                 
                 # Try not to hog all the CPU cycles
                 time.sleep(Config.FREQUENCY)

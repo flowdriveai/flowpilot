@@ -15,6 +15,14 @@ services:
   logmessaged:
     command: logmessaged
     nowait: true
+   
+  thermald_:
+    command: thermald_
+    nowait: true
+  
+  statsd:
+    command: statsd
+    nowait: true
   
   keyvald:
     command: keyvald
