@@ -109,7 +109,7 @@ void sync_time(Panda *panda, SyncTimeDir dir) {
 }
 
 bool safety_setter_thread(std::vector<Panda *> pandas) {
-  LOGW("Starting safety setter thread");
+  LOGD("Starting safety setter thread");
 
   // there should be at least one panda connected
   if (pandas.size() == 0) {
@@ -130,7 +130,7 @@ bool safety_setter_thread(std::vector<Panda *> pandas) {
       return false;
     }
 
-    LOGW("getting car vin");
+    LOGD("getting car vin");
     std::string value_vin = p.get("CarVin");
     if (value_vin.size() > 0) {
       // sanity check VIN format

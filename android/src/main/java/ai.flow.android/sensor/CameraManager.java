@@ -174,8 +174,6 @@ public class CameraManager extends SensorInterface {
             }
         });
 
-
-
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
 

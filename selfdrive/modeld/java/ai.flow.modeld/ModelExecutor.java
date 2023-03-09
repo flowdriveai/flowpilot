@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,11 +112,6 @@ public class ModelExecutor implements Runnable{
         this.modelRunner = modelRunner;
     }
 
-    public void floatArrToBuffer(float[] arr, ByteBuffer buffer){
-        for (int i=0; i<arr.length; i++)
-            buffer.putFloat(i*4, arr[i]);
-    }
-
     public boolean isIntrinsicsValid(){
         // PS: find better ways to check validity.
         if (!frameData.hasIntrinsics())
@@ -173,11 +167,6 @@ public class ModelExecutor implements Runnable{
 
         modelRunner.init(shapeMap);
         modelRunner.warmup();
-
-        ByteBuffer inputImgsBuffer = imgTensorSequence.data().asNio().order(ByteOrder.nativeOrder());
-        ByteBuffer stateBuffer = ByteBuffer.allocateDirect((int)numElements(stateTensorShape)*4).order(ByteOrder.nativeOrder());
-        ByteBuffer desireBuffer = ByteBuffer.allocateDirect((int)numElements(desireTensorShape)*4).order(ByteOrder.nativeOrder());
-        ByteBuffer trafficBuffer = ByteBuffer.allocateDirect((int)numElements(trafficTensorShape)*4).order(ByteOrder.nativeOrder());
 
         netOutputs = new float[(int)numElements(outputTensorShape)];
 
