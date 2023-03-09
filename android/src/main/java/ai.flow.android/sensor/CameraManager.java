@@ -253,6 +253,8 @@ public class CameraManager extends SensorInterface {
     @SuppressLint("RestrictedApi")
     @Override
     public void stop() {
+        if (!running)
+            return;
         videoCapture.stopRecording();
         cameraProvider.unbindAll();
         running = false;

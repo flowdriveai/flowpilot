@@ -92,6 +92,8 @@ public class SensorManager extends SensorInterface implements Runnable{
     }
 
     public void stop() {
+        if (!running)
+            return;
         sensorManager.unregisterListener(listenerAccelerometer);
         sensorManager.unregisterListener(listenerGyroscope);
         initialized = false;

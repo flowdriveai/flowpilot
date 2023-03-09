@@ -63,15 +63,9 @@ public class FlowUI extends Game {
 
                     if (!isOnRoad){
                         modelExecutor.stop();
-                        for (String name : sensors.keySet()) {
-                            sensors.get(name).stop();
-                        }
                     }
                     else{
                         modelExecutor.start();
-                        for (String name : sensors.keySet()) {
-                            sensors.get(name).start();
-                        }
                     }
                 }
             }
