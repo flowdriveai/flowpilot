@@ -354,7 +354,7 @@ public class OnRoadScreen extends ScreenAdapter {
 
     public Animation<TextureRegion> getCurrentAnimation(){
         @SuppressWarnings("NewApi") int hour = LocalDateTime.now().getHour();
-        if (hour >= 22 || hour < 7)
+        if (hour >= 20 || hour < 7)
             return  animationNight;
         else if (hour < 19)
             return animationNoon;
