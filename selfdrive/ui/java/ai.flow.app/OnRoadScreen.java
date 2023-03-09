@@ -450,8 +450,8 @@ public class OnRoadScreen extends ScreenAdapter {
             lane1 = Draw.getLaneCameraFrame(parsed.laneLines.get(1), K, Rt, 0.05f);
             lane2 = Draw.getLaneCameraFrame(parsed.laneLines.get(2), K, Rt, 0.05f);
             lane3 = Draw.getLaneCameraFrame(parsed.laneLines.get(3), K, Rt, 0.07f);
-            edge0 = Draw.getLaneCameraFrame(parsed.roadEdges.get(0), K, Rt, 0.3f);
-            edge1 = Draw.getLaneCameraFrame(parsed.roadEdges.get(1), K, Rt, 0.3f);
+            edge0 = Draw.getLaneCameraFrame(parsed.roadEdges.get(0), K, Rt, 0.1f);
+            edge1 = Draw.getLaneCameraFrame(parsed.roadEdges.get(1), K, Rt, 0.1f);
 
             lead1s = Draw.getTriangleCameraFrame(parsed.leads.get(0), K, Rt, leadDrawScale);
             lead2s = Draw.getTriangleCameraFrame(parsed.leads.get(1), K, Rt, leadDrawScale);
