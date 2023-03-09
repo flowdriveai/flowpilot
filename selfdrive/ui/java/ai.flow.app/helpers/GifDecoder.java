@@ -1,4 +1,4 @@
-package ai.flow.app;
+package ai.flow.app.helpers;
 
 
 import com.badlogic.gdx.graphics.Pixmap;

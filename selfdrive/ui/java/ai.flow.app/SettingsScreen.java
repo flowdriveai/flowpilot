@@ -1,21 +1,18 @@
 package ai.flow.app;
 
-import ai.flow.common.Path;
+import ai.flow.app.helpers.Utils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import ai.flow.app.CalibrationScreens.CalibrationInfo;
@@ -37,50 +34,8 @@ public class SettingsScreen extends ScreenAdapter {
 
     SpriteBatch batch;
     Table rootTable, settingTable, scrollTable, currentSettingTable;
-    Texture lineTex = getLineTexture(700, 1, Color.WHITE);
+    Texture lineTex = Utils.getLineTexture(700, 1, Color.WHITE);
     ScrollPane scrollPane;
-
-    public ImageButton getImageButton(String texturePath){ //TODO Move to common
-        Texture buttonTexture = loadTextureMipMap(texturePath);
-        return new ImageButton(new TextureRegionDrawable(buttonTexture));
-    }
-
-    public Texture loadTextureMipMap(String path){
-        Texture texture = new Texture(Gdx.files.absolute(Path.internal(path)), true);
-        texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
-        return texture;
-    }
-
-    public TextureRegionDrawable createRoundedRectangle(int width, int height, int cornerRadius, Color color) {
-
-        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        Pixmap ret = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-
-        pixmap.setColor(color);
-
-        pixmap.fillCircle(cornerRadius, cornerRadius, cornerRadius);
-        pixmap.fillCircle(width - cornerRadius - 1, cornerRadius, cornerRadius);
-        pixmap.fillCircle(cornerRadius, height - cornerRadius - 1, cornerRadius);
-        pixmap.fillCircle(width - cornerRadius - 1, height - cornerRadius - 1, cornerRadius);
-
-        pixmap.fillRectangle(cornerRadius, 0, width - cornerRadius * 2, height);
-        pixmap.fillRectangle(0, cornerRadius, width, height - cornerRadius * 2);
-
-        ret.setColor(color);
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                if (pixmap.getPixel(x, y) != 0) ret.drawPixel(x, y);
-            }
-        }
-        return new TextureRegionDrawable(new TextureRegion(new Texture(ret)));
-    }
-
-    public Texture getLineTexture(int width, int height, Color color){
-        Pixmap pixmap=new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        pixmap.setColor(color);
-        pixmap.fillRectangle(0,0, pixmap.getWidth(), pixmap.getHeight());
-        return new Texture(pixmap);
-    }
 
     public void addKeyValueTable(Table table, String key, String value, boolean addLine) {
         table.add(new Label(key, appContext.skin, "default-font", "white")).left().pad(30);
@@ -170,9 +125,9 @@ public class SettingsScreen extends ScreenAdapter {
         scrollPane = new ScrollPane(currentSettingTable);
         scrollPane.setSmoothScrolling(true);
         scrollTable.add(scrollPane);
-        scrollTable.setBackground(createRoundedRectangle(800, 700, 20, new Color(0.18f, 0.18f, 0.18f, 0.8f)));
+        scrollTable.setBackground(Utils.createRoundedRectangle(800, 700, 20, new Color(0.18f, 0.18f, 0.18f, 0.8f)));
 
-        closeButton = getImageButton("selfdrive/assets/icons/icon_close.png");
+        closeButton = Utils.getImageButton("selfdrive/assets/icons/icon_close.png");
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {

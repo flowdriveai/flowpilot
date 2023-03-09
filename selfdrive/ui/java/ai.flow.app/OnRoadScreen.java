@@ -1,5 +1,7 @@
 package ai.flow.app;
 
+import ai.flow.app.helpers.GifDecoder;
+import ai.flow.app.helpers.Utils;
 import ai.flow.common.Path;
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
@@ -27,7 +29,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -48,6 +49,9 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import static ai.flow.app.helpers.Utils.getImageButton;
+import static ai.flow.app.helpers.Utils.loadTextureMipMap;
+
 
 public class OnRoadScreen extends ScreenAdapter {
     // avoid GC triggers.
@@ -62,7 +66,7 @@ public class OnRoadScreen extends ScreenAdapter {
     //batch
     SpriteBatch batch;
     // ui
-    Stage stageFill, stageUI, stageAlert, stageSettings;
+    Stage stageFill, stageUI, stageAlert, stageSettings, stageOffRoad;
     OrthographicCamera cameraModel, cameraAlertBox;
     Image texImage;
     int defaultDrawLength = 30;
@@ -119,7 +123,7 @@ public class OnRoadScreen extends ScreenAdapter {
     String canTopic = "can";
 
     Label velocityLabel, velocityUnitLabel, alertText1, alertText2, maxCruiseSpeedLabel;
-    Table velocityTable, maxCruiseTable, alertTable, infoTable;
+    Table velocityTable, maxCruiseTable, alertTable, infoTable, offRoadTable;
     Stack statusLabelTemp, statusLabelCan, statusLabelOnline, maxCruise;
     ImageButton settingsButton;
     ParsedOutputs parsed = new ParsedOutputs();
@@ -150,26 +154,6 @@ public class OnRoadScreen extends ScreenAdapter {
         PrimitiveList.Float.Reader rpy = liveCalib.getRpyCalib();
         for (int i=0; i<3; i++)
             augmentRot.put(0, i, rpy.get(i));
-    }
-
-    public void setTableColor(Table table, float r, float g, float b, float a){
-        Pixmap bgPixmap = new Pixmap(1,1, Pixmap.Format.RGB565);
-        bgPixmap.setColor(r, g, b, a);
-        bgPixmap.fill();
-        TextureRegionDrawable textureRegionDrawableBg = new TextureRegionDrawable(new TextureRegion(new Texture(bgPixmap)));
-        table.setBackground(textureRegionDrawableBg);
-        bgPixmap.dispose();
-    }
-
-    public ImageButton getImageButton(String texturePath){ //TODO Move to common
-        Texture buttonTexture = loadTextureMipMap(texturePath);
-        return new ImageButton(new TextureRegionDrawable(buttonTexture));
-    }
-
-    public Texture loadTextureMipMap(String path){
-        Texture texture = new Texture(Gdx.files.absolute(Path.internal(path)), true);
-        texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
-        return texture;
     }
 
     public Stack getStatusLabel(String text){
@@ -220,7 +204,7 @@ public class OnRoadScreen extends ScreenAdapter {
         infoTable.setWidth(settingsBarWidth);
         infoTable.setHeight(uiHeight);
         infoTable.align(Align.topLeft);
-        setTableColor(infoTable, colorSettingsBar[0], colorSettingsBar[1], colorSettingsBar[2], 1);
+        Utils.setTableColor(infoTable, colorSettingsBar[0], colorSettingsBar[1], colorSettingsBar[2], 1);
 
         velocityTable = new Table();
         velocityTable.setFillParent(true);
@@ -237,6 +221,11 @@ public class OnRoadScreen extends ScreenAdapter {
         alertTable.align(Align.bottom);
         alertTable.padBottom(100);
 
+        offRoadTable = new Table();
+        offRoadTable.setFillParent(true);
+        offRoadTable.align(Align.bottom);
+        offRoadTable.padBottom(100);
+
         cameraModel = new OrthographicCamera(defaultImageWidth, defaultImageHeight);
         cameraModel.setToOrtho(true, defaultImageWidth, defaultImageHeight);
         cameraModel.update();
@@ -252,9 +241,10 @@ public class OnRoadScreen extends ScreenAdapter {
         stageFill = new Stage(new FillViewport(defaultImageWidth, defaultImageHeight));
         // used to draw UI components with respect to screen dimensions.
         stageUI = new Stage(new FitViewport(uiWidth, uiHeight));
-
         // used to draw alert messages.
         stageAlert = new Stage(new ScreenViewport());
+        // used to draw off-road screen.
+        stageOffRoad = new Stage(new ScreenViewport());
 
         velocityLabel = new Label("", appContext.skin, "default-font-bold-large", "white");
         velocityUnitLabel = new Label("", appContext.skin, "default-font", "white");
