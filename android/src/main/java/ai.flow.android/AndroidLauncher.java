@@ -168,7 +168,7 @@ public class AndroidLauncher extends AndroidApplication {
 				.setEnabled(true);
 		builder.getPluginConfigurationBuilder(ToastConfigurationBuilder.class)
 				.withText("crash report sent to flowpilot maintainers")
-				.setEnabled(true);
+				.setEnabled(false);
 
 		ACRA.init((Application) base.getApplicationContext(), builder);
 	}
@@ -205,11 +205,11 @@ public class AndroidLauncher extends AndroidApplication {
 			ActivityCompat.requestPermissions(this, requestPermissions.toArray(new String[0]), 1);
 
 		// External storage access permissions for android 12 and above.
-		Toast.makeText(appContext, "grant external storage access to flowpilot.", Toast.LENGTH_LONG).show();
 		if (SDK_INT >= Build.VERSION_CODES.R) {
 			if (Environment.isExternalStorageManager())
 				return;
 			try {
+				Toast.makeText(appContext, "grant external storage access to flowpilot.", Toast.LENGTH_LONG).show();
 				Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
 				intent.addCategory("android.intent.category.DEFAULT");
 				intent.setData(Uri.parse(String.format("package:%s",getApplicationContext().getPackageName())));
