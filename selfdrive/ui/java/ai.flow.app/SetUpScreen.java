@@ -16,7 +16,7 @@ public class SetUpScreen extends ScreenAdapter {
     @Override
     public void show() {
 
-        if (!appContext.params.exists("HasAcceptedTerms")) {
+        if (!appContext.params.existsAndCompare("HasAcceptedTerms", true)) {
             appContext.setScreen(new TermsScreen(appContext));
             return;
         }

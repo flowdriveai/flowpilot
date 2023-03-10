@@ -610,11 +610,6 @@ public class OnRoadScreen extends ScreenAdapter {
             if (modelAlive)
                 drawModelOutputs();
 
-            if (sh.updated(controlsStateTopic)) {
-                controlsAlive = true;
-                updateControls();
-            }
-
             setUnits();
 
             if (sh.updated(carStateTopic))
@@ -629,6 +624,7 @@ public class OnRoadScreen extends ScreenAdapter {
             appContext.font.draw(batch, String.valueOf(appContext.launcher.modeld.getIterationRate()),
                     Gdx.graphics.getWidth() - 200,
                     Gdx.graphics.getHeight() - 200);
+            batch.end();
         }
         else{
             batch.begin();
@@ -645,6 +641,11 @@ public class OnRoadScreen extends ScreenAdapter {
         stageSettings.getViewport().apply();
         stageSettings.act(delta);
         stageSettings.draw();
+
+        if (sh.updated(controlsStateTopic)) {
+            controlsAlive = true;
+            updateControls();
+        }
 
         handleDesire();
     }
