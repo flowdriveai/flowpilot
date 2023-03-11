@@ -130,7 +130,7 @@ public class OnRoadScreen extends ScreenAdapter {
     int canErrCount = 0;
     int canErrCountPrev = 0;
     float uiWidth = 1280;
-    float uiHeight = 720;
+    float uiHeight = 640;
     float settingsBarWidth;
 
     final float[][] K_buffer =  {{910.0f,  0.0f, 582.0f},
@@ -227,17 +227,17 @@ public class OnRoadScreen extends ScreenAdapter {
         offRoadRootTable.align(Align.left);
 
         offRoadTable = new Table();
-        offRoadTable.setBackground(Utils.createRoundedRectangle(900, 600, 20, new Color(0.18f, 0.18f, 0.18f, 0.7f)));
+        offRoadTable.setBackground(Utils.createRoundedRectangle(900, 550, 20, new Color(0.18f, 0.18f, 0.18f, 0.7f)));
 
         DateTimeFormatter f = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.US);
         dateLabel = new Label(LocalDateTime.now().format(f),  appContext.skin, "default-font", "white");
 
         String version = appContext.params.exists("Version") ? "flowpilot v" + appContext.params.getString("Version") : "";
         vesrionLabel = new Label(version,  appContext.skin, "default-font", "white");
-        offRoadRootTable.add(dateLabel).align(Align.topLeft).padTop(20);
-        offRoadRootTable.add(vesrionLabel).padTop(20).align(Align.topRight);
+        offRoadRootTable.add(dateLabel).align(Align.topLeft).padTop(15);
+        offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
         offRoadRootTable.row();
-        offRoadRootTable.add(offRoadTable).colspan(2).align(Align.left).padTop(20);
+        offRoadRootTable.add(offRoadTable).colspan(2).align(Align.left).padTop(10);
 
         rootTable.add(offRoadRootTable).padLeft(20);
 
@@ -292,7 +292,7 @@ public class OnRoadScreen extends ScreenAdapter {
             }
         });
         settingsButton.setColor(1, 1, 1, 0.6f);
-        infoTable.add(settingsButton).align(Align.top).height(uiHeight/9f).width(settingsBarWidth).padTop(80);
+        infoTable.add(settingsButton).align(Align.top).height(uiHeight/9f).width(settingsBarWidth).padTop(50);
         infoTable.row();
         statusLabelTemp = getStatusLabel("TEMP\nGOOD");
         updateStatusLabel(statusLabelTemp, StatusColors.colorStatusGood);
@@ -308,7 +308,7 @@ public class OnRoadScreen extends ScreenAdapter {
         infoTable.row();
         Image logoTexture = new Image(loadTextureMipMap("selfdrive/assets/icons/circle-white.png"));
         logoTexture.setColor(1, 1, 1, 0.85f);
-        infoTable.add(logoTexture).align(Align.top).size(120).padTop(35).padBottom(40);
+        infoTable.add(logoTexture).align(Align.top).size(110).padTop(35).padBottom(40);
 
         stageFill.addActor(texImage);
         stageUI.addActor(velocityTable);

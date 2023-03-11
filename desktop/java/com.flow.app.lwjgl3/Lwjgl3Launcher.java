@@ -51,7 +51,7 @@ public class Lwjgl3Launcher {
 	private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
 		Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
 		configuration.setTitle("flow-pilot");
-		configuration.setWindowedMode(1000, 562);
+		configuration.setWindowedMode(1200, 600);
 		configuration.setResizable(true);
 		configuration.setForegroundFPS(25);
 		configuration.setWindowIcon("icons/flow-pilot.png");
