@@ -200,65 +200,65 @@ public class ModelExecutor implements Runnable{
                 continue;
             }
 
-            try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "ModelD")) {
-                updateCameraState();
-                start = System.currentTimeMillis();
+            updateCameraState();
+            start = System.currentTimeMillis();
 
-                // TODO: Fix this
-                //            if (sh.updated("pulseDesire")){
-                //                pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
-                //                desireNDArr.put(0, pulseDesireInput, 1);
-                //            }
+            // TODO: Fix this
+            //            if (sh.updated("pulseDesire")){
+            //                pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
+            //                desireNDArr.put(0, pulseDesireInput, 1);
+            //            }
 
-                if (sh.updated("liveCalibration")) {
-                    liveCalib = sh.recv("liveCalibration").getLiveCalibration();
-                    PrimitiveList.Float.Reader rpy = liveCalib.getRpyCalib();
-                    for (int i = 0; i < 3; i++) {
-                        augmentRot.putScalar(i, rpy.get(i));
-                    }
-                    wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
-                    wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
+            if (sh.updated("liveCalibration")) {
+                liveCalib = sh.recv("liveCalibration").getLiveCalibration();
+                PrimitiveList.Float.Reader rpy = liveCalib.getRpyCalib();
+                for (int i = 0; i < 3; i++) {
+                    augmentRot.putScalar(i, rpy.get(i));
                 }
+                wrapMatrix = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, wideCameraOnly, false);
+                wrapMatrixWide = Preprocess.getWrapMatrix(augmentRot, fcam_intrinsics, ecam_intrinsics, true, true);
+            }
 
-                netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix);
-                netInputWideBuffer = imageWidePrepare.prepare(wideImgBuffer, wrapMatrixWide);
+            netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix);
+            netInputWideBuffer = imageWidePrepare.prepare(wideImgBuffer, wrapMatrixWide);
 
+            try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "ModelD")) {
                 if (snpe){
                     // NCHW to NHWC
                     netInputBuffer = netInputBuffer.permute(0, 2, 3, 1).dup();
                     netInputWideBuffer = netInputWideBuffer.permute(0, 2, 3, 1).dup();
                 }
-
-                inputMap.put("input_imgs", netInputBuffer);
-                inputMap.put("big_input_imgs", netInputWideBuffer);
-                modelRunner.run(inputMap, outputMap);
-
-                // TODO: Add desire.
-                stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
-                for (int i = 0; i < CommonModel.FEATURE_LEN; i++)
-                    stateNDArr.putScalar(0, CommonModel.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModel.OUTPUT_SIZE + i]);
-                featuresNDArr.put(gatherFeatureSlices0, stateNDArr.get(gatherFeatureSlices));
-
-                // publish outputs
-                timestamp = System.currentTimeMillis();
-                serializeAndPublish();
-
-                end = System.currentTimeMillis();
-                // compute runtime stats.
-                // skip 1st 10 reading to let it warm up.
-                if (iterationNum > 10) {
-                    timePerIt += end - start;
-                    frameDrops += (frameData.getFrameId() - lastFrameID) - 1;
-                    wideFrameDrops += (frameWideData.getFrameId() - lastWideFrameID) - 1;
-                } else {
-                    firstFrameID = lastFrameID;
-                    firstWideFrameID = lastWideFrameID;
-                }
-
-                lastFrameID = frameData.getFrameId();
-                lastWideFrameID = frameWideData.getFrameId();
-                iterationNum++;
             }
+
+            inputMap.put("input_imgs", netInputBuffer);
+            inputMap.put("big_input_imgs", netInputWideBuffer);
+            modelRunner.run(inputMap, outputMap);
+
+            // TODO: Add desire.
+            stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
+            for (int i = 0; i < CommonModel.FEATURE_LEN; i++)
+                stateNDArr.putScalar(0, CommonModel.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModel.OUTPUT_SIZE + i]);
+            featuresNDArr.put(gatherFeatureSlices0, stateNDArr.get(gatherFeatureSlices));
+
+            // publish outputs
+            timestamp = System.currentTimeMillis();
+            serializeAndPublish();
+
+            end = System.currentTimeMillis();
+            // compute runtime stats.
+            // skip 1st 10 reading to let it warm up.
+            if (iterationNum > 10) {
+                timePerIt += end - start;
+                frameDrops += (frameData.getFrameId() - lastFrameID) - 1;
+                wideFrameDrops += (frameWideData.getFrameId() - lastWideFrameID) - 1;
+            } else {
+                firstFrameID = lastFrameID;
+                firstWideFrameID = lastWideFrameID;
+            }
+
+            lastFrameID = frameData.getFrameId();
+            lastWideFrameID = frameWideData.getFrameId();
+            iterationNum++;
         }
 
         // dispose
