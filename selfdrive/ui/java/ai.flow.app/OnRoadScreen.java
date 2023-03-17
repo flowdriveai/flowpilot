@@ -221,8 +221,6 @@ public class OnRoadScreen extends ScreenAdapter {
         vesrionLabel = new Label(version,  appContext.skin, "default-font", "white");
         offRoadRootTable.add(dateLabel).align(Align.topLeft).padTop(15);
         offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
-        offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
-        offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
         offRoadRootTable.row();
         offRoadRootTable.add(offRoadTable).colspan(2).align(Align.left).padTop(10);
 
