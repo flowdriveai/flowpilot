@@ -23,6 +23,7 @@ procs = [
   # due to qualcomm kernel bugs SIGKILLing camerad sometimes causes page table corruption
   ManagerProcess("calibrationd", "calibrationd"),
   ManagerProcess("plannerd", "plannerd"),
+  ManagerProcess("modelparsed", "./selfdrive/modeld/modelparsed"),
   ManagerProcess("controlsd", "controlsd"),
   ManagerProcess("proclogd", "./system/proclogd/proclogd"),
   ManagerProcess("logmessaged", "logmessaged", offroad=True),

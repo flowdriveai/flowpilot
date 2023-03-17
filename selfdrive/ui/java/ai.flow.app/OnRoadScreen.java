@@ -565,15 +565,14 @@ public class OnRoadScreen extends ScreenAdapter {
         if (appContext.isOnRoad) {
             offRoadRootTable.setVisible(false);
 
-            if (sh.updated(cameraTopic)) {
-                updateCamera();
-            }
-
-            renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
-
             stageFill.getViewport().apply();
             stageFill.act(delta);
             stageFill.draw();
+
+            if (sh.updated(cameraTopic)) {
+                updateCamera();
+            }
+            renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
 
             if (sh.updated(calibrationTopic)) {
                 Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();

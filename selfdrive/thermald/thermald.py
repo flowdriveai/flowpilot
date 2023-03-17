@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 import datetime
-import os
 import queue
 import threading
 import time
 from collections import OrderedDict, namedtuple
-from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 import psutil
@@ -18,11 +16,10 @@ from common.params import Params
 from common.realtime import DT_TRML, sec_since_boot
 from common.system import is_android, is_android_rooted
 from selfdrive.controls.lib.alertmanager import set_offroad_alert
-from system.hardware import HARDWARE, TICI, AGNOS
+from system.hardware import HARDWARE
 from selfdrive.loggerd.config import get_available_percent
 from selfdrive.statsd import statlog
 from selfdrive.swaglog import cloudlog
-from selfdrive.version import terms_version, training_version
 
 ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType

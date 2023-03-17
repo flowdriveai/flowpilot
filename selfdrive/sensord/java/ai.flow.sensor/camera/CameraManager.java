@@ -19,7 +19,6 @@ import org.opencv.videoio.VideoWriter;
 import org.opencv.videoio.Videoio;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import static ai.flow.common.BufferUtils.bufferFromAddress;
@@ -196,14 +195,6 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public boolean isRunning() {
         return this.initialized;
-    }
-
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length / 4];
-        for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        }
-        return ret;
     }
 
     public void loadIntrinsics(){
