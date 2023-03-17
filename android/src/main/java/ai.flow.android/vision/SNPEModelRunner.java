@@ -9,7 +9,6 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +48,8 @@ public class SNPEModelRunner extends ModelRunner {
                     .setDebugEnabled(false)
                     .setPerformanceProfile(NeuralNetwork.PerformanceProfile.SUSTAINED_HIGH_PERFORMANCE)
                     .setExecutionPriorityHint(NeuralNetwork.ExecutionPriorityHint.HIGH)
-                    .setModel(modelStream);
+                    .setModel(modelStream)
+                    .setInitCacheEnabled(true, "snpe", context);
 
             if (useGPU)
                 builder.setRuntimeOrder(Runtime.GPU_FLOAT16);
@@ -65,11 +65,6 @@ public class SNPEModelRunner extends ModelRunner {
             container.put(inputName, network.createFloatTensor(this.inputShapes.get(inputName)));
             containerArrs.put(inputName, new float[(int)numElements(this.inputShapes.get(inputName))]);
         }
-    }
-
-    public void BufferToFloatArr(float[] arr, ByteBuffer buffer){
-        for (int i=0; i<arr.length; i++)
-            arr[i] = buffer.getFloat(i*4);
     }
 
     public void writeTensor(FloatTensor tensor, float[] arr){
