@@ -14,10 +14,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -48,6 +46,8 @@ import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Locale;
 
+import static ai.flow.app.helpers.Utils.getImageButton;
+import static ai.flow.app.helpers.Utils.loadTextureMipMap;
 import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 
@@ -220,6 +220,8 @@ public class OnRoadScreen extends ScreenAdapter {
         String version = appContext.params.exists("Version") ? "flowpilot v" + appContext.params.getString("Version") : "";
         vesrionLabel = new Label(version,  appContext.skin, "default-font", "white");
         offRoadRootTable.add(dateLabel).align(Align.topLeft).padTop(15);
+        offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
+        offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
         offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
         offRoadRootTable.row();
         offRoadRootTable.add(offRoadTable).colspan(2).align(Align.left).padTop(10);
@@ -576,8 +578,7 @@ public class OnRoadScreen extends ScreenAdapter {
             stageFill.draw();
 
             if (sh.updated(calibrationTopic)) {
-                sh.recvBuffer(calibrationTopic, msgLiveCalibBuffer);
-                liveCalib = msgLiveCalib.deserialize().getLiveCalibration();
+                Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
                 updateAugmentVectors(liveCalib);
             }
 

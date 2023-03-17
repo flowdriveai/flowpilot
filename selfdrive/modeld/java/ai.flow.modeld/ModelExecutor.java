@@ -29,6 +29,7 @@ import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 public class ModelExecutor implements Runnable{
 
     public boolean stopped = false;
+    boolean exit = false;
     public Thread thread;
     public final String threadName = "modeld";
     public boolean initialized = false;
@@ -189,7 +190,16 @@ public class ModelExecutor implements Runnable{
 
         initialized = true;
         params.putBool("ModelDReady", true);
-        while (!stopped) {
+        while (!exit) {
+            if (stopped){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
+
             try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "ModelD")) {
                 updateCameraState();
                 start = System.currentTimeMillis();
@@ -289,8 +299,11 @@ public class ModelExecutor implements Runnable{
         return initialized;
     }
 
+    public void dispose(){
+        exit = true;
+    }
+
     public void stop() {
         stopped = true;
-        params.putBool("ModelDReady", false);
     }
 }
