@@ -222,14 +222,14 @@ public class ModelExecutor implements Runnable{
             netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix);
             netInputWideBuffer = imageWidePrepare.prepare(wideImgBuffer, wrapMatrixWide);
 
-            try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "ModelD")) {
-                if (snpe){
-                    // NCHW to NHWC
-                    netInputBuffer = netInputBuffer.permute(0, 2, 3, 1).dup();
-                    netInputWideBuffer = netInputWideBuffer.permute(0, 2, 3, 1).dup();
+            if (snpe){
+                try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "ModelD")) {
+                // NCHW to NHWC
+                netInputBuffer = netInputBuffer.permute(0, 2, 3, 1).dup();
+                netInputWideBuffer = netInputWideBuffer.permute(0, 2, 3, 1).dup();
                 }
             }
-
+            
             inputMap.put("input_imgs", netInputBuffer);
             inputMap.put("big_input_imgs", netInputWideBuffer);
             modelRunner.run(inputMap, outputMap);
@@ -275,6 +275,7 @@ public class ModelExecutor implements Runnable{
     }
 
     public void start() {
+        stopped = false;
         if (thread == null) {
             thread = new Thread(this, threadName);
             thread.setDaemon(false);
