@@ -212,6 +212,8 @@ SConscript(['cereal/SConscript'])
 SConscript(['panda/board/SConscript'])
 SConscript(['opendbc/can/SConscript'])
 
+SConscript(['system/proclogd/SConscript'])
+
 SConscript(['common/kalman/SConscript'])
 SConscript(['common/transformations/SConscript'])
 

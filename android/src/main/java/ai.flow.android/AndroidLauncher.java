@@ -8,17 +8,20 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
 import ai.flow.launcher.Launcher;
-import ai.flow.sensor.SensorInterface;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.modeld.ModelRunner;
 import ai.flow.modeld.TNNModelRunner;
+import ai.flow.sensor.SensorInterface;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Process;
 import android.provider.Settings;
 import android.system.ErrnoException;
@@ -30,17 +33,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-
-import java.util.*;
-
 import org.acra.ACRA;
 import org.acra.BuildConfig;
 import org.acra.ErrorReporter;
 import org.acra.config.CoreConfigurationBuilder;
+import org.acra.config.HttpSenderConfigurationBuilder;
 import org.acra.config.ToastConfigurationBuilder;
 import org.acra.data.StringFormat;
-import org.acra.config.HttpSenderConfigurationBuilder;
 import org.acra.sender.HttpSender;
+
+import java.util.*;
+
+import static android.os.Build.VERSION.SDK_INT;
 
 /** Launches the Android application. */
 public class AndroidLauncher extends AndroidApplication {
@@ -91,7 +95,7 @@ public class AndroidLauncher extends AndroidApplication {
 		requestPermissions();
 		while (!checkPermissions()){
 			try {
-				Thread.sleep(500);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
@@ -172,7 +176,7 @@ public class AndroidLauncher extends AndroidApplication {
 				.setEnabled(true);
 		builder.getPluginConfigurationBuilder(ToastConfigurationBuilder.class)
 				.withText("crash report sent to flowpilot maintainers")
-				.setEnabled(true);
+				.setEnabled(false);
 
 		ACRA.init((Application) base.getApplicationContext(), builder);
 	}
@@ -192,6 +196,10 @@ public class AndroidLauncher extends AndroidApplication {
 				return false;
 			}
 		}
+
+		// External storage access permissions for android 12 and above.
+		if (SDK_INT >= Build.VERSION_CODES.R)
+			return Environment.isExternalStorageManager();
 		return true;
 	}
 
@@ -203,5 +211,22 @@ public class AndroidLauncher extends AndroidApplication {
 		}
 		if (!requestPermissions.isEmpty())
 			ActivityCompat.requestPermissions(this, requestPermissions.toArray(new String[0]), 1);
+
+		// External storage access permissions for android 12 and above.
+		if (SDK_INT >= Build.VERSION_CODES.R) {
+			if (Environment.isExternalStorageManager())
+				return;
+			try {
+				Toast.makeText(appContext, "grant external storage access to flowpilot.", Toast.LENGTH_LONG).show();
+				Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+				intent.addCategory("android.intent.category.DEFAULT");
+				intent.setData(Uri.parse(String.format("package:%s",getApplicationContext().getPackageName())));
+				startActivityForResult(intent, 6969);
+			} catch (Exception e) {
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+				startActivityForResult(intent, 6969);
+			}
+		}
 	}
 }

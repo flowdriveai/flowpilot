@@ -8,7 +8,7 @@ from typing import Optional
 #TODO implement this
 #from tools.lib.auth_config import get_token
 #from tools.lib.api import CommaApi
-#from tools.lib.helpers import RE
+from tools.lib.helpers import RE
 
 QLOG_FILENAMES = ['qlog', 'qlog.bz2']
 QCAMERA_FILENAMES = ['qcamera.ts']

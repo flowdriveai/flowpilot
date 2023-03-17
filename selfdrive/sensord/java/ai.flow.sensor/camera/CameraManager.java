@@ -27,6 +27,7 @@ import static ai.flow.common.BufferUtils.bufferFromAddress;
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
     public boolean stopped = false;
+    public boolean exit = false;
     public boolean initialized = false;
     private final boolean useYUV = true;
     public VideoCapture capture;
@@ -159,7 +160,15 @@ public class CameraManager extends SensorInterface implements Runnable {
             return;
         ph.createPublishers(Arrays.asList(frameDataTopic, frameBufferTopic));
         long start, end, diff;
-        while (!stopped){
+        while (!exit){
+            if (stopped){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
             start = System.currentTimeMillis();
             capture.read(frame);
             end = System.currentTimeMillis();
@@ -214,6 +223,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     }
 
     public void start() {
+        stopped = false;
         if (thread == null) {
             thread = new Thread(this, "camerad:" + frameDataTopic);
             thread.setDaemon(false);
@@ -223,6 +233,17 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void stop() {
         stopped = true;
+    }
+
+    public void dispose(){
+        exit = true;
+        stopped = true;
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        thread = null;
         ph.releaseAll();
         if (capture!=null)
             capture.release();

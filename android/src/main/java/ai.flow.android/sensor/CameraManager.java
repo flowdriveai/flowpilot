@@ -202,8 +202,6 @@ public class CameraManager extends SensorInterface {
             }
         });
 
-
-
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
 
@@ -281,9 +279,17 @@ public class CameraManager extends SensorInterface {
     @SuppressLint("RestrictedApi")
     @Override
     public void stop() {
+        // TODO: add pause/resume functionality
+        if (!running)
+            return;
         videoCapture.stopRecording();
         cameraProvider.unbindAll();
-        ph.releaseAll();
         running = false;
+    }
+
+    @Override
+    public void dispose(){
+        stop();
+        ph.releaseAll();
     }
 }

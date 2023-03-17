@@ -1,5 +1,7 @@
 package ai.flow.app;
 
+import ai.flow.app.helpers.GifDecoder;
+import ai.flow.app.helpers.Utils;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.Definitions;
@@ -23,7 +25,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -40,7 +41,12 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Arrays;
+import java.util.Locale;
 
 import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
@@ -101,15 +107,15 @@ public class OnRoadScreen extends ScreenAdapter {
     String controlsStateTopic = "controlsState";
     String canTopic = "can";
 
-    Label velocityLabel, velocityUnitLabel, alertText1, alertText2, maxCruiseSpeedLabel;
-    Table velocityTable, maxCruiseTable, alertTable, infoTable;
+    Label velocityLabel, velocityUnitLabel, alertText1, alertText2, maxCruiseSpeedLabel, dateLabel, vesrionLabel;
+    Table velocityTable, maxCruiseTable, alertTable, infoTable, offRoadTable, rootTable, offRoadRootTable;
     Stack statusLabelTemp, statusLabelCan, statusLabelOnline, maxCruise;
     ImageButton settingsButton;
     ParsedOutputs parsed = new ParsedOutputs();
     int canErrCount = 0;
     int canErrCountPrev = 0;
     float uiWidth = 1280;
-    float uiHeight = 720;
+    float uiHeight = 640;
     float settingsBarWidth;
     final INDArray K = Camera.ecam_intrinsics.dup();
     boolean cameraMatrixUpdated = false;
@@ -119,6 +125,9 @@ public class OnRoadScreen extends ScreenAdapter {
     NV12Renderer nv12Renderer;
     Definitions.FrameBuffer.Reader msgframeBuffer;
     Definitions.FrameData.Reader msgframeData;
+    Animation<TextureRegion> animationNight, animationNoon, animationSunset;
+    float elapsed;
+    private static final DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -130,26 +139,6 @@ public class OnRoadScreen extends ScreenAdapter {
         PrimitiveList.Float.Reader rpy = liveCalib.getRpyCalib();
         for (int i=0; i<3; i++)
             augmentRot.put(0, i, rpy.get(i));
-    }
-
-    public void setTableColor(Table table, float r, float g, float b, float a){
-        Pixmap bgPixmap = new Pixmap(1,1, Pixmap.Format.RGB565);
-        bgPixmap.setColor(r, g, b, a);
-        bgPixmap.fill();
-        TextureRegionDrawable textureRegionDrawableBg = new TextureRegionDrawable(new TextureRegion(new Texture(bgPixmap)));
-        table.setBackground(textureRegionDrawableBg);
-        bgPixmap.dispose();
-    }
-
-    public ImageButton getImageButton(String texturePath){ //TODO Move to common
-        Texture buttonTexture = loadTextureMipMap(texturePath);
-        return new ImageButton(new TextureRegionDrawable(buttonTexture));
-    }
-
-    public Texture loadTextureMipMap(String path){
-        Texture texture = new Texture(Gdx.files.absolute(Path.internal(path)), true);
-        texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
-        return texture;
     }
 
     public Stack getStatusLabel(String text){
@@ -185,9 +174,7 @@ public class OnRoadScreen extends ScreenAdapter {
         return new Stack(bg, table);
     }
 
-    public void updateMaxCruise(float speed){
-    }
-
+    @SuppressWarnings("NewApi")
     public OnRoadScreen(FlowUI appContext) {
         this.appContext = appContext;
         batch = new SpriteBatch();
@@ -196,11 +183,14 @@ public class OnRoadScreen extends ScreenAdapter {
         texture = new Texture(pixelMap);
         settingsBarWidth = uiWidth / 3f * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
 
+        rootTable = new Table();
+        rootTable.setFillParent(true);
+        rootTable.align(Align.left);
+
         infoTable = new Table();
-        infoTable.setWidth(settingsBarWidth);
-        infoTable.setHeight(uiHeight);
-        infoTable.align(Align.topLeft);
-        setTableColor(infoTable, colorSettingsBar[0], colorSettingsBar[1], colorSettingsBar[2], 1);
+        Utils.setTableColor(infoTable, colorSettingsBar[0], colorSettingsBar[1], colorSettingsBar[2], 1);
+
+        rootTable.add(infoTable).expandY();
 
         velocityTable = new Table();
         velocityTable.setFillParent(true);
@@ -217,6 +207,25 @@ public class OnRoadScreen extends ScreenAdapter {
         alertTable.align(Align.bottom);
         alertTable.padBottom(100);
 
+        offRoadRootTable = new Table();
+        offRoadRootTable.setFillParent(true);
+        offRoadRootTable.align(Align.left);
+
+        offRoadTable = new Table();
+        offRoadTable.setBackground(Utils.createRoundedRectangle(900, 550, 20, new Color(0.18f, 0.18f, 0.18f, 0.7f)));
+
+        DateTimeFormatter f = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.US);
+        dateLabel = new Label(LocalDateTime.now().format(f),  appContext.skin, "default-font", "white");
+
+        String version = appContext.params.exists("Version") ? "flowpilot v" + appContext.params.getString("Version") : "";
+        vesrionLabel = new Label(version,  appContext.skin, "default-font", "white");
+        offRoadRootTable.add(dateLabel).align(Align.topLeft).padTop(15);
+        offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
+        offRoadRootTable.row();
+        offRoadRootTable.add(offRoadTable).colspan(2).align(Align.left).padTop(10);
+
+        rootTable.add(offRoadRootTable).padLeft(20);
+
         cameraModel = new OrthographicCamera(defaultImageWidth, defaultImageHeight);
         cameraModel.setToOrtho(true, defaultImageWidth, defaultImageHeight);
         cameraModel.update();
@@ -232,7 +241,6 @@ public class OnRoadScreen extends ScreenAdapter {
         stageFill = new Stage(new FillViewport(defaultImageWidth, defaultImageHeight));
         // used to draw UI components with respect to screen dimensions.
         stageUI = new Stage(new FitViewport(uiWidth, uiHeight));
-
         // used to draw alert messages.
         stageAlert = new Stage(new ScreenViewport());
 
@@ -269,12 +277,11 @@ public class OnRoadScreen extends ScreenAdapter {
             }
         });
         settingsButton.setColor(1, 1, 1, 0.6f);
-        infoTable.add(settingsButton).align(Align.top).height(uiHeight/9f).width(settingsBarWidth).padTop(30);
-
+        infoTable.add(settingsButton).align(Align.top).height(uiHeight/9f).width(settingsBarWidth).padTop(50);
         infoTable.row();
         statusLabelTemp = getStatusLabel("TEMP\nGOOD");
         updateStatusLabel(statusLabelTemp, StatusColors.colorStatusGood);
-        infoTable.add(statusLabelTemp).align(Align.top).height(uiHeight/8f).width(settingsBarWidth*0.8f).padTop(100);
+        infoTable.add(statusLabelTemp).align(Align.top).height(uiHeight/8f).width(settingsBarWidth*0.8f).padTop(60);
         infoTable.row();
         statusLabelCan = getStatusLabel("CAN\nOFFLINE");
         updateStatusLabel(statusLabelCan, StatusColors.colorStatusCritical);
@@ -286,13 +293,13 @@ public class OnRoadScreen extends ScreenAdapter {
         infoTable.row();
         Image logoTexture = new Image(loadTextureMipMap("selfdrive/assets/icons/circle-white.png"));
         logoTexture.setColor(1, 1, 1, 0.85f);
-        infoTable.add(logoTexture).align(Align.top).size(120).padTop(35);
+        infoTable.add(logoTexture).align(Align.top).size(110).padTop(35).padBottom(40);
 
         stageFill.addActor(texImage);
         stageUI.addActor(velocityTable);
         stageUI.addActor(maxCruiseTable);
         stageUI.addActor(alertTable);
-        stageSettings.addActor(infoTable);
+        stageSettings.addActor(rootTable);
 
         velocityTable.moveBy(settingsBarWidth/2f, 0); // TODO is this really correct ?
         alertTable.moveBy(settingsBarWidth/2f, 0);
@@ -301,6 +308,8 @@ public class OnRoadScreen extends ScreenAdapter {
         texImage.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if (!appContext.isOnRoad)
+                    return;
                 infoTable.setVisible(!infoTable.isVisible());
                 if (infoTable.isVisible()) {
                     cameraAlertBox.translate(-settingsBarWidth, 0, 0);
@@ -318,10 +327,24 @@ public class OnRoadScreen extends ScreenAdapter {
             }
         });
 
+        animationNoon = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/noon.gif")).read());
+        animationSunset = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/sunset.gif")).read());
+        animationNight = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/night.gif")).read());
+
         sh = new ZMQSubHandler(true);
         ph = new ZMQPubHandler();
         sh.createSubscribers(Arrays.asList(cameraTopic, cameraBufferTopic, modelTopic, calibrationTopic, carStateTopic, controlsStateTopic, canTopic));
         ph.createPublisher(desireTopic);
+    }
+
+    public Animation<TextureRegion> getCurrentAnimation(){
+        @SuppressWarnings("NewApi") int hour = LocalDateTime.now().getHour();
+        if (hour >= 20 || hour < 7)
+            return  animationNight;
+        else if (hour < 19)
+            return animationNoon;
+        else
+            return animationSunset;
     }
 
     @Override
@@ -537,58 +560,71 @@ public class OnRoadScreen extends ScreenAdapter {
     public void render(float delta) {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT | (Gdx.graphics.getBufferFormat().coverageSampling?GL20.GL_COVERAGE_BUFFER_BIT_NV:0));
+        elapsed += Gdx.graphics.getDeltaTime();
 
-        stageFill.getViewport().apply();
-        stageFill.act(delta);
-        stageFill.draw();
+        if (appContext.isOnRoad) {
+            offRoadRootTable.setVisible(false);
 
-        if (sh.updated(cameraTopic)) {
-            updateCamera();
+            if (sh.updated(cameraTopic)) {
+                updateCamera();
+            }
+
+            renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
+
+            stageFill.getViewport().apply();
+            stageFill.act(delta);
+            stageFill.draw();
+
+            if (sh.updated(calibrationTopic)) {
+                sh.recvBuffer(calibrationTopic, msgLiveCalibBuffer);
+                liveCalib = msgLiveCalib.deserialize().getLiveCalibration();
+                updateAugmentVectors(liveCalib);
+            }
+
+            if (sh.updated(modelTopic)) {
+                updateModelOutputs();
+                modelAlive = true;
+            }
+
+            if (modelAlive)
+                drawModelOutputs();
+
+            setUnits();
+
+            if (sh.updated(carStateTopic))
+                updateCarState();
+
+            drawAlert(controlState);
+
+            stageUI.getViewport().apply();
+            stageUI.draw();
+
+            batch.begin();
+            appContext.font.draw(batch, String.valueOf(appContext.launcher.modeld.getIterationRate()),
+                    Gdx.graphics.getWidth() - 200,
+                    Gdx.graphics.getHeight() - 200);
+            batch.end();
         }
+        else{
+            batch.begin();
+            batch.setColor(1, 1, 1, 0.6f);
+            batch.draw(getCurrentAnimation().getKeyFrame(elapsed), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            batch.end();
 
-        if (sh.updated(calibrationTopic)) {
-            Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
-            updateAugmentVectors(liveCalib);
+            offRoadRootTable.setVisible(true);
+
+            if (!infoTable.isVisible())
+                infoTable.setVisible(true);
         }
-        
-        renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
-
-        if (sh.updated(modelTopic)){
-            updateModelOutputs();
-            modelAlive = true;
-        }
-
-        if (modelAlive)
-            drawModelOutputs();
-
-        if (sh.updated(controlsStateTopic)) {
-            controlsAlive = true;
-            updateControls();
-        }
-
-        setUnits();
-
-        if (sh.updated(carStateTopic))
-            updateCarState();
-
-        drawAlert(controlState);
-
-        stageUI.getViewport().apply();
-        stageUI.draw();
 
         stageSettings.getViewport().apply();
         stageSettings.act(delta);
         stageSettings.draw();
 
-        batch.begin();
-        appContext.font.draw(batch, String.valueOf(appContext.launcher.modeld.getIterationRate()),
-                Gdx.graphics.getWidth() - 200,
-                Gdx.graphics.getHeight() - 200);
-
-        appContext.font.draw(batch, "% " + appContext.launcher.modeld.getFrameDropPercent(),
-                Gdx.graphics.getWidth() - 200,
-                Gdx.graphics.getHeight() - 230);
-        batch.end();
+        if (sh.updated(controlsStateTopic)) {
+            controlsAlive = true;
+            updateControls();
+        }
 
         handleDesire();
     }

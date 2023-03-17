@@ -21,6 +21,8 @@ setup(name="flowpilot",
                                         "pandad=selfdrive.boardd.pandad:run",
                                         "uploader=selfdrive.loggerd.uploader:main",
                                         "deleter=selfdrive.loggerd.deleter:main",
+                                        "statsd=selfdrive.statsd:main",
+                                        "thermald_=selfdrive.thermald.thermald:main", # thermald name is reserverd
                                         "flowinit=selfdrive.manager.flowinitd:main"]}
      )
 
