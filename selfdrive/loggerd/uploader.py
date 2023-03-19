@@ -296,7 +296,7 @@ def uploader_fn(exit_event):
 
 
 def main():
-  parser = argparse.ArgumentParser(prog='Flowpilot loggerd')
+  parser = argparse.ArgumentParser(prog='Flowpilot uploader')
   parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Get verbose logs",)
 
   args = parser.parse_args()
