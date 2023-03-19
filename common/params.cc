@@ -61,6 +61,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"IsLdwEnabled", PERSISTENT},
     {"IsRHD", PERSISTENT},
     {"IsMetric", PERSISTENT},
+    {"F3", PERSISTENT},
     {"EndToEndToggle", PERSISTENT},
     {"RecordRoad", CLEAR_ON_MANAGER_START},  
     {"EnableWideCamera", PERSISTENT},  

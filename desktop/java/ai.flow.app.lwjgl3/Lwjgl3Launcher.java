@@ -1,13 +1,12 @@
 package ai.flow.app.lwjgl3;
 
 import ai.flow.app.FlowUI;
+import ai.flow.common.ParamsInterface;
+import ai.flow.common.Path;
 import ai.flow.common.SystemUtils;
 import ai.flow.common.transformations.Camera;
 import ai.flow.launcher.Launcher;
-import ai.flow.modeld.ModelExecutor;
-import ai.flow.modeld.ModelRunner;
-import ai.flow.modeld.ONNXModelRunner;
-import ai.flow.modeld.TNNModelRunner;
+import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.DualCameraManager;
@@ -37,7 +36,10 @@ public class Lwjgl3Launcher {
 			put("motionSensors", sensorManager);
 		}};
 
-		String modelPath = "selfdrive/assets/models/supercombo";
+		ParamsInterface params = ParamsInterface.getInstance();
+
+		boolean f3 = params.existsAndCompare("F3", true);
+		String modelPath = Path.getModelDir(f3);
 
 		// onnx CPU performs better than TNN.
 		ModelRunner model;
@@ -46,7 +48,10 @@ public class Lwjgl3Launcher {
 		else
 			model = new ONNXModelRunner(modelPath, getUseGPU());
 
-		Launcher launcher = new Launcher(sensors, new ModelExecutor(model));
+		ModelExecutor modelExecutor;
+		modelExecutor = f3 ? new ModelExecutorF3(model) : new ModelExecutorF2(model);
+
+		Launcher launcher = new Launcher(sensors, modelExecutor);
 		return new Lwjgl3Application(new FlowUI(launcher, SystemUtils.getPID()), getDefaultConfiguration());
 	}
 

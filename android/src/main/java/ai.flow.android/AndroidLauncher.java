@@ -8,9 +8,7 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
 import ai.flow.launcher.Launcher;
-import ai.flow.modeld.ModelExecutor;
-import ai.flow.modeld.ModelRunner;
-import ai.flow.modeld.TNNModelRunner;
+import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -123,7 +121,8 @@ public class AndroidLauncher extends AndroidApplication {
 
 		int pid = Process.myPid();
 
-		String modelPath = Path.internal("selfdrive/assets/models/supercombo");
+		boolean f3 = params.existsAndCompare("F3", true);
+		String modelPath = Path.getModelDir(f3);
 
 		ModelRunner model;
 		boolean useGPU = true; // always use gpus on android phones.
@@ -132,7 +131,9 @@ public class AndroidLauncher extends AndroidApplication {
 		else
 			model = new TNNModelRunner(modelPath, useGPU);
 
-		Launcher launcher = new Launcher(sensors, new ModelExecutor(model));
+		ModelExecutor modelExecutor;
+		modelExecutor = f3 ? new ModelExecutorF3(model) : new ModelExecutorF2(model);
+		Launcher launcher = new Launcher(sensors, modelExecutor);
 
 		ErrorReporter ACRAreporter = ACRA.getErrorReporter();
 		ACRAreporter.putCustomData("DongleId", dongleID);

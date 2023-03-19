@@ -1,10 +1,9 @@
 package ai.flow.launcher;
 
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
-import ai.flow.modeld.ModelExecutor;
-import ai.flow.modeld.ModelRunner;
-import ai.flow.modeld.TNNModelRunner;
+import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.DualCameraManager;
@@ -65,10 +64,15 @@ public class Launcher {
             put("motionSensors", sensorManager);
         }};
 
-        String modelPath = "models/supercombo";
+        boolean f3 = params.existsAndCompare("F3", true);
+        String modelPath = Path.getModelDir(f3);
+
         ModelRunner model = new TNNModelRunner(modelPath, true);
 
-        this.modeld = new ModelExecutor(model);
+        ModelExecutor modelExecutor;
+        modelExecutor = f3 ? new ModelExecutorF3(model) : new ModelExecutorF2(model);
+
+        this.modeld = modelExecutor;
         this.startAllD();
     }
 }

@@ -12,6 +12,9 @@ def notcar(started: bool, params: Params, CP: car.CarParams) -> bool:
 def logging(started, params, CP: car.CarParams) -> bool:
   run = (not CP.notCar) or not params.get_bool("DisableLogging")
   return started and run
+
+def is_f3():
+  return Params().get_bool("F3")
     
   # ai.flow.app:
   #   command: "am start --user 0 -n ai.flow.android/ai.flow.android.AndroidLauncher"
@@ -23,7 +26,7 @@ procs = [
   # due to qualcomm kernel bugs SIGKILLing camerad sometimes causes page table corruption
   ManagerProcess("calibrationd", "calibrationd"),
   ManagerProcess("plannerd", "plannerd"),
-  ManagerProcess("modelparsed", "./selfdrive/modeld/modelparsed"),
+  ManagerProcess("modelparsed", "./selfdrive/modeld/modelparsed", enabled=is_f3()),
   ManagerProcess("controlsd", "controlsd"),
   ManagerProcess("proclogd", "./system/proclogd/proclogd"),
   ManagerProcess("logmessaged", "logmessaged", offroad=True),

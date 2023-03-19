@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static ai.flow.common.BufferUtils.bufferFromAddress;
+import static ai.flow.common.BufferUtils.byteToFloat;
 
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
@@ -47,8 +48,9 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void setIntrinsics(float[] intrinsics){
         assert (intrinsics.length == 9) : "invalid intrinsic matrix length";
-        for (int i=0; i<intrinsics.length; i++)
+        for (int i=0; i<intrinsics.length; i++) {
             K.set(i, intrinsics[i]);
+        }
     }
 
     public CameraManager(int cameraType, int frequency, String videoSrc, int frameWidth, int frameHeight) {
@@ -199,8 +201,7 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void loadIntrinsics(){
         if (params.exists("CameraMatrix")) {
-            //float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
-            float[] cameraMatrix = Camera.ecam_intrinsics.reshape(3*3).toFloatVector();
+            float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
             updateProperty("intrinsics", cameraMatrix);
         }
     }

@@ -39,7 +39,6 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
 import java.nio.ByteBuffer;
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
@@ -72,7 +71,7 @@ public class OnRoadScreen extends ScreenAdapter {
     float fadeStrength = 0.03f;
     float minZ = 0.2f;
     float minLeadProb = 0.5f;
-    float leadDrawScale = 6f; /** in meters (think of it as a 6m sign board) **/
+    float leadDrawScale = 6f;
     float borderWidth = 30;
     float expandedBorderWidth = 600;
     int defaultImageWidth = Camera.frameSize[0];
@@ -117,7 +116,7 @@ public class OnRoadScreen extends ScreenAdapter {
     float uiWidth = 1280;
     float uiHeight = 640;
     float settingsBarWidth;
-    final INDArray K = Camera.ecam_intrinsics.dup();
+    INDArray K = Camera.ecam_intrinsics.dup();
     boolean cameraMatrixUpdated = false;
     boolean isMetric;
     boolean laneLess;
@@ -127,7 +126,7 @@ public class OnRoadScreen extends ScreenAdapter {
     Definitions.FrameData.Reader msgframeData;
     Animation<TextureRegion> animationNight, animationNoon, animationSunset;
     float elapsed;
-    private static final DecimalFormat decimalFormat = new DecimalFormat("0.00");
+    boolean isF3;
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -177,6 +176,14 @@ public class OnRoadScreen extends ScreenAdapter {
     @SuppressWarnings("NewApi")
     public OnRoadScreen(FlowUI appContext) {
         this.appContext = appContext;
+
+        isF3 = appContext.params.existsAndCompare("F3", true);
+        if (!isF3){
+            cameraTopic = "roadCameraState";
+            cameraBufferTopic = "roadCameraBuffer";
+            K = Camera.fcam_intrinsics.dup();
+        }
+
         batch = new SpriteBatch();
         pixelMap = new Pixmap(defaultImageWidth, defaultImageHeight, Pixmap.Format.RGB888);
         pixelMap.setBlending(Pixmap.Blending.None);
@@ -574,16 +581,6 @@ public class OnRoadScreen extends ScreenAdapter {
             }
             renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
 
-            if (sh.updated(calibrationTopic)) {
-                Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
-                updateAugmentVectors(liveCalib);
-            }
-
-            if (sh.updated(modelTopic)) {
-                updateModelOutputs();
-                modelAlive = true;
-            }
-
             if (modelAlive)
                 drawModelOutputs();
 
@@ -618,6 +615,16 @@ public class OnRoadScreen extends ScreenAdapter {
         stageSettings.getViewport().apply();
         stageSettings.act(delta);
         stageSettings.draw();
+
+        if (sh.updated(calibrationTopic)) {
+            Definitions.LiveCalibrationData.Reader liveCalib = sh.recv(calibrationTopic).getLiveCalibration();
+            updateAugmentVectors(liveCalib);
+        }
+
+        if (sh.updated(modelTopic)) {
+            updateModelOutputs();
+            modelAlive = true;
+        }
 
         if (sh.updated(controlsStateTopic)) {
             controlsAlive = true;
