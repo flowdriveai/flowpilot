@@ -88,26 +88,9 @@ public class Preprocess {
     }
 
     public static INDArray eulerAnglesToRotationMatrix(double roll, double pitch, double yaw, double height, boolean isDegrees){
-        if (isDegrees){
-            yaw = Math.toRadians(yaw);
-            pitch = Math.toRadians(pitch);
-            roll = Math.toRadians(roll);
-        }
-
-        float c1 = (float)Math.cos(pitch);
-        float s1 = (float)Math.sin(pitch);
-        float c2 = (float)Math.cos(yaw );
-        float s2 = (float)Math.sin(yaw);
-        float c3 = (float)Math.cos(roll);
-        float s3 = (float)Math.sin(roll);
-
-        float[] R_buffer = {c2*c3, -c2*s3, s2,
-                            c1*s3+c3*s1*s2, c1*c3-s1*s2*s3, -c2*s1,
-                            s1*s3-c1*c3*s2, c3*s1+c1*s2*s3, c1*c2};
+        INDArray R = eulerAnglesToRotationMatrix(roll, pitch, yaw, isDegrees);
 
         float[] t_buffer = {0, (float)height, 0};
-
-        INDArray R = Nd4j.create(R_buffer, 3, 3);
         INDArray t = Nd4j.create(t_buffer, 1, 3);
 
         return Nd4j.vstack(R, t).transpose();
@@ -120,18 +103,26 @@ public class Preprocess {
             roll = Math.toRadians(roll);
         }
 
-        float c1 = (float)Math.cos(pitch);
-        float s1 = (float)Math.sin(pitch);
-        float c2 = (float)Math.cos(yaw );
-        float s2 = (float)Math.sin(yaw);
-        float c3 = (float)Math.cos(roll);
-        float s3 = (float)Math.sin(roll);
+        float rot[][] = new float[3][3];
 
-        float[] R_buffer = {c2*c3, -c2*s3, s2,
-                c1*s3+c3*s1*s2, c1*c3-s1*s2*s3, -c2*s1,
-                s1*s3-c1*c3*s2, c3*s1+c1*s2*s3, c1*c2};
+        float cp = (float) Math.cos(pitch);
+        float sp = (float) Math.sin(pitch);
+        float sr = (float) Math.sin(roll);
+        float cr = (float) Math.cos(roll);
+        float sy = (float) Math.sin(yaw);
+        float cy = (float) Math.cos(yaw);
 
-        INDArray R = Nd4j.create(R_buffer, 3, 3);
+        rot[0][0] = cp * cy;
+        rot[1][0] = (sr * sp * cy) - (cr * sy);
+        rot[2][0] = (cr * sp * cy) + (sr * sy);
+        rot[0][1] = cp * sy;
+        rot[1][1] = (sr * sp * sy) + (cr * cy);
+        rot[2][1] = (cr * sp * sy) - (sr * cy);
+        rot[0][2] = -sp;
+        rot[1][2] = sr * cp;
+        rot[2][2] = cr * cp;
+
+        INDArray R = Nd4j.create(rot);
         return R.transpose();
     }
 

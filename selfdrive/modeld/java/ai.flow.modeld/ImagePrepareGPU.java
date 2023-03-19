@@ -29,7 +29,6 @@ public class ImagePrepareGPU implements ImagePrepare{
     public final INDArray netInputBuff = Nd4j.zeros(1, 12, MODEL_HEIGHT/2, MODEL_WIDTH/2);
 
     public boolean rgb;
-    ByteBuffer yuv;
 
     public ImagePrepareGPU(int W, int H, boolean rgb, int y_width, int y_height, int y_px_stride, int uv_width,
                            int uv_height, int uv_px_stride, int u_offset, int v_offset, int stride) {
@@ -45,8 +44,6 @@ public class ImagePrepareGPU implements ImagePrepare{
             yuv_cl = clCreateBuffer(context, CL_MEM_READ_WRITE, H*W*3/2, null, null);
         transformCL = new TransformCL(context, commandQueue, y_width, y_height, y_px_stride, uv_width, uv_height, uv_px_stride, u_offset, v_offset, stride);
         loadYUVCL = new LoadYUVCL(context, commandQueue);
-
-        yuv = ByteBuffer.allocateDirect(MODEL_HEIGHT*MODEL_WIDTH);
     }
 
     public INDArray prepare(ByteBuffer imgBuffer, INDArray transform){
@@ -60,10 +57,9 @@ public class ImagePrepareGPU implements ImagePrepare{
             clEnqueueWriteBuffer(commandQueue, yuv_cl, CL_TRUE, 0, H*W*3/2, Pointer.to(imgBuffer), 0, null, null);
         }
         transformCL.run(yuv_cl, transform);
-        transformCL.read_buffer(yuv);
-
         loadYUVCL.run(transformCL.y_cl, transformCL.u_cl, transformCL.v_cl, true);
         clFinish(commandQueue);
+
         loadYUVCL.read_buffer(netInputBuff.data().asNio());
         return netInputBuff;
     }

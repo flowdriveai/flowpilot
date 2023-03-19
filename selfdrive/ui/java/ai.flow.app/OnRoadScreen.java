@@ -429,8 +429,8 @@ public class OnRoadScreen extends ScreenAdapter {
         try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "DrawUI")) {
             INDArray RtPath;
             INDArray Rt;
-            Rt = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 0), -augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), 0.0, false);
-            RtPath = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 0), -augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), 1.22, false);
+            Rt = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), -augmentRot.getFloat(0, 0), 0.0, false);
+            RtPath = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), -augmentRot.getFloat(0, 0), 1.22, false);
             for (int i = 0; i< CommonModel.TRAJECTORY_SIZE; i++)
                 parsed.position.get(0)[i] = Math.max(parsed.position.get(0)[i], minZ);
             path = Draw.getLaneCameraFrame(parsed.position, K, RtPath, 0.9f);
@@ -442,8 +442,8 @@ public class OnRoadScreen extends ScreenAdapter {
             edge1 = Draw.getLaneCameraFrame(parsed.roadEdges.get(1), K, Rt, 0.1f);
 
             lead1s = Draw.getTriangleCameraFrame(parsed.leads.get(0), K, Rt, leadDrawScale);
-            lead2s = Draw.getTriangleCameraFrame(parsed.leads.get(1), K, Rt, leadDrawScale);
-            lead3s = Draw.getTriangleCameraFrame(parsed.leads.get(2), K, Rt, leadDrawScale);
+            //lead2s = Draw.getTriangleCameraFrame(parsed.leads.get(1), K, Rt, leadDrawScale);
+            //lead3s = Draw.getTriangleCameraFrame(parsed.leads.get(2), K, Rt, leadDrawScale);
         }
     }
 
@@ -528,10 +528,10 @@ public class OnRoadScreen extends ScreenAdapter {
 
         if (parsed.leads.get(0).prob > minLeadProb)
             drawLeadTriangle(lead1s, colorLead, parsed.leads.get(0).prob);
-        if (parsed.leads.get(1).prob > minLeadProb)
-            drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
-        if (parsed.leads.get(2).prob > minLeadProb)
-            drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
+        //if (parsed.leads.get(1).prob > minLeadProb)
+        //    drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
+        //if (parsed.leads.get(2).prob > minLeadProb)
+        //    drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
         appContext.shapeRenderer.end();
 
         Gdx.gl.glDisable(Gdx.gl.GL_BLEND);

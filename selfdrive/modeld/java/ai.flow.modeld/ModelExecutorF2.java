@@ -191,8 +191,6 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
                 prevDesire[0][i] = outs.metaData.desireState[i];
             }
 
-
-
             // publish outputs
             timestamp = System.currentTimeMillis();
             serializeAndPublish();
