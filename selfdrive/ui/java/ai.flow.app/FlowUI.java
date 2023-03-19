@@ -22,7 +22,7 @@ import java.util.Map;
 
 
 public class FlowUI extends Game {
-    final String API_ENDPOINT = "https://api.flowdrive.ai";
+    final String API_ENDPOINT = "https://staging-api.flowdrive.ai";
     final String AUTH_ENDPOINT = API_ENDPOINT + "/auth";
     public ShapeRenderer shapeRenderer;
     public SpriteBatch batch;
