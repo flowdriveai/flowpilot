@@ -53,8 +53,7 @@ public class FlowUI extends Game {
             @Override
             public void run() {
                 while (!Thread.interrupted()){
-                    if (params.exists("IsOnroad"))
-                        isOnRoad = params.getBool("IsOnroad");
+                    isOnRoad = params.existsAndCompare("IsOnroad", true);
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

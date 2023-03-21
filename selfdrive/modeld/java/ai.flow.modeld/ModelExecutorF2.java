@@ -249,6 +249,10 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
         return !stopped;
     }
 
+    public boolean isInitialized(){
+        return initialized;
+    }
+
     public void dispose(){
         exit = true;
     }

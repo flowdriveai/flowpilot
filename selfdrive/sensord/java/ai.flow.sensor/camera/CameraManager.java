@@ -110,7 +110,7 @@ public class CameraManager extends SensorInterface implements Runnable {
         msgFrameBuffer.frameBuffer.setUvHeight(frameHeight/2);
         msgFrameBuffer.frameBuffer.setUvPixelStride(2);
         msgFrameBuffer.frameBuffer.setUOffset(frameHeight*frameHeight);
-        msgFrameBuffer.frameBuffer.setVOffset(frameHeight*frameHeight+1);
+        msgFrameBuffer.frameBuffer.setVOffset(frameHeight*frameHeight);
         msgFrameBuffer.frameBuffer.setStride(frameWidth);
 
         rgbBuffer = bufferFromAddress(frameProcessed.dataAddr(), frameHeight*frameWidth*3);
