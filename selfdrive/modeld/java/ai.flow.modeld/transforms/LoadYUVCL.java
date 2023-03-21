@@ -6,7 +6,7 @@ import org.jocl.*;
 import java.nio.ByteBuffer;
 
 import static ai.flow.common.utils.readFile;
-import static ai.flow.modeld.CommonModel.*;
+import static ai.flow.modeld.CommonModelF3.*;
 import static org.jocl.CL.*;
 
 public class LoadYUVCL {

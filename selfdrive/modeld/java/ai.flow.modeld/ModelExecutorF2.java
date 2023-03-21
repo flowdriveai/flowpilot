@@ -183,7 +183,8 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
             for (int i=0; i<outs.state[0].length; i++)
                 stateNDArr.put(0, i, outs.state[0][i]);
 
-            for (int i=0; i<outs.metaData.desireState.length; i++){
+            desireNDArr.put(0, 0, 1.0f);
+            for (int i=1; i<outs.metaData.desireState.length; i++){
                 if (outs.metaData.desireState[i] - prevDesire[0][i] > 0.99f)
                     desireNDArr.put(0, i, outs.metaData.desireState[i]);
                 else

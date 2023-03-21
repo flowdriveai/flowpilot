@@ -1,6 +1,6 @@
 package ai.flow.modeld;
 
-import static ai.flow.vision.Parser.NUM_META_INTERVALS;
+import static ai.flow.modeld.CommonModelF2.NUM_META_INTERVALS;
 
 public class DisengagePredictions {
     public float[] t = {2f, 4f, 6f, 8f, 10f};

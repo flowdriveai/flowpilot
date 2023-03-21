@@ -1,7 +1,7 @@
 package ai.flow.app;
 
-import ai.flow.modeld.CommonModel;
-import ai.flow.modeld.LeadDataV2;
+import ai.flow.modeld.CommonModelF3;
+import ai.flow.modeld.LeadDataV3;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.indexing.NDArrayIndex;
@@ -17,10 +17,10 @@ public class Draw {
 
     public static INDArray[] getLaneCameraFrame(ArrayList<float[]> lane, INDArray K, INDArray Rt, float width) {
         // Camera assumes x left, y up, z forward
-        INDArray X = Nd4j.create(lane.get(1), 1, CommonModel.TRAJECTORY_SIZE);
-        INDArray Y = Nd4j.create(lane.get(2), 1, CommonModel.TRAJECTORY_SIZE);
-        INDArray Z = Nd4j.create(lane.get(0), 1, CommonModel.TRAJECTORY_SIZE);
-        INDArray W = Nd4j.ones(1, CommonModel.TRAJECTORY_SIZE);
+        INDArray X = Nd4j.create(lane.get(1), 1, CommonModelF3.TRAJECTORY_SIZE);
+        INDArray Y = Nd4j.create(lane.get(2), 1, CommonModelF3.TRAJECTORY_SIZE);
+        INDArray Z = Nd4j.create(lane.get(0), 1, CommonModelF3.TRAJECTORY_SIZE);
+        INDArray W = Nd4j.ones(1, CommonModelF3.TRAJECTORY_SIZE);
 
         // Make a line strip
         INDArray projected_left_edge = projectToCamera(Nd4j.vstack(X.add(-width / 2.0), Y, Z, W), K, Rt);

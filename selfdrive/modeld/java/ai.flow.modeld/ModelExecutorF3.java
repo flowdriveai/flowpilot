@@ -37,11 +37,11 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public long iterationNum = 1;
 
     public static int[] imgTensorShape = {1, 12, 128, 256};
-    public static final int[] desireTensorShape = {1, 100, CommonModel.DESIRE_LEN};
-    public static final int[] trafficTensorShape = {1, CommonModel.TRAFFIC_CONVENTION_LEN};
-    public static final int[] stateTensorShape = {1, CommonModel.HISTORY_BUFFER_LEN, CommonModel.FEATURE_LEN};
-    public static final int[] featureTensorShape = {1, 8, CommonModel.FEATURE_LEN};
-    public static final int[] outputTensorShape = {1, CommonModel.NET_OUTPUT_SIZE};
+    public static final int[] desireTensorShape = {1, 100, CommonModelF3.DESIRE_LEN};
+    public static final int[] trafficTensorShape = {1, CommonModelF3.TRAFFIC_CONVENTION_LEN};
+    public static final int[] stateTensorShape = {1, CommonModelF3.HISTORY_BUFFER_LEN, CommonModelF3.FEATURE_LEN};
+    public static final int[] featureTensorShape = {1, 8, CommonModelF3.FEATURE_LEN};
+    public static final int[] outputTensorShape = {1, CommonModelF3.NET_OUTPUT_SIZE};
 
     public static final Map<String, int[]> inputShapeMap = new HashMap<>();
     public static final Map<String, int[]> outputShapeMap = new HashMap<>();
@@ -58,8 +58,8 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
     public final ParamsInterface params = ParamsInterface.getInstance();
 
-    public final INDArrayIndex[] featureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0,CommonModel.HISTORY_BUFFER_LEN-1)};
-    public final INDArrayIndex[] featureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1,CommonModel.HISTORY_BUFFER_LEN)};
+    public final INDArrayIndex[] featureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN-1)};
+    public final INDArrayIndex[] featureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN)};
 
     public final INDArrayIndex[] gatherFeatureSlices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.indices(94, 89, 84, 79, 74, 69, 64, 59)};
     public final INDArrayIndex[] gatherFeatureSlices0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.all()};
@@ -236,8 +236,8 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
             // TODO: Add desire.
             stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
-            for (int i = 0; i < CommonModel.FEATURE_LEN; i++)
-                stateNDArr.putScalar(0, CommonModel.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModel.OUTPUT_SIZE + i]);
+            for (int i = 0; i < CommonModelF3.FEATURE_LEN; i++)
+                stateNDArr.putScalar(0, CommonModelF3.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModelF3.OUTPUT_SIZE + i]);
             featuresNDArr.put(gatherFeatureSlices0, stateNDArr.get(gatherFeatureSlices));
 
             // publish outputs

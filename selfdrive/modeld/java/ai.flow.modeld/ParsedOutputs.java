@@ -1,8 +1,9 @@
 package ai.flow.modeld;
 
-// Core java classes
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static ai.flow.modeld.CommonModelF2.LEAD_MHP_SELECTION;
 
 public class ParsedOutputs {
     public ArrayList<float[]> position; // path
@@ -39,13 +40,13 @@ public class ParsedOutputs {
     }
 
     public ArrayList<float[]> initXYZT(){
-        float[] x_arr = new float[CommonModel.TRAJECTORY_SIZE];
-        float[] y_arr = new float[CommonModel.TRAJECTORY_SIZE];
-        float[] z_arr = new float[CommonModel.TRAJECTORY_SIZE];
-        float[] t_arr = new float[CommonModel.TRAJECTORY_SIZE];
-        float[] x_std = new float[CommonModel.TRAJECTORY_SIZE];
-        float[] y_std = new float[CommonModel.TRAJECTORY_SIZE];
-        float[] z_std = new float[CommonModel.TRAJECTORY_SIZE];
+        float[] x_arr = new float[CommonModelF2.TRAJECTORY_SIZE];
+        float[] y_arr = new float[CommonModelF2.TRAJECTORY_SIZE];
+        float[] z_arr = new float[CommonModelF2.TRAJECTORY_SIZE];
+        float[] t_arr = new float[CommonModelF2.TRAJECTORY_SIZE];
+        float[] x_std = new float[CommonModelF2.TRAJECTORY_SIZE];
+        float[] y_std = new float[CommonModelF2.TRAJECTORY_SIZE];
+        float[] z_std = new float[CommonModelF2.TRAJECTORY_SIZE];
         return new ArrayList<float[]>(Arrays.asList(
             x_arr, y_arr, z_arr, t_arr, x_std, y_std, z_std
         ));
@@ -89,7 +90,7 @@ public class ParsedOutputs {
 
     public void initLeads(){
         leads = new ArrayList<LeadDataV3>();
-        for (int i=0; i<Parser.LEAD_MHP_SELECTION; i++){
+        for (int i=0; i<LEAD_MHP_SELECTION; i++){
             leads.add(new LeadDataV3());
         }
     }

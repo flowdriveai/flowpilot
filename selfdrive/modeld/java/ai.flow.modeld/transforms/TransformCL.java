@@ -7,7 +7,7 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import java.nio.ByteBuffer;
 
 import static ai.flow.common.utils.readFile;
-import static ai.flow.modeld.CommonModel.*;
+import static ai.flow.modeld.CommonModelF3.*;
 import static org.jocl.CL.*;
 
 public class TransformCL {

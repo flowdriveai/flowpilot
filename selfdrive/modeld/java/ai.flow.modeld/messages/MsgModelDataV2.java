@@ -2,8 +2,8 @@ package ai.flow.modeld.messages;
 
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
+import ai.flow.modeld.CommonModelF2;
 import ai.flow.modeld.ParsedOutputs;
-import ai.flow.modeld.CommonModel;
 import org.capnproto.PrimitiveList;
 import org.capnproto.StructList;
 
@@ -89,16 +89,12 @@ public class MsgModelDataV2 extends MessageBase {
     public PrimitiveList.Float.Builder laneLineXStd4;
     public PrimitiveList.Float.Builder laneLineYStd4;
     public PrimitiveList.Float.Builder laneLineZStd4;
-    public PrimitiveList.Float.Builder laneLine4Stds;
-
     public PrimitiveList.Float.Builder laneLineProbs;
     public PrimitiveList.Float.Builder laneLineStds;
 
     public StructList.Builder<Definitions.ModelDataV2.XYZTData.Builder> roadEdges;
     public Definitions.ModelDataV2.XYZTData.Builder roadEdge1;
     public Definitions.ModelDataV2.XYZTData.Builder roadEdge2;
-    public Definitions.ModelDataV2.XYZTData.Builder roadEdge3;
-    public Definitions.ModelDataV2.XYZTData.Builder roadEdge4;
 
     public PrimitiveList.Float.Builder roadEdgeX1;
     public PrimitiveList.Float.Builder roadEdgeY1;
@@ -107,8 +103,6 @@ public class MsgModelDataV2 extends MessageBase {
     public PrimitiveList.Float.Builder roadEdgeXStd1;
     public PrimitiveList.Float.Builder roadEdgeYStd1;
     public PrimitiveList.Float.Builder roadEdgeZStd1;
-    public PrimitiveList.Float.Builder roadEdge1Stds;
-
     public PrimitiveList.Float.Builder roadEdgeX2;
     public PrimitiveList.Float.Builder roadEdgeY2;
     public PrimitiveList.Float.Builder roadEdgeZ2;
@@ -116,8 +110,6 @@ public class MsgModelDataV2 extends MessageBase {
     public PrimitiveList.Float.Builder roadEdgeXStd2;
     public PrimitiveList.Float.Builder roadEdgeYStd2;
     public PrimitiveList.Float.Builder roadEdgeZStd2;
-    public PrimitiveList.Float.Builder roadEdge2Stds;
-
     public PrimitiveList.Float.Builder roadEdgeStds;
 
     public StructList.Builder<ai.flow.definitions.Definitions.ModelDataV2.LeadDataV3.Builder> leads;
@@ -191,37 +183,37 @@ public class MsgModelDataV2 extends MessageBase {
         orientation = modelDataV2.initOrientation();
         orientationRate = modelDataV2.initOrientationRate();
 
-        positionX = position.initX(CommonModel.TRAJECTORY_SIZE);
-        positionY = position.initY(CommonModel.TRAJECTORY_SIZE);
-        positionZ = position.initZ(CommonModel.TRAJECTORY_SIZE);
-        positionT = position.initT(CommonModel.TRAJECTORY_SIZE);
-        positionXStd = position.initXStd(CommonModel.TRAJECTORY_SIZE);
-        positionYStd = position.initYStd(CommonModel.TRAJECTORY_SIZE);
-        positionZStd = position.initZStd(CommonModel.TRAJECTORY_SIZE);
+        positionX = position.initX(CommonModelF2.TRAJECTORY_SIZE);
+        positionY = position.initY(CommonModelF2.TRAJECTORY_SIZE);
+        positionZ = position.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        positionT = position.initT(CommonModelF2.TRAJECTORY_SIZE);
+        positionXStd = position.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        positionYStd = position.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        positionZStd = position.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        velocityX = velocity.initX(CommonModel.TRAJECTORY_SIZE);
-        velocityY = velocity.initY(CommonModel.TRAJECTORY_SIZE);
-        velocityZ = velocity.initZ(CommonModel.TRAJECTORY_SIZE);
-        velocityT = velocity.initT(CommonModel.TRAJECTORY_SIZE);
-        velocityXStd = velocity.initXStd(CommonModel.TRAJECTORY_SIZE);
-        velocityYStd = velocity.initYStd(CommonModel.TRAJECTORY_SIZE);
-        velocityZStd = velocity.initZStd(CommonModel.TRAJECTORY_SIZE);
+        velocityX = velocity.initX(CommonModelF2.TRAJECTORY_SIZE);
+        velocityY = velocity.initY(CommonModelF2.TRAJECTORY_SIZE);
+        velocityZ = velocity.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        velocityT = velocity.initT(CommonModelF2.TRAJECTORY_SIZE);
+        velocityXStd = velocity.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        velocityYStd = velocity.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        velocityZStd = velocity.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        orientationX = orientation.initX(CommonModel.TRAJECTORY_SIZE);
-        orientationY = orientation.initY(CommonModel.TRAJECTORY_SIZE);
-        orientationZ = orientation.initZ(CommonModel.TRAJECTORY_SIZE);
-        orientationT = orientation.initT(CommonModel.TRAJECTORY_SIZE);
-        orientationXStd = orientation.initXStd(CommonModel.TRAJECTORY_SIZE);
-        orientationYStd = orientation.initYStd(CommonModel.TRAJECTORY_SIZE);
-        orientationZStd = orientation.initZStd(CommonModel.TRAJECTORY_SIZE);
+        orientationX = orientation.initX(CommonModelF2.TRAJECTORY_SIZE);
+        orientationY = orientation.initY(CommonModelF2.TRAJECTORY_SIZE);
+        orientationZ = orientation.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        orientationT = orientation.initT(CommonModelF2.TRAJECTORY_SIZE);
+        orientationXStd = orientation.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        orientationYStd = orientation.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        orientationZStd = orientation.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        orientationRateX = orientationRate.initX(CommonModel.TRAJECTORY_SIZE);
-        orientationRateY = orientationRate.initY(CommonModel.TRAJECTORY_SIZE);
-        orientationRateZ = orientationRate.initZ(CommonModel.TRAJECTORY_SIZE);
-        orientationRateT = orientationRate.initT(CommonModel.TRAJECTORY_SIZE);
-        orientationRateXStd = orientationRate.initXStd(CommonModel.TRAJECTORY_SIZE);
-        orientationRateYStd = orientationRate.initYStd(CommonModel.TRAJECTORY_SIZE);
-        orientationRateZStd = orientationRate.initZStd(CommonModel.TRAJECTORY_SIZE);
+        orientationRateX = orientationRate.initX(CommonModelF2.TRAJECTORY_SIZE);
+        orientationRateY = orientationRate.initY(CommonModelF2.TRAJECTORY_SIZE);
+        orientationRateZ = orientationRate.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        orientationRateT = orientationRate.initT(CommonModelF2.TRAJECTORY_SIZE);
+        orientationRateXStd = orientationRate.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        orientationRateYStd = orientationRate.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        orientationRateZStd = orientationRate.initZStd(CommonModelF2.TRAJECTORY_SIZE);
 
         laneLines = modelDataV2.initLaneLines(4);
         laneLine1 = laneLines.get(0);
@@ -229,37 +221,37 @@ public class MsgModelDataV2 extends MessageBase {
         laneLine3 = laneLines.get(2);
         laneLine4 = laneLines.get(3);
 
-        laneLineX1 = laneLine1.initX(CommonModel.TRAJECTORY_SIZE);
-        laneLineY1 = laneLine1.initY(CommonModel.TRAJECTORY_SIZE);
-        laneLineZ1 = laneLine1.initZ(CommonModel.TRAJECTORY_SIZE);
-        laneLineT1 = laneLine1.initT(CommonModel.TRAJECTORY_SIZE);
-        laneLineXStd1 = laneLine1.initXStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineYStd1 = laneLine1.initYStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineZStd1 = laneLine1.initZStd(CommonModel.TRAJECTORY_SIZE);
+        laneLineX1 = laneLine1.initX(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineY1 = laneLine1.initY(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZ1 = laneLine1.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineT1 = laneLine1.initT(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineXStd1 = laneLine1.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineYStd1 = laneLine1.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZStd1 = laneLine1.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        laneLineX2 = laneLine2.initX(CommonModel.TRAJECTORY_SIZE);
-        laneLineY2 = laneLine2.initY(CommonModel.TRAJECTORY_SIZE);
-        laneLineZ2 = laneLine2.initZ(CommonModel.TRAJECTORY_SIZE);
-        laneLineT2 = laneLine2.initT(CommonModel.TRAJECTORY_SIZE);
-        laneLineXStd2 = laneLine2.initXStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineYStd2 = laneLine2.initYStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineZStd2 = laneLine2.initZStd(CommonModel.TRAJECTORY_SIZE);
+        laneLineX2 = laneLine2.initX(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineY2 = laneLine2.initY(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZ2 = laneLine2.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineT2 = laneLine2.initT(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineXStd2 = laneLine2.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineYStd2 = laneLine2.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZStd2 = laneLine2.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        laneLineX3 = laneLine3.initX(CommonModel.TRAJECTORY_SIZE);
-        laneLineY3 = laneLine3.initY(CommonModel.TRAJECTORY_SIZE);
-        laneLineZ3 = laneLine3.initZ(CommonModel.TRAJECTORY_SIZE);
-        laneLineT3 = laneLine3.initT(CommonModel.TRAJECTORY_SIZE);
-        laneLineXStd3 = laneLine3.initXStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineYStd3 = laneLine3.initYStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineZStd3 = laneLine3.initZStd(CommonModel.TRAJECTORY_SIZE);
+        laneLineX3 = laneLine3.initX(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineY3 = laneLine3.initY(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZ3 = laneLine3.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineT3 = laneLine3.initT(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineXStd3 = laneLine3.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineYStd3 = laneLine3.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZStd3 = laneLine3.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        laneLineX4 = laneLine4.initX(CommonModel.TRAJECTORY_SIZE);
-        laneLineY4 = laneLine4.initY(CommonModel.TRAJECTORY_SIZE);
-        laneLineZ4 = laneLine4.initZ(CommonModel.TRAJECTORY_SIZE);
-        laneLineT4 = laneLine4.initT(CommonModel.TRAJECTORY_SIZE);
-        laneLineXStd4 = laneLine4.initXStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineYStd4 = laneLine4.initYStd(CommonModel.TRAJECTORY_SIZE);
-        laneLineZStd4 = laneLine4.initZStd(CommonModel.TRAJECTORY_SIZE);
+        laneLineX4 = laneLine4.initX(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineY4 = laneLine4.initY(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZ4 = laneLine4.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineT4 = laneLine4.initT(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineXStd4 = laneLine4.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineYStd4 = laneLine4.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        laneLineZStd4 = laneLine4.initZStd(CommonModelF2.TRAJECTORY_SIZE);
 
         laneLineProbs = modelDataV2.initLaneLineProbs(4);
         laneLineStds = modelDataV2.initLaneLineStds(4);
@@ -268,75 +260,75 @@ public class MsgModelDataV2 extends MessageBase {
         roadEdge1 = roadEdges.get(0);
         roadEdge2 = roadEdges.get(1);
 
-        roadEdgeX1 = roadEdge1.initX(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeY1 = roadEdge1.initY(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeZ1 = roadEdge1.initZ(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeT1 = roadEdge1.initT(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeXStd1 = roadEdge1.initXStd(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeYStd1 = roadEdge1.initYStd(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeZStd1 = roadEdge1.initZStd(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeX1 = roadEdge1.initX(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeY1 = roadEdge1.initY(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeZ1 = roadEdge1.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeT1 = roadEdge1.initT(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeXStd1 = roadEdge1.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeYStd1 = roadEdge1.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeZStd1 = roadEdge1.initZStd(CommonModelF2.TRAJECTORY_SIZE);
         
-        roadEdgeX2 = roadEdge2.initX(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeY2 = roadEdge2.initY(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeZ2 = roadEdge2.initZ(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeT2 = roadEdge2.initT(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeXStd2 = roadEdge2.initXStd(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeYStd2 = roadEdge2.initYStd(CommonModel.TRAJECTORY_SIZE);
-        roadEdgeZStd2 = roadEdge2.initZStd(CommonModel.TRAJECTORY_SIZE);
+        roadEdgeX2 = roadEdge2.initX(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeY2 = roadEdge2.initY(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeZ2 = roadEdge2.initZ(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeT2 = roadEdge2.initT(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeXStd2 = roadEdge2.initXStd(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeYStd2 = roadEdge2.initYStd(CommonModelF2.TRAJECTORY_SIZE);
+        roadEdgeZStd2 = roadEdge2.initZStd(CommonModelF2.TRAJECTORY_SIZE);
 
         roadEdgeStds = modelDataV2.initRoadEdgeStds(2);
         
-        leads = modelDataV2.initLeadsV3(CommonModel.LEAD_MHP_SELECTION);
+        leads = modelDataV2.initLeadsV3(CommonModelF2.LEAD_MHP_SELECTION);
         leads1 = leads.get(0);
         leads2 = leads.get(1);
         leads3 = leads.get(2);
 
-        leadX1 = leads1.initX(CommonModel.LEAD_TRAJ_LEN);
-        leadY1 = leads1.initY(CommonModel.LEAD_TRAJ_LEN);
-        leadV1 = leads1.initV(CommonModel.LEAD_TRAJ_LEN);
-        leadA1 = leads1.initA(CommonModel.LEAD_TRAJ_LEN);
-        leadT1 = leads1.initT(CommonModel.LEAD_TRAJ_LEN);
-        leadXStd1 = leads1.initXStd(CommonModel.LEAD_TRAJ_LEN);
-        leadYStd1 = leads1.initYStd(CommonModel.LEAD_TRAJ_LEN);
-        leadVStd1 = leads1.initVStd(CommonModel.LEAD_TRAJ_LEN);
-        leadAStd1 = leads1.initAStd(CommonModel.LEAD_TRAJ_LEN);
+        leadX1 = leads1.initX(CommonModelF2.LEAD_TRAJ_LEN);
+        leadY1 = leads1.initY(CommonModelF2.LEAD_TRAJ_LEN);
+        leadV1 = leads1.initV(CommonModelF2.LEAD_TRAJ_LEN);
+        leadA1 = leads1.initA(CommonModelF2.LEAD_TRAJ_LEN);
+        leadT1 = leads1.initT(CommonModelF2.LEAD_TRAJ_LEN);
+        leadXStd1 = leads1.initXStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadYStd1 = leads1.initYStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadVStd1 = leads1.initVStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadAStd1 = leads1.initAStd(CommonModelF2.LEAD_TRAJ_LEN);
 
-        leadX2 = leads2.initX(CommonModel.LEAD_TRAJ_LEN);
-        leadY2 = leads2.initY(CommonModel.LEAD_TRAJ_LEN);
-        leadV2 = leads2.initV(CommonModel.LEAD_TRAJ_LEN);
-        leadA2 = leads2.initA(CommonModel.LEAD_TRAJ_LEN);
-        leadT2 = leads2.initT(CommonModel.LEAD_TRAJ_LEN);
-        leadXStd2 = leads2.initXStd(CommonModel.LEAD_TRAJ_LEN);
-        leadYStd2 = leads2.initYStd(CommonModel.LEAD_TRAJ_LEN);
-        leadVStd2 = leads2.initVStd(CommonModel.LEAD_TRAJ_LEN);
-        leadAStd2 = leads2.initAStd(CommonModel.LEAD_TRAJ_LEN);
+        leadX2 = leads2.initX(CommonModelF2.LEAD_TRAJ_LEN);
+        leadY2 = leads2.initY(CommonModelF2.LEAD_TRAJ_LEN);
+        leadV2 = leads2.initV(CommonModelF2.LEAD_TRAJ_LEN);
+        leadA2 = leads2.initA(CommonModelF2.LEAD_TRAJ_LEN);
+        leadT2 = leads2.initT(CommonModelF2.LEAD_TRAJ_LEN);
+        leadXStd2 = leads2.initXStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadYStd2 = leads2.initYStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadVStd2 = leads2.initVStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadAStd2 = leads2.initAStd(CommonModelF2.LEAD_TRAJ_LEN);
 
-        leadX3 = leads3.initX(CommonModel.LEAD_TRAJ_LEN);
-        leadY3 = leads3.initY(CommonModel.LEAD_TRAJ_LEN);
-        leadV3 = leads3.initV(CommonModel.LEAD_TRAJ_LEN);
-        leadA3 = leads3.initA(CommonModel.LEAD_TRAJ_LEN);
-        leadT3 = leads3.initT(CommonModel.LEAD_TRAJ_LEN);
-        leadXStd3 = leads3.initXStd(CommonModel.LEAD_TRAJ_LEN);
-        leadYStd3 = leads3.initYStd(CommonModel.LEAD_TRAJ_LEN);
-        leadVStd3 = leads3.initVStd(CommonModel.LEAD_TRAJ_LEN);
-        leadAStd3 = leads3.initAStd(CommonModel.LEAD_TRAJ_LEN);
+        leadX3 = leads3.initX(CommonModelF2.LEAD_TRAJ_LEN);
+        leadY3 = leads3.initY(CommonModelF2.LEAD_TRAJ_LEN);
+        leadV3 = leads3.initV(CommonModelF2.LEAD_TRAJ_LEN);
+        leadA3 = leads3.initA(CommonModelF2.LEAD_TRAJ_LEN);
+        leadT3 = leads3.initT(CommonModelF2.LEAD_TRAJ_LEN);
+        leadXStd3 = leads3.initXStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadYStd3 = leads3.initYStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadVStd3 = leads3.initVStd(CommonModelF2.LEAD_TRAJ_LEN);
+        leadAStd3 = leads3.initAStd(CommonModelF2.LEAD_TRAJ_LEN);
 
         meta = modelDataV2.initMeta();
         disengagePredictions = meta.initDisengagePredictions();
 
-        desireState = meta.initDesireState(CommonModel.DESIRE_LEN);
-        desirePredictions = meta.initDesirePrediction(4*CommonModel.DESIRE_LEN);
+        desireState = meta.initDesireState(CommonModelF2.DESIRE_LEN);
+        desirePredictions = meta.initDesirePrediction(4* CommonModelF2.DESIRE_LEN);
         t = disengagePredictions.initT(5);
-        gasDesengageProbs = disengagePredictions.initGasDisengageProbs(CommonModel.NUM_META_INTERVALS);
-        brakeDisengageProbs = disengagePredictions.initBrakeDisengageProbs(CommonModel.NUM_META_INTERVALS);
-        steerOverrideProbs = disengagePredictions.initSteerOverrideProbs(CommonModel.NUM_META_INTERVALS);
-        brake3MetersPerSecondSquaredProbs = disengagePredictions.initBrake3MetersPerSecondSquaredProbs(CommonModel.NUM_META_INTERVALS);
-        brake4MetersPerSecondSquaredProbs = disengagePredictions.initBrake4MetersPerSecondSquaredProbs(CommonModel.NUM_META_INTERVALS);
-        brake5MetersPerSecondSquaredProbs = disengagePredictions.initBrake5MetersPerSecondSquaredProbs(CommonModel.NUM_META_INTERVALS);
+        gasDesengageProbs = disengagePredictions.initGasDisengageProbs(CommonModelF2.NUM_META_INTERVALS);
+        brakeDisengageProbs = disengagePredictions.initBrakeDisengageProbs(CommonModelF2.NUM_META_INTERVALS);
+        steerOverrideProbs = disengagePredictions.initSteerOverrideProbs(CommonModelF2.NUM_META_INTERVALS);
+        brake3MetersPerSecondSquaredProbs = disengagePredictions.initBrake3MetersPerSecondSquaredProbs(CommonModelF2.NUM_META_INTERVALS);
+        brake4MetersPerSecondSquaredProbs = disengagePredictions.initBrake4MetersPerSecondSquaredProbs(CommonModelF2.NUM_META_INTERVALS);
+        brake5MetersPerSecondSquaredProbs = disengagePredictions.initBrake5MetersPerSecondSquaredProbs(CommonModelF2.NUM_META_INTERVALS);
     }
 
     public static void fillParsed(ParsedOutputs parsed, Definitions.ModelDataV2.Reader msg, boolean full) { // TODO Avoid this
-        for (int i = 0; i < CommonModel.TRAJECTORY_SIZE; i++) {
+        for (int i = 0; i < CommonModelF2.TRAJECTORY_SIZE; i++) {
             parsed.position.get(0)[i] = msg.getPosition().getX().get(i);
             parsed.position.get(1)[i] = msg.getPosition().getY().get(i);
             parsed.position.get(2)[i] = msg.getPosition().getZ().get(i);
@@ -430,16 +422,16 @@ public class MsgModelDataV2 extends MessageBase {
                 parsed.roadEdgeStds[i] = msg.getRoadEdgeStds().get(i);
         }
 
-        for (int i = 0; i < CommonModel.DESIRE_LEN; i++)
+        for (int i = 0; i < CommonModelF2.DESIRE_LEN; i++)
             parsed.metaData.desireState[i] = msg.getMeta().getDesireState().get(i);
 
-        for (int i = 0; i < 4 * CommonModel.DESIRE_LEN; i++)
+        for (int i = 0; i < 4 * CommonModelF2.DESIRE_LEN; i++)
             parsed.metaData.desirePrediction[i] = msg.getMeta().getDesirePrediction().get(i);
         
         for (int i = 0; i < 5; i++)
             parsed.metaData.disengagePredictions.t[i] = msg.getMeta().getDisengagePredictions().getT().get(i);
 
-        for (int i = 0; i < CommonModel.NUM_META_INTERVALS; i++) {
+        for (int i = 0; i < CommonModelF2.NUM_META_INTERVALS; i++) {
             parsed.metaData.disengagePredictions.brakeDisengageProbs[i] = msg.getMeta().getDisengagePredictions().getBrakeDisengageProbs().get(i);
             parsed.metaData.disengagePredictions.gasDesengageProbs[i] = msg.getMeta().getDisengagePredictions().getGasDisengageProbs().get(i);
             parsed.metaData.disengagePredictions.steerOverrideProbs[i] = msg.getMeta().getDisengagePredictions().getSteerOverrideProbs().get(i);
@@ -451,7 +443,7 @@ public class MsgModelDataV2 extends MessageBase {
         parsed.metaData.engagedProb = msg.getMeta().getEngagedProb();
         parsed.metaData.hardBrakePredicted = msg.getMeta().getHardBrakePredicted();
 
-        for (int i = 0; i < CommonModel.LEAD_TRAJ_LEN; i++) {
+        for (int i = 0; i < CommonModelF2.LEAD_TRAJ_LEN; i++) {
 
             parsed.leads.get(0).x[i] = msg.getLeadsV3().get(0).getX().get(i);
             parsed.leads.get(0).y[i] = msg.getLeadsV3().get(0).getY().get(i);
@@ -506,7 +498,7 @@ public class MsgModelDataV2 extends MessageBase {
         modelDataV2.setTimestampEof(timestamp);
         modelDataV2.setGpuExecutionTime(gpuExecutionTime);
 
-        for (int i = 0; i < CommonModel.TRAJECTORY_SIZE; i++) {
+        for (int i = 0; i < CommonModelF2.TRAJECTORY_SIZE; i++) {
             positionX.set(i, parsed.position.get(0)[i]);
             positionY.set(i, parsed.position.get(1)[i]);
             positionZ.set(i, parsed.position.get(2)[i]);
@@ -596,13 +588,13 @@ public class MsgModelDataV2 extends MessageBase {
         for (int i = 0; i < 2; i++)
             roadEdgeStds.set(i, parsed.roadEdgeStds[i]);
         
-        for (int i = 0; i < Parser.DESIRE_LEN; i++)
+        for (int i = 0; i < CommonModelF2.DESIRE_LEN; i++)
             desireState.set(i, parsed.metaData.desireState[i]);
 
-        for (int i = 0; i < 4 * Parser.DESIRE_LEN; i++)
+        for (int i = 0; i < 4 * CommonModelF2.DESIRE_LEN; i++)
             desirePredictions.set(i, parsed.metaData.desirePrediction[i]);
 
-        for (int i = 0; i < Parser.NUM_META_INTERVALS; i++)  {
+        for (int i = 0; i < CommonModelF2.NUM_META_INTERVALS; i++)  {
             t.set(i, parsed.metaData.disengagePredictions.t[i]);
             brakeDisengageProbs.set(i, parsed.metaData.disengagePredictions.brakeDisengageProbs[i]);
             gasDesengageProbs.set(i, parsed.metaData.disengagePredictions.gasDesengageProbs[i]);
@@ -615,7 +607,7 @@ public class MsgModelDataV2 extends MessageBase {
         meta.setEngagedProb(parsed.metaData.engagedProb);
         meta.setHardBrakePredicted(parsed.metaData.hardBrakePredicted);
 
-        for (int i = 0; i < Parser.LEAD_TRAJ_LEN; i++) {
+        for (int i = 0; i < CommonModelF2.LEAD_TRAJ_LEN; i++) {
             leadX1.set(i, parsed.leads.get(0).x[i]);
             leadY1.set(i, parsed.leads.get(0).y[i]);
             leadV1.set(i, parsed.leads.get(0).v[i]);

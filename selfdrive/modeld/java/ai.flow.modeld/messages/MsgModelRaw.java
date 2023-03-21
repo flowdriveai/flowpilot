@@ -2,8 +2,7 @@ package ai.flow.modeld.messages;
 
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
-import ai.flow.modeld.CommonModel;
-import ai.flow.modeld.ParsedOutputs;
+import ai.flow.modeld.CommonModelF3;
 import org.capnproto.PrimitiveList;
 
 import java.nio.ByteBuffer;
@@ -30,7 +29,7 @@ public class MsgModelRaw extends MessageBase {
     private void initFields(){
         event = messageBuilder.initRoot(Definitions.Event.factory);
         modelRaw = event.initModelRaw();
-        rawPreds = modelRaw.initRawPredictions(CommonModel.NET_OUTPUT_SIZE);
+        rawPreds = modelRaw.initRawPredictions(CommonModelF3.NET_OUTPUT_SIZE);
     }
 
     public void fill(float[] outs, long timestamp, int frameId,
@@ -41,7 +40,7 @@ public class MsgModelRaw extends MessageBase {
         modelRaw.setTimestampEof(timestamp);
         modelRaw.setFrameDropPerc(frameDropPerc);
         modelRaw.setFrameAge(frameAge);
-            for (int i = 0; i < CommonModel.NET_OUTPUT_SIZE; i++)
+            for (int i = 0; i < CommonModelF3.NET_OUTPUT_SIZE; i++)
             rawPreds.set(i, outs[i]);
     }
 }

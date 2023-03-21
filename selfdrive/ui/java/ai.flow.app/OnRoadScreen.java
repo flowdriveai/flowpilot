@@ -5,7 +5,7 @@ import ai.flow.app.helpers.Utils;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.Definitions;
-import ai.flow.modeld.CommonModel;
+import ai.flow.modeld.CommonModelF3;
 import ai.flow.modeld.DesireEnum;
 import ai.flow.modeld.ParsedOutputs;
 import ai.flow.modeld.Preprocess;
@@ -431,7 +431,7 @@ public class OnRoadScreen extends ScreenAdapter {
             INDArray Rt;
             Rt = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), -augmentRot.getFloat(0, 0), 0.0, false);
             RtPath = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), -augmentRot.getFloat(0, 0), 1.22, false);
-            for (int i = 0; i< CommonModel.TRAJECTORY_SIZE; i++)
+            for (int i = 0; i< CommonModelF3.TRAJECTORY_SIZE; i++)
                 parsed.position.get(0)[i] = Math.max(parsed.position.get(0)[i], minZ);
             path = Draw.getLaneCameraFrame(parsed.position, K, RtPath, 0.9f);
             lane0 = Draw.getLaneCameraFrame(parsed.laneLines.get(0), K, Rt, 0.07f);
@@ -528,10 +528,6 @@ public class OnRoadScreen extends ScreenAdapter {
 
         if (parsed.leads.get(0).prob > minLeadProb)
             drawLeadTriangle(lead1s, colorLead, parsed.leads.get(0).prob);
-        //if (parsed.leads.get(1).prob > minLeadProb)
-        //    drawLeadTriangle(lead2s, colorLead, parsed.leads.get(1).prob);
-        //if (parsed.leads.get(2).prob > minLeadProb)
-        //    drawLeadTriangle(lead3s, colorLead, parsed.leads.get(2).prob);
         appContext.shapeRenderer.end();
 
         Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
