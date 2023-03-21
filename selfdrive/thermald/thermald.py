@@ -137,7 +137,7 @@ def thermald_thread(end_event, hw_queue):
     # this one is only used for offroad
     temp_sources = [
       msg.deviceState.memoryTempC,
-      max(msg.deviceState.cpuTempC),
+      sum(msg.deviceState.cpuTempC)/len(msg.deviceState.cpuTempC),
       #max(msg.deviceState.gpuTempC),
     ]
     offroad_comp_temp = offroad_temp_filter.update(max(temp_sources))
@@ -187,6 +187,9 @@ def thermald_thread(end_event, hw_queue):
     should_start = all(onroad_conditions.values())
     if started_ts is None:
       should_start = should_start and all(startup_conditions.values())
+    
+    if not should_start and count % 10 == 0:
+      print(startup_conditions, onroad_conditions, sep="\n")
 
     if should_start != should_start_prev or (count == 0):
       params.put_bool("IsOnroad", should_start)
