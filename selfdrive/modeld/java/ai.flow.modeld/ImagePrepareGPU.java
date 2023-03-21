@@ -47,7 +47,7 @@ public class ImagePrepareGPU implements ImagePrepare{
     }
 
     public INDArray prepare(ByteBuffer imgBuffer, INDArray transform){
-        cl_mem yuv_cl = null;
+        cl_mem yuv_cl;
         if (rgb) {
             rgb2yuv.run(imgBuffer);
             yuv_cl = rgb2yuv.yuv_cl;

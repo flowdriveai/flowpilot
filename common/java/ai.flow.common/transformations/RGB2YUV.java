@@ -41,10 +41,7 @@ public class RGB2YUV {
         yuv_cl = clCreateBuffer(this.context, CL_MEM_READ_WRITE, H*W*3/2, null, null);
         rgb_cl = clCreateBuffer(this.context, CL_MEM_READ_WRITE, H*W*3, null, null);
 
-        if (W % 4 == 0)
-            work_size = new long[]{W/4, H/4};
-        else
-            work_size = new long[]{(W + (4 - W % 4)) / 4, (H + (4 - H % 4)) / 4};
+        work_size = new long[]{W % 4 == 0 ? W/4:(W + (4 - W % 4)) / 4, H % 4 == 0 ?  H/4:(H + (4 - H % 4)) / 4};
     }
 
     public void run(ByteBuffer rgb){

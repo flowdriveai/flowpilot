@@ -358,7 +358,6 @@ public class Parser {
             } else {
                 // otherwise, interpolate to find `t` for the current xidx
                 float p = (X_IDXS[xidx] - current_x_val) / (next_x_val - current_x_val);
-                System.out.println(xidx + " " + tidx);
                 plan_t_arr[xidx] = p * T_IDXS[tidx+1] + (1 - p) * T_IDXS[tidx];
             }
         }
