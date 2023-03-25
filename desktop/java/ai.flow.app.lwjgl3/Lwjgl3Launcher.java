@@ -59,7 +59,7 @@ public class Lwjgl3Launcher {
 		Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
 		configuration.setTitle("flow-pilot");
 		configuration.setWindowedMode(1200, 600);
-		configuration.setResizable(true);
+		configuration.setResizable(false);
 		configuration.setForegroundFPS(25);
 		configuration.setWindowIcon("icons/flow-pilot.png");
 		configuration.setBackBufferConfig(8, 8, 8, 8, 16, 0, 8);
