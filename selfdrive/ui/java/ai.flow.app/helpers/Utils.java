@@ -11,7 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class Utils {
-    public static ImageButton getImageButton(String texturePath){ //TODO Move to common
+    public static ImageButton getImageButton(String texturePath){
         Texture buttonTexture = loadTextureMipMap(texturePath);
         return new ImageButton(new TextureRegionDrawable(buttonTexture));
     }
@@ -43,7 +43,10 @@ public class Utils {
                 if (pixmap.getPixel(x, y) != 0) ret.drawPixel(x, y);
             }
         }
-        return new TextureRegionDrawable(new TextureRegion(new Texture(ret)));
+        pixmap.dispose();
+        Texture texture = new Texture(ret);
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        return new TextureRegionDrawable(new TextureRegion(texture));
     }
 
     public static Texture getLineTexture(int width, int height, Color color){

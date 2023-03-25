@@ -10,7 +10,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -25,9 +24,7 @@ public class FlowUI extends Game {
     final String API_ENDPOINT = "https://staging-api.flowdrive.ai";
     final String AUTH_ENDPOINT = API_ENDPOINT + "/auth";
     public ShapeRenderer shapeRenderer;
-    public SpriteBatch batch;
     public BitmapFont font;
-    public Sound sound;
     public Skin skin;
     public int pid;
     public Launcher launcher;
@@ -39,6 +36,8 @@ public class FlowUI extends Game {
     public ParamsInterface params = ParamsInterface.getInstance();
     public boolean isOnRoad = false;
     public Thread updateOnroadThread = null;
+    Sound engageSound, disengageSound, promptSound, promptDistractedSound,
+            refuseSound, warningImmediate, warningSoft;
 
     public FlowUI(Launcher launcher, int pid) {
         this.pid = pid;
@@ -85,11 +84,23 @@ public class FlowUI extends Game {
 
     public void loadInternalFonts(Skin skin){
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-16", 16, skin);
+        loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-20", 20, skin);
+        loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-30", 30, skin);
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font", 36, skin);
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-64", 64, skin);
         loadFont("selfdrive/assets/fonts/opensans_bold.ttf", "default-font-bold", 20, skin);
         loadFont("selfdrive/assets/fonts/opensans_bold.ttf", "default-font-bold-med", 45, skin);
         loadFont("selfdrive/assets/fonts/opensans_bold.ttf", "default-font-bold-large", 100, skin);
+    }
+
+    public void loadSounds() {
+        engageSound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/engage.wav")));
+        disengageSound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/disengage.wav")));
+        promptSound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/prompt.wav")));
+        promptDistractedSound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/prompt_distracted.wav")));
+        refuseSound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/refuse.wav")));
+        warningImmediate = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/warning_immediate.wav")));
+        warningSoft = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/warning_soft.wav")));
     }
 
     @Override
@@ -99,14 +110,13 @@ public class FlowUI extends Game {
         updateOnroadThread.start();
 
         if (Gdx.gl != null) { // else headless mode
-            sound = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/click.mp3")));
             shapeRenderer = new ShapeRenderer();
             font = new BitmapFont();
             font.setColor(0f, 1f, 0f, 1f);
             font.getData().setScale(2);
-            batch = new SpriteBatch();
             skin = new Skin(new TextureAtlas(Gdx.files.absolute(Path.internal("selfdrive/assets/skins/uiskin.atlas"))));
             loadInternalFonts(skin);
+            loadSounds();
             skin.load(Gdx.files.absolute(Path.internal("selfdrive/assets/skins/uiskin.json")));
 
             settingsScreen = new SettingsScreen(this);
@@ -123,7 +133,6 @@ public class FlowUI extends Game {
     @Override
     public void dispose() {
         if (Gdx.gl != null) { // else headless mode
-            batch.dispose();
             shapeRenderer.dispose();
             font.dispose();
             launcher.dispose();

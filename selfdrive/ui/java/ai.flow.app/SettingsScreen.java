@@ -23,7 +23,7 @@ import ai.flow.common.SystemUtils;
 public class SettingsScreen extends ScreenAdapter {
 
     FlowUI appContext;
-    ParamsInterface params;
+    ParamsInterface params = ParamsInterface.getInstance();
     Stage stage;
     TextButton buttonDevice, buttonCalibrate, buttonCalibrateExtrinsic,
             buttonTraining, buttonPowerOff, buttonReboot, buttonSoftware,
@@ -108,7 +108,6 @@ public class SettingsScreen extends ScreenAdapter {
     public SettingsScreen(FlowUI appContext) {
         this.appContext = appContext;
 
-        params = appContext.params;
         stage = new Stage(new FitViewport(1280, 720));
         batch = new SpriteBatch();
 

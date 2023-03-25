@@ -2,6 +2,7 @@ package ai.flow.app;
 
 import ai.flow.app.helpers.GifDecoder;
 import ai.flow.app.helpers.Utils;
+import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.Definitions;
@@ -43,7 +44,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import static ai.flow.app.helpers.Utils.getImageButton;
 import static ai.flow.app.helpers.Utils.loadTextureMipMap;
@@ -57,6 +60,7 @@ public class OnRoadScreen extends ScreenAdapter {
             .policyLearning(LearningPolicy.FIRST_LOOP)
             .build();
     FlowUI appContext;
+    ParamsInterface params = ParamsInterface.getInstance();
     // For camera frame receiving
     Pixmap pixelMap;
     Texture texture;
@@ -109,12 +113,14 @@ public class OnRoadScreen extends ScreenAdapter {
     Label velocityLabel, velocityUnitLabel, alertText1, alertText2, maxCruiseSpeedLabel, dateLabel, vesrionLabel;
     Table velocityTable, maxCruiseTable, alertTable, infoTable, offRoadTable, rootTable, offRoadRootTable;
     Stack statusLabelTemp, statusLabelCan, statusLabelOnline, maxCruise;
+    ScrollPane notificationScrollPane;
     ImageButton settingsButton;
     ParsedOutputs parsed = new ParsedOutputs();
     int canErrCount = 0;
     int canErrCountPrev = 0;
     float uiWidth = 1280;
     float uiHeight = 640;
+    int notificationWidth = 950;
     float settingsBarWidth;
     INDArray K = Camera.ecam_intrinsics.dup();
     boolean cameraMatrixUpdated = false;
@@ -125,8 +131,22 @@ public class OnRoadScreen extends ScreenAdapter {
     Definitions.FrameBuffer.Reader msgframeBuffer;
     Definitions.FrameData.Reader msgframeData;
     Animation<TextureRegion> animationNight, animationNoon, animationSunset;
-    float elapsed;
+    Map<String, String> offroadNotifications = new HashMap<String, String>() {{
+        put("Offroad_TemperatureTooHigh", "Device temperature too high. System won't start.");
+        put("Offroad_ConnectivityNeeded", "Connect to internet to check for updates. flowpilot won't automatically start until it connects to internet to check for updates.");
+        put("Offroad_InvalidTime", "Invalid date and time settings, system won't start until date time are set correctly.");
+    }};
+    double elapsed;
     boolean isF3;
+
+    public enum UIStatus {
+        STATUS_DISENGAGED,
+        STATUS_OVERRIDE,
+        STATUS_ENGAGED,
+        STATUS_WARNING,
+        STATUS_ALERT,
+    }
+    UIStatus status;
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -146,6 +166,32 @@ public class OnRoadScreen extends ScreenAdapter {
         Label textLabel = new Label(text, appContext.skin, "default-font-bold", "white");
         textLabel.setAlignment(Align.center);
         return new Stack(borderTexture, statusTexture, textLabel);
+    }
+
+    public void addNotification(String text){
+        Image backgroundTexture = new Image(Utils.createRoundedRectangle(notificationWidth, 50, 2, new Color(224/255f, 18/255f, 18/255f, 0.7f)));
+        // green 50, 168, 52
+        Label textLabel = new Label(text, appContext.skin, "default-font-20", "white");
+        textLabel.setAlignment(Align.left);
+        textLabel.setWrap(true);
+        Container container = new Container(textLabel);
+        container.left().pad(10).width(900);
+        offRoadTable.add(new Stack(backgroundTexture, container)).padLeft(10).padRight(10).padTop(10);
+        offRoadTable.row();
+    }
+
+    public void updateOffroadNotifications(){
+        clearNotifications();
+        for (String notification : offroadNotifications.keySet()){
+            if (params.existsAndCompare(notification, true)){
+                appContext.engageSound.play();
+                addNotification(offroadNotifications.get(notification));
+            }
+        }
+    }
+
+    public void clearNotifications(){
+        offRoadTable.clear();
     }
 
     public void updateStatusLabel(Stack statusLabel, float[] color){
@@ -177,7 +223,7 @@ public class OnRoadScreen extends ScreenAdapter {
     public OnRoadScreen(FlowUI appContext) {
         this.appContext = appContext;
 
-        isF3 = appContext.params.existsAndCompare("F3", true);
+        isF3 = params.existsAndCompare("F3", true);
         if (!isF3){
             cameraTopic = "roadCameraState";
             cameraBufferTopic = "roadCameraBuffer";
@@ -219,19 +265,29 @@ public class OnRoadScreen extends ScreenAdapter {
         offRoadRootTable.align(Align.left);
 
         offRoadTable = new Table();
-        offRoadTable.setBackground(Utils.createRoundedRectangle(900, 550, 20, new Color(0.18f, 0.18f, 0.18f, 0.7f)));
+        offRoadTable.setBackground(Utils.createRoundedRectangle(notificationWidth, 550, 10, new Color(0.18f, 0.18f, 0.18f, 0.7f)));
+
+        notificationScrollPane = new ScrollPane(offRoadTable);
+        notificationScrollPane.setSmoothScrolling(true);
+        offRoadTable.align(Align.top);
 
         DateTimeFormatter f = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.US);
-        dateLabel = new Label(LocalDateTime.now().format(f),  appContext.skin, "default-font", "white");
+        dateLabel = new Label(LocalDateTime.now().format(f),  appContext.skin, "default-font-30", "white");
 
-        String version = appContext.params.exists("Version") ? "flowpilot v" + appContext.params.getString("Version") : "";
-        vesrionLabel = new Label(version,  appContext.skin, "default-font", "white");
+        String version = params.exists("Version") ? "flowpilot v" + params.getString("Version") : "";
+        vesrionLabel = new Label(version,  appContext.skin, "default-font-30", "white");
         offRoadRootTable.add(dateLabel).align(Align.topLeft).padTop(15);
         offRoadRootTable.add(vesrionLabel).padTop(15).align(Align.topRight);
         offRoadRootTable.row();
-        offRoadRootTable.add(offRoadTable).colspan(2).align(Align.left).padTop(10);
+        offRoadRootTable.add(notificationScrollPane).colspan(2).align(Align.left).padTop(10);
 
         rootTable.add(offRoadRootTable).padLeft(20);
+
+        for (int i=0; i<4; i++) {
+            addNotification("warning: temperature high");
+            addNotification("warning: storage space less");
+            addNotification("warning: nvme not detected contact support at support@flowdrive.ai. something is very very wrong with your fucking device.");
+        }
 
         cameraModel = new OrthographicCamera(defaultImageWidth, defaultImageHeight);
         cameraModel.setToOrtho(true, defaultImageWidth, defaultImageHeight);
@@ -253,10 +309,10 @@ public class OnRoadScreen extends ScreenAdapter {
 
         velocityLabel = new Label("", appContext.skin, "default-font-bold-large", "white");
         velocityUnitLabel = new Label("", appContext.skin, "default-font", "white");
-        isMetric = appContext.params.existsAndCompare("IsMetric", true);
+        isMetric = params.existsAndCompare("IsMetric", true);
 
-        if (appContext.params.exists("EndToEndToggle"))
-            laneLess = appContext.params.getBool("EndToEndToggle");
+        if (params.exists("EndToEndToggle"))
+            laneLess = params.getBool("EndToEndToggle");
         else
             laneLess = false;
 
@@ -457,12 +513,15 @@ public class OnRoadScreen extends ScreenAdapter {
         }
 
         if (alertStatus==null) {
+            status = UIStatus.STATUS_DISENGAGED;
             colorBorder = colorBorderInactive;
         }
         else if (alertStatus == Definitions.ControlsState.AlertStatus.USER_PROMPT){
+            status = UIStatus.STATUS_WARNING;
             colorBorder = colorBorderUserPrompt;
         }
         else if (alertStatus == Definitions.ControlsState.AlertStatus.CRITICAL){
+            status = UIStatus.STATUS_ALERT;
             colorBorder = colorBorderUserCritical;
         }
         else if (alertStatus == Definitions.ControlsState.AlertStatus.NORMAL){
@@ -591,6 +650,10 @@ public class OnRoadScreen extends ScreenAdapter {
             stageUI.draw();
 
             batch.begin();
+            if (appContext.launcher.modeld.getIterationRate() > 50)
+                appContext.font.setColor(1, 0, 0, 1);
+            else
+                appContext.font.setColor(0, 1, 0, 1);
             appContext.font.draw(batch, String.valueOf(appContext.launcher.modeld.getIterationRate()),
                     Gdx.graphics.getWidth() - 200,
                     Gdx.graphics.getHeight() - 200);
@@ -599,13 +662,17 @@ public class OnRoadScreen extends ScreenAdapter {
         else{
             batch.begin();
             batch.setColor(1, 1, 1, 0.6f);
-            batch.draw(getCurrentAnimation().getKeyFrame(elapsed), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+            batch.draw(getCurrentAnimation().getKeyFrame((float)elapsed), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
             batch.end();
 
             offRoadRootTable.setVisible(true);
 
             if (!infoTable.isVisible())
                 infoTable.setVisible(true);
+
+            // update offroad notifications every two seconds
+            if (Gdx.graphics.getFrameId()%10 == 0)
+                updateOffroadNotifications();
         }
 
         stageSettings.getViewport().apply();
