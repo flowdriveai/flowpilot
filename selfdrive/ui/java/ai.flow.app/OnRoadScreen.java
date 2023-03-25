@@ -5,6 +5,7 @@ import ai.flow.app.helpers.Utils;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
+import ai.flow.definitions.CarDefinitions.CarControl.HUDControl.AudibleAlert;
 import ai.flow.definitions.Definitions;
 import ai.flow.modeld.CommonModelF3;
 import ai.flow.modeld.DesireEnum;
@@ -15,6 +16,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -31,6 +33,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
+import org.apache.commons.lang3.ArrayUtils;
 import org.capnproto.PrimitiveList;
 import org.nd4j.linalg.api.memory.MemoryWorkspace;
 import org.nd4j.linalg.api.memory.conf.WorkspaceConfiguration;
@@ -91,10 +94,6 @@ public class OnRoadScreen extends ScreenAdapter {
     int[] colorEdges = {255, 0, 0};
     int[] colorLead = {196, 196, 196};
     int[] colorBorder;
-    int[] colorBorderUserPrompt = {255, 111, 0};
-    int[] colorBorderUserCritical = {222, 15, 15};
-    int[] colorBorderNormal = {43, 143, 40};
-    int[] colorBorderInactive = {17, 33, 49};
     float[] colorSettingsBar = {46f/255, 46f/255, 46f/255};
     // comm params
     boolean modelAlive, controlsAlive;
@@ -136,6 +135,7 @@ public class OnRoadScreen extends ScreenAdapter {
         put("Offroad_ConnectivityNeeded", "Connect to internet to check for updates. flowpilot won't automatically start until it connects to internet to check for updates.");
         put("Offroad_InvalidTime", "Invalid date and time settings, system won't start until date time are set correctly.");
     }};
+    Map<AudibleAlert, Sound> soundAlerts;
     double elapsed;
     boolean isF3;
 
@@ -146,7 +146,17 @@ public class OnRoadScreen extends ScreenAdapter {
         STATUS_WARNING,
         STATUS_ALERT,
     }
-    UIStatus status;
+    UIStatus status= UIStatus.STATUS_DISENGAGED;;
+    Map<UIStatus, int[]> statusColors  = new HashMap<UIStatus, int[]>() {{
+        put(UIStatus.STATUS_DISENGAGED, new int[] {23, 51, 73});
+        put(UIStatus.STATUS_OVERRIDE, new int[] {145, 155, 149});
+        put(UIStatus.STATUS_ENGAGED, new int[] {43, 143, 40});
+        put(UIStatus.STATUS_WARNING, new int[] {222, 15, 15});
+        put(UIStatus.STATUS_ALERT, new int[] {222, 15, 15});
+    }};
+    AudibleAlert[] repeatingAlerts = {AudibleAlert.PROMPT_DISTRACTED, AudibleAlert.PROMPT_REPEAT,
+            AudibleAlert.WARNING_IMMEDIATE, AudibleAlert.WARNING_SOFT};
+    AudibleAlert currentAudibleAlert;
 
     public static class StatusColors{
         public static final float[] colorStatusGood = {255/255f, 255/255f, 255/255f};
@@ -230,6 +240,17 @@ public class OnRoadScreen extends ScreenAdapter {
             K = Camera.fcam_intrinsics.dup();
         }
 
+        soundAlerts = new HashMap<AudibleAlert, Sound>() {{
+            put(AudibleAlert.ENGAGE, appContext.engageSound);
+            put(AudibleAlert.DISENGAGE, appContext.disengageSound);
+            put(AudibleAlert.REFUSE, appContext.refuseSound);
+            put(AudibleAlert.PROMPT, appContext.promptSound);
+            put(AudibleAlert.PROMPT_REPEAT, appContext.promptSound);
+            put(AudibleAlert.PROMPT_DISTRACTED, appContext.promptDistractedSound);
+            put(AudibleAlert.WARNING_SOFT, appContext.warningSoft);
+            put(AudibleAlert.WARNING_IMMEDIATE, appContext.warningImmediate);
+        }};
+
         batch = new SpriteBatch();
         pixelMap = new Pixmap(defaultImageWidth, defaultImageHeight, Pixmap.Format.RGB888);
         pixelMap.setBlending(Pixmap.Blending.None);
@@ -283,12 +304,6 @@ public class OnRoadScreen extends ScreenAdapter {
 
         rootTable.add(offRoadRootTable).padLeft(20);
 
-        for (int i=0; i<4; i++) {
-            addNotification("warning: temperature high");
-            addNotification("warning: storage space less");
-            addNotification("warning: nvme not detected contact support at support@flowdrive.ai. something is very very wrong with your fucking device.");
-        }
-
         cameraModel = new OrthographicCamera(defaultImageWidth, defaultImageHeight);
         cameraModel.setToOrtho(true, defaultImageWidth, defaultImageHeight);
         cameraModel.update();
@@ -317,7 +332,7 @@ public class OnRoadScreen extends ScreenAdapter {
             laneLess = false;
 
         alertText1 = new Label("Flowpilot Unavailable", appContext.skin, "default-font-bold-med", "white");
-        alertText2 = new Label("Waiting for controlsd to start", appContext.skin, "default-font", "white");
+        alertText2 = new Label("Waiting for controls to start", appContext.skin, "default-font", "white");
 
         texImage = new Image(texture);
 
@@ -503,29 +518,60 @@ public class OnRoadScreen extends ScreenAdapter {
         }
     }
 
+    public void handleSounds(Definitions.ControlsState.Reader controlState){
+        if (controlState==null)
+            return;
+
+        AudibleAlert alert = controlState.getAlertSound();
+
+        if (currentAudibleAlert == alert)
+            return;
+        currentAudibleAlert = alert;
+
+        for (AudibleAlert repeatAlerts : repeatingAlerts){
+            soundAlerts.get(repeatAlerts).stop();
+        }
+
+        if (alert != AudibleAlert.NONE){
+            Sound sound = soundAlerts.get(alert);
+            if (ArrayUtils.contains(repeatingAlerts, alert))
+                sound.loop();
+            else
+                sound.play();
+        }
+    }
+
+    public void stopSounds(){
+        for (AudibleAlert alert : soundAlerts.keySet()){
+            soundAlerts.get(alert).stop();
+        }
+    }
+
     public void drawAlert(Definitions.ControlsState.Reader controlState) {
         Definitions.ControlsState.AlertStatus alertStatus = null;
+        Definitions.ControlsState.FlowpilotState state = null;
         if (controlState != null) {
             alertText1.setText(controlState.getAlertText1().toString());
             alertText2.setText(controlState.getAlertText2().toString());
             alertStatus = controlState.getAlertStatus();
+            state = controlState.getState();
             maxCruiseSpeedLabel.setText(Integer.toString((int)controlState.getVCruise()));
         }
 
-        if (alertStatus==null) {
+        if (alertStatus==null || controlState==null) {
             status = UIStatus.STATUS_DISENGAGED;
-            colorBorder = colorBorderInactive;
         }
         else if (alertStatus == Definitions.ControlsState.AlertStatus.USER_PROMPT){
             status = UIStatus.STATUS_WARNING;
-            colorBorder = colorBorderUserPrompt;
         }
         else if (alertStatus == Definitions.ControlsState.AlertStatus.CRITICAL){
             status = UIStatus.STATUS_ALERT;
-            colorBorder = colorBorderUserCritical;
         }
-        else if (alertStatus == Definitions.ControlsState.AlertStatus.NORMAL){
-            colorBorder = colorBorderNormal;
+        else if (state == Definitions.ControlsState.FlowpilotState.PRE_ENABLED || state == Definitions.ControlsState.FlowpilotState.OVERRIDING){
+            status = UIStatus.STATUS_OVERRIDE;
+        }
+        else{
+            status = controlState.getEnabled() ? UIStatus.STATUS_ENGAGED : UIStatus.STATUS_DISENGAGED;
         }
 
         stageAlert.getViewport().apply();
@@ -536,6 +582,7 @@ public class OnRoadScreen extends ScreenAdapter {
             borderShift = settingsBarWidth;
         appContext.shapeRenderer.setProjectionMatrix(cameraAlertBox.combined);
         appContext.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        colorBorder = statusColors.get(status);
         appContext.shapeRenderer.setColor(colorBorder[0] / 255f, colorBorder[1] / 255f, colorBorder[2] / 255f, 0.9f);
 
         if (alertText1.getText().toString().equals("") & alertText1.getText().toString().equals(""))
@@ -660,6 +707,8 @@ public class OnRoadScreen extends ScreenAdapter {
             batch.end();
         }
         else{
+            stopSounds();
+
             batch.begin();
             batch.setColor(1, 1, 1, 0.6f);
             batch.draw(getCurrentAnimation().getKeyFrame((float)elapsed), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -670,7 +719,7 @@ public class OnRoadScreen extends ScreenAdapter {
             if (!infoTable.isVisible())
                 infoTable.setVisible(true);
 
-            // update offroad notifications every two seconds
+            // update offroad notifications
             if (Gdx.graphics.getFrameId()%10 == 0)
                 updateOffroadNotifications();
         }
@@ -692,6 +741,7 @@ public class OnRoadScreen extends ScreenAdapter {
         if (sh.updated(controlsStateTopic)) {
             controlsAlive = true;
             updateControls();
+            handleSounds(controlState);
         }
 
         handleDesire();
