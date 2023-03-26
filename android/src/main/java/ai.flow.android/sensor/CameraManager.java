@@ -43,7 +43,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
-import static ai.flow.android.sensor.ImUtils.fillYUVBuffer;
+import static ai.flow.android.sensor.Utils.fillYUVBuffer;
 
 
 public class CameraManager extends SensorInterface {

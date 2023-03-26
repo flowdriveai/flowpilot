@@ -1,6 +1,6 @@
 package ai.flow.modeld;
 
-import org.apache.commons.lang3.NotImplementedException;
+import ai.flow.common.transformations.YUV2RGB;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
@@ -26,6 +26,7 @@ public class ImagePrepareCPU implements ImagePrepare{
             NDArrayIndex.all(), NDArrayIndex.all()};
     public final INDArrayIndex[] imgTensor1Slices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(6,12),
             NDArrayIndex.all(), NDArrayIndex.all()};
+    YUV2RGB yuv2RGB = null;
     boolean rgb;
 
     public ImagePrepareCPU(int W, int H, boolean rgb, int y_width, int y_height, int y_px_stride, int uv_width,
@@ -35,14 +36,18 @@ public class ImagePrepareCPU implements ImagePrepare{
         this.rgb = rgb;
 
         if (!rgb)
-            throw new NotImplementedException("yuv processing not yet implemented on cpu");
+            yuv2RGB= new YUV2RGB(W, H, stride, uv_px_stride);
 
         transformed = new Mat(MODEL_HEIGHT, MODEL_WIDTH, CvType.CV_8UC3);
         transformedYUV = new Mat(MODEL_HEIGHT*3/2, MODEL_WIDTH, CvType.CV_8UC1, transformedYUVNDArr.data().asNio());
     }
 
     public INDArray prepare(ByteBuffer imgBuffer, INDArray transform){
-        Mat imageCurr = new Mat(H, W, CvType.CV_8UC3, imgBuffer);
+        Mat imageCurr;
+        if (!rgb)
+            imageCurr = yuv2RGB.run(imgBuffer);
+        else
+            imageCurr = new Mat(H, W, CvType.CV_8UC3, imgBuffer);
 
         // shift current image to previous slot and process new image for current slot.
         netInputBuff.put(imgTensor0Slices, netInputBuff.get(imgTensor1Slices));
@@ -51,7 +56,9 @@ public class ImagePrepareCPU implements ImagePrepare{
         Preprocess.RGB888toYUV420(transformed, transformedYUV);
         Preprocess.YUV420toTensor(transformedYUVNDArr, netInputBuff, 1);
 
-        imageCurr.release();
+        if (rgb)
+            imageCurr.release();
+
         return netInputBuff;
     }
 
