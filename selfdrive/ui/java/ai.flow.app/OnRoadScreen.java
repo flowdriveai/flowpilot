@@ -8,12 +8,10 @@ import ai.flow.common.transformations.Camera;
 import ai.flow.definitions.CarDefinitions.CarControl.HUDControl.AudibleAlert;
 import ai.flow.definitions.Definitions;
 import ai.flow.modeld.CommonModelF3;
-import ai.flow.modeld.DesireEnum;
 import ai.flow.modeld.ParsedOutputs;
 import ai.flow.modeld.Preprocess;
 import ai.flow.modeld.messages.MsgModelDataV2;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Sound;
@@ -104,10 +102,9 @@ public class OnRoadScreen extends ScreenAdapter {
     String cameraTopic = "wideRoadCameraState";
     String cameraBufferTopic = "wideRoadCameraBuffer";
     String calibrationTopic = "liveCalibration";
-    String desireTopic = "pulseDesire";
     String carStateTopic = "carState";
     String controlsStateTopic = "controlsState";
-    String canTopic = "can";
+    String deviceStateTopic = "deviceState";
 
     Label velocityLabel, velocityUnitLabel, alertText1, alertText2, maxCruiseSpeedLabel, dateLabel, vesrionLabel;
     Table velocityTable, maxCruiseTable, alertTable, infoTable, offRoadTable, rootTable, offRoadRootTable;
@@ -206,6 +203,19 @@ public class OnRoadScreen extends ScreenAdapter {
 
     public void updateStatusLabel(Stack statusLabel, float[] color){
         statusLabel.getChild(1).setColor(color[0], color[1], color[2], 0.8f);
+    }
+
+    public void updateDeviceState(){
+        Definitions.DeviceState.Reader deviceState = sh.recv(deviceStateTopic).getDeviceState();
+        Definitions.DeviceState.ThermalStatus thermalStatus = deviceState.getThermalStatus();
+        if (thermalStatus == Definitions.DeviceState.ThermalStatus.GREEN)
+            updateStatusLabel(statusLabelTemp, "TEMP\nGOOD", StatusColors.colorStatusGood);
+        else if (thermalStatus == Definitions.DeviceState.ThermalStatus.YELLOW)
+            updateStatusLabel(statusLabelTemp, "TEMP\nHIGH", StatusColors.colorStatusWarn);
+        else if (thermalStatus == Definitions.DeviceState.ThermalStatus.RED)
+            updateStatusLabel(statusLabelTemp, "TEMP\nCRITICAL", StatusColors.colorStatusCritical);
+        else if (thermalStatus == Definitions.DeviceState.ThermalStatus.DANGER)
+            updateStatusLabel(statusLabelTemp, "TEMP\nDANGER", StatusColors.colorStatusCritical);
     }
 
     public void updateStatusLabel(Stack statusLabel, String text, float[] color){
@@ -410,9 +420,7 @@ public class OnRoadScreen extends ScreenAdapter {
         animationNight = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.absolute(Path.internal("selfdrive/assets/gifs/night.gif")).read());
 
         sh = new ZMQSubHandler(true);
-        ph = new ZMQPubHandler();
-        sh.createSubscribers(Arrays.asList(cameraTopic, cameraBufferTopic, modelTopic, calibrationTopic, carStateTopic, controlsStateTopic, canTopic));
-        ph.createPublisher(desireTopic);
+        sh.createSubscribers(Arrays.asList(cameraTopic, cameraBufferTopic, deviceStateTopic, calibrationTopic, carStateTopic, controlsStateTopic, modelTopic));
     }
 
     public Animation<TextureRegion> getCurrentAnimation(){
@@ -423,6 +431,11 @@ public class OnRoadScreen extends ScreenAdapter {
             return animationNoon;
         else
             return animationSunset;
+    }
+
+    public void setDefaultAlert(){
+        alertText1.setText("Flowpilot Unavailable");
+        alertText2.setText("Waiting for controls to start");
     }
 
     @Override
@@ -639,15 +652,6 @@ public class OnRoadScreen extends ScreenAdapter {
         Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
     }
 
-    public void handleDesire(){
-        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
-            ph.publish(desireTopic, DesireEnum.LANE_CHANGE_LEFT.getBytes());
-        }
-        else if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-            ph.publish(desireTopic, DesireEnum.LANE_CHANGE_RIGHT.getBytes());
-        }
-    }
-
     public void setUnits(){
         if (!controlsAlive)
             velocityUnitLabel.setText("");
@@ -709,6 +713,11 @@ public class OnRoadScreen extends ScreenAdapter {
         else{
             stopSounds();
 
+            modelAlive = false;
+            controlsAlive = false;
+            setDefaultAlert();
+            controlState = null;
+
             batch.begin();
             batch.setColor(1, 1, 1, 0.6f);
             batch.draw(getCurrentAnimation().getKeyFrame((float)elapsed), 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -739,12 +748,14 @@ public class OnRoadScreen extends ScreenAdapter {
         }
 
         if (sh.updated(controlsStateTopic)) {
-            controlsAlive = true;
             updateControls();
             handleSounds(controlState);
+            controlsAlive = true;
         }
 
-        handleDesire();
+        if (sh.updated(deviceStateTopic)) {
+            updateDeviceState();
+        }
     }
 
     @Override

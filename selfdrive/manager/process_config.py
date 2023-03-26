@@ -23,11 +23,11 @@ def is_f3():
   #   platforms: ["android"]
 
 procs = [
-  # due to qualcomm kernel bugs SIGKILLing camerad sometimes causes page table corruption
-  ManagerProcess("calibrationd", "calibrationd"),
-  ManagerProcess("plannerd", "plannerd"),
-  ManagerProcess("modelparsed", "./selfdrive/modeld/modelparsed", enabled=is_f3()),
   ManagerProcess("controlsd", "controlsd"),
+  ManagerProcess("plannerd", "plannerd"),
+  ManagerProcess("radard", "radard"),
+  ManagerProcess("calibrationd", "calibrationd"),
+  ManagerProcess("modelparsed", "./selfdrive/modeld/modelparsed", enabled=is_f3()),
   ManagerProcess("proclogd", "./system/proclogd/proclogd"),
   ManagerProcess("logmessaged", "logmessaged", offroad=True),
   ManagerProcess("thermald_", "thermald_", offroad=True),

@@ -74,7 +74,7 @@ class ManagerProcess:
 
     def stop(self):
         """Handles how the service ends"""
-        if self.phandler is None:
+        if self.phandler is None or self.unkillable:
           return
         if self.is_alive():
             cloudlog.info("killing " + self.name)
