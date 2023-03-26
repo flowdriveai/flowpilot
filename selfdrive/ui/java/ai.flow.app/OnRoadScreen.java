@@ -190,8 +190,7 @@ public class OnRoadScreen extends ScreenAdapter {
     public void updateOffroadNotifications(){
         clearNotifications();
         for (String notification : offroadNotifications.keySet()){
-            if (params.existsAndCompare(notification, true)){
-                appContext.engageSound.play();
+            if (params.exists(notification)){
                 addNotification(offroadNotifications.get(notification));
             }
         }

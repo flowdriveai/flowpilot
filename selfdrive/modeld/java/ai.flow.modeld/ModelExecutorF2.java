@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static ai.flow.common.SystemUtils.getUseGPU;
 import static ai.flow.common.utils.numElements;
+import static ai.flow.modeld.CommonModelF2.DESIRE_LEN;
 import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 public class ModelExecutorF2 extends ModelExecutor implements Runnable{
@@ -46,7 +47,8 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public final float[] netOutputs = new float[(int)numElements(outputTensorShape)];
     public final INDArray augmentRot = Nd4j.zeros(3);
     public final INDArray augmentTrans = Nd4j.zeros(3);
-    public final float[][] prevDesire = new float[1][8];
+    public final float[]prevDesire = new float[DESIRE_LEN];
+    public final float[]desireIn = new float[DESIRE_LEN];
     public final Map<String, INDArray> inputMap =  new HashMap<>();
     public final Map<String, float[]> outputMap =  new HashMap<>();
     public final Parser parser = new Parser();
@@ -70,6 +72,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public MsgCameraOdometery msgCameraOdometery = new MsgCameraOdometery();
     public MsgModelDataV2 msgModelDataV2 = new MsgModelDataV2();
     ByteBuffer imgBuffer;
+    int desire;
 
 
     public ModelExecutorF2(ModelRunner modelRunner){
@@ -104,7 +107,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
         INDArray netInputBuffer;
 
         ph.createPublishers(Arrays.asList("modelV2", "cameraOdometry"));
-        sh.createSubscribers(Arrays.asList("roadCameraState", "roadCameraBuffer", "pulseDesire", "liveCalibration"));
+        sh.createSubscribers(Arrays.asList("roadCameraState", "roadCameraBuffer", "lateralPlan", "liveCalibration"));
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("initial_state", stateTensorShape);
@@ -158,11 +161,11 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
             updateCameraState();
             start = System.currentTimeMillis();
 
-            // TODO: Fix this
-            //            if (sh.updated("pulseDesire")){
-            //                pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
-            //                desireNDArr.put(0, pulseDesireInput, 1);
-            //            }
+            if (sh.updated("lateralPlan")){
+                desire = sh.recv("lateralPlan").getLateralPlan().getDesire().ordinal();
+                if (desire >= 0 && desire < DESIRE_LEN)
+                    desireIn[desire] = 1.0f;
+            }
 
             if (sh.updated("liveCalibration")) {
                 liveCalib = sh.recv("liveCalibration").getLiveCalibration();
@@ -183,13 +186,12 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
             for (int i=0; i<outs.state[0].length; i++)
                 stateNDArr.put(0, i, outs.state[0][i]);
 
-            desireNDArr.put(0, 0, 1.0f);
-            for (int i=1; i<outs.metaData.desireState.length; i++){
-                if (outs.metaData.desireState[i] - prevDesire[0][i] > 0.99f)
-                    desireNDArr.put(0, i, outs.metaData.desireState[i]);
+            for (int i=1; i<DESIRE_LEN; i++){
+                if (desireIn[i] - prevDesire[i] > 0.99f)
+                    desireNDArr.put(0, i, desireIn[i]);
                 else
-                    desireNDArr.put(0, i, 0);
-                prevDesire[0][i] = outs.metaData.desireState[i];
+                    desireNDArr.put(0, i, 0.0f);
+                prevDesire[i] = desireIn[i];
             }
 
             // publish outputs

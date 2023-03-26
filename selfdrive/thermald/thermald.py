@@ -188,9 +188,15 @@ def thermald_thread(end_event, hw_queue):
     if started_ts is None:
       should_start = should_start and all(startup_conditions.values())
     
+    # for debug
     if not should_start and count % 10 == 0:
-      print(startup_conditions, onroad_conditions, sep="\n")
-
+      for startup_condition in startup_conditions:
+        if not startup_conditions[startup_condition]:
+          print(startup_condition, startup_conditions[startup_condition])
+      for onroad_condition in onroad_conditions:
+        if not onroad_conditions[onroad_condition]:
+          print(onroad_condition, onroad_conditions[onroad_condition])
+        
     if should_start != should_start_prev or (count == 0):
       params.put_bool("IsOnroad", should_start)
       params.put_bool("IsOffroad", not should_start)
