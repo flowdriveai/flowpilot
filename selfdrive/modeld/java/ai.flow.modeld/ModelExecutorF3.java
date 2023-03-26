@@ -37,7 +37,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public long iterationNum = 1;
 
     public static int[] imgTensorShape = {1, 12, 128, 256};
-    public static final int[] desireTensorShape = {1, 100, CommonModelF3.DESIRE_LEN};
+    public static final int[] desireTensorShape = {1, CommonModelF3.HISTORY_BUFFER_LEN+1, CommonModelF3.DESIRE_LEN};
     public static final int[] trafficTensorShape = {1, CommonModelF3.TRAFFIC_CONVENTION_LEN};
     public static final int[] stateTensorShape = {1, CommonModelF3.HISTORY_BUFFER_LEN, CommonModelF3.FEATURE_LEN};
     public static final int[] featureTensorShape = {1, 8, CommonModelF3.FEATURE_LEN};
@@ -52,14 +52,17 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public final float[] netOutputs = new float[(int)numElements(outputTensorShape)];
     public final INDArray augmentRot = Nd4j.zeros(3);
     public final INDArray augmentTrans = Nd4j.zeros(3);
-    public final float[][] prevDesire = new float[1][8];
+    public final float[]prevDesire = new float[CommonModelF3.DESIRE_LEN];
+    public final float[]desireIn = new float[CommonModelF3.DESIRE_LEN];
     public final Map<String, INDArray> inputMap =  new HashMap<>();
     public final Map<String, float[]> outputMap =  new HashMap<>();
 
     public final ParamsInterface params = ParamsInterface.getInstance();
 
-    public final INDArrayIndex[] featureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN-1)};
-    public final INDArrayIndex[] featureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN)};
+    public final INDArrayIndex[] stateFeatureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN-1)};
+    public final INDArrayIndex[] stateFeatureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN)};
+    public final INDArrayIndex[] desireFeatureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN)};
+    public final INDArrayIndex[] desireFeatureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN+1)};
 
     public final INDArrayIndex[] gatherFeatureSlices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.indices(94, 89, 84, 79, 74, 69, 64, 59)};
     public final INDArrayIndex[] gatherFeatureSlices0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.all()};
@@ -78,6 +81,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public int firstFrameID = -1;
     public int wideFrameDrops = 0;
     public int frameDrops = 0;
+    int desire;
     public ModelRunner modelRunner;
     Definitions.FrameData.Reader frameData;
     Definitions.FrameData.Reader frameWideData;
@@ -136,7 +140,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
         ph.createPublishers(Arrays.asList("modelRaw"));
         sh.createSubscribers(Arrays.asList("roadCameraState", "wideRoadCameraState", "roadCameraBuffer",
-                                           "wideRoadCameraBuffer", "pulseDesire", "liveCalibration"));
+                                           "wideRoadCameraBuffer", "pulseDesire", "liveCalibration", "lateralPlan"));
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("big_input_imgs", imgTensorShape);
@@ -203,11 +207,20 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
             updateCameraState();
             start = System.currentTimeMillis();
 
-            // TODO: Fix this
-            //            if (sh.updated("pulseDesire")){
-            //                pulseDesireInput = Integer.parseInt(new String(sh.getData("pulseDesire")));
-            //                desireNDArr.put(0, pulseDesireInput, 1);
-            //            }
+            if (sh.updated("lateralPlan")){
+                desire = sh.recv("lateralPlan").getLateralPlan().getDesire().ordinal();
+                if (desire >= 0 && desire < CommonModelF2.DESIRE_LEN)
+                    desireIn[desire] = 1.0f;
+            }
+
+            desireNDArr.put(desireFeatureSlice0, desireNDArr.get(desireFeatureSlice1));
+            for (int i=1; i<CommonModelF3.DESIRE_LEN; i++){
+                if (desireIn[i] - prevDesire[i] > 0.99f)
+                    desireNDArr.putScalar(0, -1, i, desireIn[i]);
+                else
+                    desireNDArr.putScalar(0, -1, i, 0.0f);
+                prevDesire[i] = desireIn[i];
+            }
 
             if (sh.updated("liveCalibration")) {
                 liveCalib = sh.recv("liveCalibration").getLiveCalibration();
@@ -234,8 +247,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
             inputMap.put("big_input_imgs", netInputWideBuffer);
             modelRunner.run(inputMap, outputMap);
 
-            // TODO: Add desire.
-            stateNDArr.put(featureSlice0, stateNDArr.get(featureSlice1));
+            stateNDArr.put(stateFeatureSlice0, stateNDArr.get(stateFeatureSlice1));
             for (int i = 0; i < CommonModelF3.FEATURE_LEN; i++)
                 stateNDArr.putScalar(0, CommonModelF3.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModelF3.OUTPUT_SIZE + i]);
             featuresNDArr.put(gatherFeatureSlices0, stateNDArr.get(gatherFeatureSlices));
@@ -286,7 +298,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public void serializeAndPublish(){
         msgModelRaw.fill(netOutputs, timestamp, lastFrameID, -1, getFrameDropPercent(), getIterationRate());
         ph.publishBuffer("modelRaw", msgModelRaw.serialize(true));
-    };
+    }
 
     public long getIterationRate() {
         return timePerIt/iterationNum;
