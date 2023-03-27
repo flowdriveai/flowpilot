@@ -36,7 +36,7 @@ public class ImagePrepareCPU implements ImagePrepare{
         this.rgb = rgb;
 
         if (!rgb)
-            yuv2RGB= new YUV2RGB(W, H, stride, uv_px_stride);
+            yuv2RGB = new YUV2RGB(W, H, stride, uv_px_stride);
 
         transformed = new Mat(MODEL_HEIGHT, MODEL_WIDTH, CvType.CV_8UC3);
         transformedYUV = new Mat(MODEL_HEIGHT*3/2, MODEL_WIDTH, CvType.CV_8UC1, transformedYUVNDArr.data().asNio());
@@ -67,5 +67,7 @@ public class ImagePrepareCPU implements ImagePrepare{
         netInputBuff.close();
         transformed.release();
         transformedYUV.release();
+        if (yuv2RGB != null)
+            yuv2RGB.dispose();
     }
 }

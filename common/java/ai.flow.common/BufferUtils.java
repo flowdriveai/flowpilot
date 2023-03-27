@@ -61,6 +61,10 @@ public class BufferUtils {
         return ret;
     }
 
+    public static ByteBuffer MatToByteBuffer(Mat mat){
+        return bufferFromAddress(mat.dataAddr(), (int)mat.total());
+    }
+
     public static void cloneByteBuffer(ByteBuffer source, ByteBuffer target) {
         int sourceP = source.position();
         int sourceL = source.limit();

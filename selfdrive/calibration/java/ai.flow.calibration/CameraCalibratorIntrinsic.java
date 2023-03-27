@@ -1,18 +1,12 @@
 package ai.flow.calibration;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-
 import ai.flow.common.ParamsInterface;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.MatOfPoint3f;
-import org.opencv.core.Point3;
-import org.opencv.core.Size;
-import org.opencv.core.TermCriteria;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CameraCalibratorIntrinsic implements Runnable {
     public static int STATUS_UNCALIBRATED = 0;
@@ -124,22 +118,6 @@ public class CameraCalibratorIntrinsic implements Runnable {
             thread.setDaemon(false);
             thread.start();
         }
-    }
-
-    public static byte[] floatToByte(float[] input) {
-        byte[] ret = new byte[input.length*4];
-        for (int x = 0; x < input.length; x++) {
-            ByteBuffer.wrap(ret, x*4, 4).putFloat(input[x]);
-        }
-        return ret;
-    }
-
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length/4];
-        for (int x = 0; x < input.length; x+=4) {
-            ret[x/4] = ByteBuffer.wrap(input, x, 4).getFloat();
-        }
-        return ret;
     }
 
     public void run() {

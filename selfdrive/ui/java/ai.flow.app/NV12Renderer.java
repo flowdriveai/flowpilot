@@ -107,4 +107,11 @@ public class NV12Renderer {
 
         mesh.render(shader, GL20.GL_TRIANGLES);
     }
+
+    public void dispose(){
+        mesh.dispose();
+        shader.dispose();
+        uvTexture.dispose();
+        yTexture.dispose();
+    }
 }

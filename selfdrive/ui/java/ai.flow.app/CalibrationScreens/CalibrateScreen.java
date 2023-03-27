@@ -1,9 +1,11 @@
 package ai.flow.app.CalibrationScreens;
 
 import ai.flow.app.FlowUI;
+import ai.flow.app.NV12Renderer;
 import ai.flow.app.SetUpScreen;
 import ai.flow.calibration.CameraCalibratorIntrinsic;
 import ai.flow.common.transformations.Camera;
+import ai.flow.common.transformations.YUV2RGB;
 import ai.flow.definitions.Definitions;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -25,6 +27,7 @@ import messaging.ZMQSubHandler;
 import org.opencv.core.Mat;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -53,16 +56,37 @@ public class CalibrateScreen extends ScreenAdapter {
     ProgressBar progressBar;
     int currFrameID = -1, prevFrameID = -1;
     int numImages = 30;
+    int cameraType;
+    String frameDataTopic, frameBufferTopic, intrinsicParamName, distortionParamName, cameraName;
     // messaging
     ZMQSubHandler sh = new ZMQSubHandler(true);
     // calibrator object
     CameraCalibratorIntrinsic calibrator;
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
     Definitions.FrameBuffer.Reader msgFrameBuffer;
+    Definitions.FrameData.Reader msgFrameData;
     ByteBuffer imgBuffer;
+    NV12Renderer nv12Renderer;
+    YUV2RGB yuv2RGB = null;
 
-    public CalibrateScreen(FlowUI appContext, boolean enableCancel) {
+    public CalibrateScreen(FlowUI appContext, boolean enableCancel, int cameraType) {
         this.appContext = appContext;
+
+        this.cameraType = cameraType;
+        if (cameraType == Camera.CAMERA_TYPE_WIDE){
+            frameDataTopic = "wideRoadCameraState";
+            frameBufferTopic = "wideRoadCameraBuffer";
+            intrinsicParamName = "WideCameraMatrix";
+            distortionParamName = "WideDistortionCoefficients";
+            cameraName = "wideRoadCamera";
+        } else if (cameraType == Camera.CAMERA_TYPE_ROAD) {
+            frameDataTopic = "roadCameraState";
+            frameBufferTopic = "roadCameraBuffer";
+            intrinsicParamName = "CameraMatrix";
+            distortionParamName = "DistortionCoefficients";
+            cameraName = "roadCamera";
+        }
+
         pixelMap.setBlending(Blending.None);
         calibrator = new CameraCalibratorIntrinsic(9, 6, appContext.params); // 6 by 9 chessboard :))
         stageUI = new Stage(new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
@@ -104,7 +128,7 @@ public class CalibrateScreen extends ScreenAdapter {
         stageUI.addActor(tableProgressBar);
         stageUI.addActor(tableMenuBar);
 
-        sh.createSubscriber("wideRoadCameraBuffer");
+        sh.createSubscribers(Arrays.asList(frameBufferTopic, frameDataTopic));
     }
 
     @Override
@@ -113,8 +137,29 @@ public class CalibrateScreen extends ScreenAdapter {
     }
 
     public void updateCamera(){
-        msgFrameBuffer = sh.recv("wideRoadCameraBuffer").getWideRoadCameraBuffer();
-        updateImageBuffer(msgFrameBuffer, imgBuffer);
+        // handles receiving, rendering and converting to rgb of images.
+        if (cameraType == Camera.CAMERA_TYPE_ROAD) {
+            msgFrameBuffer = sh.recv(frameBufferTopic).getRoadCameraBuffer();
+        }
+        else
+            msgFrameBuffer = sh.recv(frameBufferTopic).getWideRoadCameraBuffer();
+        msgFrameData = sh.recv(frameDataTopic).getFrameData();
+        currFrameID = msgFrameData.getFrameId();
+        imgBuffer = updateImageBuffer(msgFrameBuffer, imgBuffer);
+
+        boolean rgb = msgFrameBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB;
+
+        if (rgb){
+            pixelMap.setPixels(imgBuffer);
+            texture.draw(pixelMap, 0, 0);
+        }
+        else {
+            if (yuv2RGB == null)
+                yuv2RGB = new YUV2RGB(Camera.frameSize[0], Camera.frameSize[1], Camera.frameSize[1], 2);
+            yuv2RGB.run(imgBuffer);
+            pixelMap.setPixels(yuv2RGB.getRGBBuffer());
+            texture.draw(pixelMap, 0, 0);
+        }
     }
 
     @Override
@@ -122,7 +167,7 @@ public class CalibrateScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (sh.updated("roadCameraState")) {
+        if (sh.updated(frameBufferTopic)) {
             updateCamera();
         }
 
@@ -153,15 +198,15 @@ public class CalibrateScreen extends ScreenAdapter {
                 byte[] cameraMatrixBuffer = MatToByte(calibrator.cameraMatrix);
                 byte[] distortionCoefficientsBuffer = MatToByte(calibrator.distortionCoefficients);
 
-                appContext.params.put("CameraMatrix", cameraMatrixBuffer);
-                appContext.params.put("DistortionCoefficients", distortionCoefficientsBuffer);
+                appContext.params.put(intrinsicParamName, cameraMatrixBuffer);
+                appContext.params.put(distortionParamName, distortionCoefficientsBuffer);
 
                 // new camera matrix would be published in FrameData.
-                appContext.sensors.get("roadCamera").updateProperty("intrinsics", byteToFloat(cameraMatrixBuffer));
+                appContext.sensors.get(cameraName).updateProperty("intrinsics", byteToFloat(cameraMatrixBuffer));
             }
             else
-                System.err.println("[WARN]: Camera not calibrated.");
-            appContext.setScreen(new SetUpScreen(appContext)); // TODO display in GUI.
+                System.err.println("[WARN]: Camera not calibrated.");  // TODO display in GUI.
+            appContext.setScreen(new SetUpScreen(appContext));
             return;
         }
 
@@ -188,6 +233,8 @@ public class CalibrateScreen extends ScreenAdapter {
         stageFill.dispose();
         batch.dispose();
         imageMat.release();
+        if (yuv2RGB != null)
+            yuv2RGB.dispose();
         sh.releaseAll();
     }
 }

@@ -1,5 +1,7 @@
 package ai.flow.app.CalibrationScreens;
 
+import ai.flow.app.FlowUI;
+import ai.flow.common.transformations.Camera;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -11,9 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import ai.flow.app.FlowUI;
 
 
 public class CalibrationInfo extends ScreenAdapter {
@@ -44,7 +44,7 @@ public class CalibrationInfo extends ScreenAdapter {
         btnProceed.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                appContext.setScreen(new CalibrateScreen(appContext, enableCancel));
+                appContext.setScreen(new CalibrateScreen(appContext, enableCancel, Camera.CAMERA_TYPE_ROAD));
             }
         });
 

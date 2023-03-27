@@ -6,9 +6,8 @@ import ai.flow.common.transformations.Camera;
 import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
-import ai.flow.sensor.camera.DualCameraManager;
+import ai.flow.sensor.camera.CameraManager;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,12 +54,13 @@ public class Launcher {
         startPythonDaemons();
     }
 
-    public void main(String[] args) throws IOException {
-
-        cameraManager = new DualCameraManager(System.getenv("WIDE_ROAD_CAMERA_SOURCE"), System.getenv("ROAD_CAMERA_SOURCE"), 20, Camera.frameSize[0], Camera.frameSize[1]);
+    public void main(String[] args) {
+        CameraManager eCameraManager = new CameraManager(Camera.CAMERA_TYPE_WIDE, 20, System.getenv("WIDE_ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
+        CameraManager fCameraManager = new CameraManager(Camera.CAMERA_TYPE_ROAD, 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
         SensorManager sensorManager = new SensorManager();
         this.sensors = new HashMap<String, SensorInterface>() {{
-            put("roadCamera", cameraManager);
+            put("wideRoadCamera", eCameraManager);
+            put("roadCamera", fCameraManager);
             put("motionSensors", sensorManager);
         }};
 

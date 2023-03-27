@@ -9,7 +9,7 @@ import ai.flow.launcher.Launcher;
 import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
-import ai.flow.sensor.camera.DualCameraManager;
+import ai.flow.sensor.camera.CameraManager;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
@@ -26,13 +26,13 @@ public class Lwjgl3Launcher {
 	}
 
 	private static Lwjgl3Application createApplication() throws IOException {
-		SensorInterface cameraManager;
-		//cameraManager = new CameraManager("wideRoadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
-		cameraManager = new DualCameraManager(System.getenv("WIDE_ROAD_CAMERA_SOURCE"), System.getenv("ROAD_CAMERA_SOURCE"), 20, Camera.frameSize[0], Camera.frameSize[1]);
+		CameraManager eCameraManager = new CameraManager(Camera.CAMERA_TYPE_WIDE, 20, System.getenv("WIDE_ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
+		CameraManager fCameraManager = new CameraManager(Camera.CAMERA_TYPE_ROAD, 20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
 		SensorManager sensorManager = new SensorManager();
 
 		Map<String, SensorInterface> sensors = new HashMap<String, SensorInterface>() {{
-			put("wideRoadCamera", cameraManager);
+			put("wideRoadCamera", eCameraManager);
+			put("roadCamera", fCameraManager);
 			put("motionSensors", sensorManager);
 		}};
 

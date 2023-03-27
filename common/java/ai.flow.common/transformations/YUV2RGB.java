@@ -6,9 +6,12 @@ import org.opencv.imgproc.Imgproc;
 
 import java.nio.ByteBuffer;
 
+import static ai.flow.common.BufferUtils.MatToByteBuffer;
+
 public class YUV2RGB {
     Mat yuv_mat = null;
     Mat matRGB = null;
+    ByteBuffer rgbBuffer;
     int w, h, chromaPixelStride, stride;
     public YUV2RGB(int w, int h, int stride, int chromaPixelStride){
         this.w = w;
@@ -17,6 +20,7 @@ public class YUV2RGB {
         this.stride = stride;
         yuv_mat = new Mat(h + h / 2, w, CvType.CV_8UC1);
         matRGB = new Mat(h, w, CvType.CV_8UC3);
+        rgbBuffer = MatToByteBuffer(matRGB);
     }
 
     public Mat run(ByteBuffer yuv){
@@ -104,5 +108,14 @@ public class YUV2RGB {
             Imgproc.cvtColor(yuv_mat, matRGB, Imgproc.COLOR_YUV2RGB_I420, 3);
         }
         return matRGB;
+    }
+
+    public ByteBuffer getRGBBuffer(){
+        return rgbBuffer;
+    }
+
+    public void dispose(){
+        matRGB.release();
+        yuv_mat.release();
     }
 }
