@@ -142,12 +142,9 @@
     "toggle": {
       "font": "default-font",
       "fontColor": "white",
-      "checked": "button-down",
-      "down": "button-down",
-      "up": "button",
-      "over": "button-over",
-      "disabled": "button",
-      "disabledFontColor": "grey"
+      "checked": "button-blue",
+      "over": "button-blue-over",
+      "up": "button-over"
     }
   },
   "com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle": {

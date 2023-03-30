@@ -30,7 +30,7 @@ public class SettingsScreen extends ScreenAdapter {
             buttonTraining, buttonPowerOff, buttonReboot, buttonSoftware,
             buttonUninstall, buttonToggle, buttonCheckUpdate;
     ImageButton closeButton;
-    CheckBox recordRoadCamToggle, FPToggle, F3Toggle, LDWToggle, RHDToggle, MetricToggle,
+    TextButton recordRoadCamToggle, FPToggle, F3Toggle, LDWToggle, RHDToggle, MetricToggle,
             recordDriverCamToggle, lanelessToggle, disengageAccToggle;
 
     SpriteBatch batch;
@@ -231,7 +231,8 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        FPToggle = new CheckBox("", appContext.skin);
+        //TODO: Get better toggle buttons.
+        FPToggle = new TextButton("  ", appContext.skin, "toggle");
         FPToggle.setChecked(params.exists("FlowpilotEnabledToggle") && params.getBool("FlowpilotEnabledToggle"));
         FPToggle.addListener(new ChangeListener() {
             @Override
@@ -240,7 +241,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        F3Toggle = new CheckBox("", appContext.skin);
+        F3Toggle = new TextButton("  ", appContext.skin, "toggle");
         F3Toggle.setChecked(params.exists("F3") && params.getBool("F3"));
         F3Toggle.addListener(new ChangeListener() {
             @Override
@@ -249,7 +250,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        LDWToggle = new CheckBox("", appContext.skin);
+        LDWToggle = new TextButton("  ", appContext.skin, "toggle");
         LDWToggle.setChecked(params.exists("IsLdwEnabled") && params.getBool("IsLdwEnabled"));
         LDWToggle.addListener(new ChangeListener() {
             @Override
@@ -258,7 +259,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        RHDToggle = new CheckBox("", appContext.skin);
+        RHDToggle = new TextButton("  ", appContext.skin, "toggle");
         RHDToggle.setChecked(params.exists("IsRHD") && params.getBool("IsRHD"));
         RHDToggle.addListener(new ChangeListener() {
             @Override
@@ -267,7 +268,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        MetricToggle = new CheckBox("", appContext.skin);
+        MetricToggle = new TextButton("  ", appContext.skin, "toggle");
         MetricToggle.setChecked(params.exists("IsMetric") && params.getBool("IsMetric"));
         MetricToggle.addListener(new ChangeListener() {
             @Override
@@ -277,7 +278,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        recordRoadCamToggle = new CheckBox("", appContext.skin);
+        recordRoadCamToggle = new TextButton("  ", appContext.skin, "toggle");
         recordRoadCamToggle.setChecked(params.exists("RecordRoad") && params.getBool("RecordRoad"));
         recordRoadCamToggle.addListener(new ChangeListener() {
             @Override
@@ -286,7 +287,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        recordDriverCamToggle = new CheckBox("", appContext.skin);
+        recordDriverCamToggle = new TextButton("  ", appContext.skin, "toggle");
         recordDriverCamToggle.setChecked(params.exists("RecordFront") && params.getBool("RecordFront"));
         recordDriverCamToggle.addListener(new ChangeListener() {
             @Override
@@ -294,7 +295,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        lanelessToggle = new CheckBox("", appContext.skin);
+        lanelessToggle = new TextButton("  ", appContext.skin, "toggle");
         lanelessToggle.setChecked(params.exists("EndToEndToggle") && params.getBool("EndToEndToggle"));
         lanelessToggle.addListener(new ChangeListener() {
             @Override
@@ -303,14 +304,14 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        disengageAccToggle = new CheckBox("", appContext.skin);
-        disengageAccToggle.setChecked(params.exists("DisengageOnAccelerator") && params.getBool("DisengageOnAccelerator"));
-        disengageAccToggle.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                params.putBool("DisengageOnAccelerator", disengageAccToggle.isChecked());
-            }
-        });
+//        disengageAccToggle = new TextButton("  ", appContext.skin, "toggle");
+//        disengageAccToggle.setChecked(params.exists("DisengageOnAccelerator") && params.getBool("DisengageOnAccelerator"));
+//        disengageAccToggle.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+//                params.putBool("DisengageOnAccelerator", disengageAccToggle.isChecked());
+//            }
+//        });
 
         fillDeviceSettings();
 
