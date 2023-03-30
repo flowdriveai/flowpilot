@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.common.ParamsInterface;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
@@ -30,12 +31,14 @@ public class LoginScreen extends ScreenAdapter {
     Table tableProgressBar;
 
     String LOGIN_URI;
+    ParamsInterface params;
 
     public LoginScreen(FlowUI appContext, String email) {
         this.appContext = appContext;
         this.email = email;
 
         this.LOGIN_URI = appContext.AUTH_ENDPOINT + "/login";
+        params = ParamsInterface.getInstance();
     }
 
     @Override
@@ -155,9 +158,9 @@ public class LoginScreen extends ScreenAdapter {
     }
 
     private void LoginSucceeded(String email, String user_id, String auth_token) {
-        appContext.params.put("UserEmail", email);
-        appContext.params.put("UserID", user_id);
-        appContext.params.put("UserToken", auth_token);
+        params.put("UserEmail", email);
+        params.put("UserID", user_id);
+        params.put("UserToken", auth_token);
         progressVal++;
     }
 
@@ -185,8 +188,14 @@ public class LoginScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // the session cookie is generated, we can check that to log in now.
-        if (appContext.params.exists("UserToken")) {
+        if (params.exists("UserToken")) {
             appContext.setScreen(new SetUpScreen(appContext));
+        }
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         progressBar.setValue(progressVal);
@@ -204,5 +213,6 @@ public class LoginScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         stage.dispose();
+        params.dispose();
     }
 }

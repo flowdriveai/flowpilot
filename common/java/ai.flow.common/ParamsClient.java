@@ -148,5 +148,11 @@ public class ParamsClient extends ParamsInterface {
         }
         return false;
     }
+
+    public void dispose(){
+        sockGet.close();
+        sockDel.close();
+        sockPut.close();
+    }
 }
 

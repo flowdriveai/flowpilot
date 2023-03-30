@@ -12,7 +12,7 @@ public class Camera {
     static ParamsInterface params = ParamsInterface.getInstance();
     public static final float f_focal_length = params.existsAndCompare("F3", true) ? 2648.0f : 910.0f;
     public static final float e_focal_length = 567.0f;
-    public static final int[] frameSize = params.existsAndCompare("F3", true) ? new int[]{1920, 1080} : new int[]{1164, 874};
+    public static final int[] frameSize = params.existsAndCompare("F3", true) ? new int[]{1920, 1080} : new int[]{1280, 720};
     public static final String fcamIntrinsicParam = params.existsAndCompare("F3", true) ? "F3CameraMatrix" : "CameraMatrix";
     public static INDArray fcam_intrinsics = Nd4j.createFromArray(new float[][]{
             {f_focal_length,  0.0f,  frameSize[0]/2f},

@@ -100,6 +100,7 @@ public class AndroidLauncher extends AndroidApplication {
 		}
 
 		params = ParamsInterface.getInstance();
+		boolean f3 = params.existsAndCompare("F3", true);
 		TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		String dongleID = "";
 		if (telephonyManager != null) {
@@ -112,7 +113,8 @@ public class AndroidLauncher extends AndroidApplication {
 		params.put("DeviceModel", Build.MODEL);
 
 		AndroidApplicationConfiguration configuration = new AndroidApplicationConfiguration();
-		CameraManager cameraManager = new CameraManager(appContext, 20, Camera.CAMERA_TYPE_WIDE);
+		int cameraType = f3 ? Camera.CAMERA_TYPE_WIDE : Camera.CAMERA_TYPE_ROAD;
+		CameraManager cameraManager = new CameraManager(appContext, 20, cameraType);
 		SensorManager sensorManager = new SensorManager(appContext, "sensorEvents", 50);
 		sensors = new HashMap<String, SensorInterface>() {{
 			put("roadCamera", cameraManager);
@@ -121,7 +123,6 @@ public class AndroidLauncher extends AndroidApplication {
 
 		int pid = Process.myPid();
 
-		boolean f3 = params.existsAndCompare("F3", true);
 		String modelPath = Path.getModelDir(f3);
 
 		ModelRunner model;

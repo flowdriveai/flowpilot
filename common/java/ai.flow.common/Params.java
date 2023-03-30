@@ -132,4 +132,9 @@ public class Params extends ParamsInterface {
         }
         return false;
     }
+
+    public void dispose(){
+        db.close();
+        env.close();
+    }
 }
