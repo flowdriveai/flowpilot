@@ -35,6 +35,7 @@ public class FlowUI extends Game {
     public OnRoadScreen onRoadScreen;
     public ParamsInterface params = ParamsInterface.getInstance();
     public boolean isOnRoad = false;
+    public boolean isF3 = false;
     public Thread updateOnroadThread = null;
     Sound engageSound, disengageSound, promptSound, promptDistractedSound,
             refuseSound, warningImmediate, warningSoft;
@@ -47,6 +48,8 @@ public class FlowUI extends Game {
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Nd4j.zeros(1); // init nd4j (any better ways?)
+
+        isF3 = params.existsAndCompare("F3", true);
 
         updateOnroadThread = new Thread(new Runnable() {
             @Override

@@ -37,13 +37,14 @@ import org.opencv.core.Core;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import static ai.flow.android.sensor.Utils.fillYUVBuffer;
+import static ai.flow.common.BufferUtils.byteToFloat;
+import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 
 public class CameraManager extends SensorInterface {
@@ -121,18 +122,10 @@ public class CameraManager extends SensorInterface {
     }
 
     public void loadIntrinsics(){
-        if (params.exists("CameraMatrix")) {
-            float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
+        if (params.exists(fcamIntrinsicParam)) {
+            float[] cameraMatrix = byteToFloat(params.getBytes(fcamIntrinsicParam));
             updateProperty("intrinsics", cameraMatrix);
         }
-    }
-
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length / 4];
-        for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        }
-        return ret;
     }
 
     public void setIntrinsics(float[] intrinsics){

@@ -69,7 +69,7 @@ public class CalibrateScreen extends ScreenAdapter {
     NV12Renderer nv12Renderer;
     YUV2RGB yuv2RGB = null;
 
-    public CalibrateScreen(FlowUI appContext, boolean enableCancel, int cameraType) {
+    public CalibrateScreen(FlowUI appContext, int cameraType, boolean enableCancel) {
         this.appContext = appContext;
 
         this.cameraType = cameraType;
@@ -106,7 +106,7 @@ public class CalibrateScreen extends ScreenAdapter {
         btnInstructions.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                appContext.setScreen(new CalibrationInfo(appContext, enableCancel));
+                appContext.setScreen(new CalibrationInfo(appContext, cameraType, enableCancel));
             }
         });
 

@@ -8,9 +8,9 @@ eon_d_focal_length = 650.0
 tici_f_focal_length = 2648.0
 tici_e_focal_length = tici_d_focal_length = 567.0 # probably wrong? magnification is not consistent across frame
 
-eon_f_frame_size = (1164, 874)
+eon_f_frame_size = (1280, 720)
 eon_d_frame_size = (816, 612)
-tici_f_frame_size = tici_e_frame_size = tici_d_frame_size = (1928, 1208)
+tici_f_frame_size = tici_e_frame_size = tici_d_frame_size = (1920, 1080)
 
 # aka 'K' aka camera_frame_from_view_frame
 eon_fcam_intrinsics = np.array([

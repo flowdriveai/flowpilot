@@ -162,7 +162,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
         updateCameraState();
         updateCameraMatrix(frameWideData.getIntrinsics(), true);
-        updateCameraMatrix(frameData.getIntrinsics(), wideCameraOnly);
+        updateCameraMatrix(frameData.getIntrinsics(), false);
 
         // TODO:Clean this shit.
         ImagePrepare imagePrepare;
@@ -216,9 +216,9 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
             desireNDArr.put(desireFeatureSlice0, desireNDArr.get(desireFeatureSlice1));
             for (int i=1; i<CommonModelF3.DESIRE_LEN; i++){
                 if (desireIn[i] - prevDesire[i] > 0.99f)
-                    desireNDArr.putScalar(0, -1, i, desireIn[i]);
+                    desireNDArr.putScalar(0, CommonModelF3.HISTORY_BUFFER_LEN, i, desireIn[i]);
                 else
-                    desireNDArr.putScalar(0, -1, i, 0.0f);
+                    desireNDArr.putScalar(0, CommonModelF3.HISTORY_BUFFER_LEN, i, 0.0f);
                 prevDesire[i] = desireIn[i];
             }
 

@@ -1,7 +1,6 @@
 package ai.flow.app.CalibrationScreens;
 
 import ai.flow.app.FlowUI;
-import ai.flow.common.transformations.Camera;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -25,7 +24,7 @@ public class CalibrationInfo extends ScreenAdapter {
     TextButton btnProceed;
     Label chessboardLink;
 
-    public CalibrationInfo(FlowUI appContext, boolean enableCancel) {
+    public CalibrationInfo(FlowUI appContext, int cameraType ,boolean enableCancel) {
         this.appContext = appContext;
 
         stage = new Stage(new FitViewport(1280, 720));
@@ -44,7 +43,7 @@ public class CalibrationInfo extends ScreenAdapter {
         btnProceed.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                appContext.setScreen(new CalibrateScreen(appContext, enableCancel, Camera.CAMERA_TYPE_ROAD));
+                appContext.setScreen(new CalibrateScreen(appContext, cameraType, enableCancel));
             }
         });
 

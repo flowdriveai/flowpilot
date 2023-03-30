@@ -1,9 +1,12 @@
 package ai.flow.app;
 
+import ai.flow.common.transformations.Camera;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import ai.flow.app.CalibrationScreens.CalibrationInfo;
+
+import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 public class SetUpScreen extends ScreenAdapter {
 
@@ -31,10 +34,16 @@ public class SetUpScreen extends ScreenAdapter {
             return;
         }
 
-        if (!appContext.params.exists("CameraMatrix")) {
+        if (!appContext.params.exists(fcamIntrinsicParam)){
            appContext.launcher.startSensorD();
-           appContext.setScreen(new CalibrationInfo(appContext, false));
+           appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_ROAD, false));
            return;
+        }
+
+        if (!appContext.params.exists("WideCameraMatrix") & appContext.isF3 & !appContext.params.existsAndCompare("WideCameraOnly", true)){
+            appContext.launcher.startSensorD();
+            appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_WIDE, false));
+            return;
         }
 
         appContext.launcher.startAllD();

@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import static ai.flow.common.BufferUtils.bufferFromAddress;
 import static ai.flow.common.BufferUtils.byteToFloat;
+import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
@@ -43,6 +44,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     public ParamsInterface params = ParamsInterface.getInstance();
     public String frameDataTopic = null;
     public String frameBufferTopic = null;
+    public String cameraParamName = null;
     public RGB2YUV rgb2yuv;
     ByteBuffer yuvBuffer, rgbBuffer;
 
@@ -57,11 +59,13 @@ public class CameraManager extends SensorInterface implements Runnable {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         if (cameraType == Camera.CAMERA_TYPE_WIDE){
-            this.frameDataTopic = "wideRoadCameraState";
-            this.frameBufferTopic = "wideRoadCameraBuffer";
+            frameDataTopic = "wideRoadCameraState";
+            frameBufferTopic = "wideRoadCameraBuffer";
+            cameraParamName = "WideCameraMatrix";
         } else if (cameraType == Camera.CAMERA_TYPE_ROAD) {
-            this.frameDataTopic = "roadCameraState";
-            this.frameBufferTopic = "roadCameraBuffer";
+            frameDataTopic = "roadCameraState";
+            frameBufferTopic = "roadCameraBuffer";
+            cameraParamName = fcamIntrinsicParam;
         }
 
         msgFrameBuffer = new MsgFrameBuffer(frameWidth*frameHeight*3/2, cameraType);
@@ -200,8 +204,8 @@ public class CameraManager extends SensorInterface implements Runnable {
     }
 
     public void loadIntrinsics(){
-        if (params.exists("CameraMatrix")) {
-            float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
+        if (params.exists(cameraParamName)) {
+            float[] cameraMatrix = byteToFloat(params.getBytes(cameraParamName));
             updateProperty("intrinsics", cameraMatrix);
         }
     }
