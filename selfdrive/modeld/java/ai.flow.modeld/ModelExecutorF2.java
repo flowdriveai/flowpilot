@@ -36,7 +36,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public static final int[] desireTensorShape = {1, 8};
     public static final int[] trafficTensorShape = {1, 2};
     public static final int[] stateTensorShape = {1, 512};
-    public static final int[] outputTensorShape = {1, 11327};
+    public static final int[] outputTensorShape = {1, 6609};
 
     public static final Map<String, int[]> inputShapeMap = new HashMap<>();
     public static final Map<String, int[]> outputShapeMap = new HashMap<>();

@@ -20,6 +20,8 @@ import ai.flow.app.CalibrationScreens.CalibrationInfo;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.SystemUtils;
 
+import static ai.flow.app.FlowUI.getPaddedButton;
+
 
 public class SettingsScreen extends ScreenAdapter {
 
@@ -104,8 +106,8 @@ public class SettingsScreen extends ScreenAdapter {
         addKeyValueTable(currentSettingTable, "Use Metric System", MetricToggle, true);
         addKeyValueTable(currentSettingTable, "Record & Upload Road Camera", recordRoadCamToggle, true);
         addKeyValueTable(currentSettingTable, "Record & Upload Driver Camera", recordDriverCamToggle, true);
-        addKeyValueTable(currentSettingTable, "Disable Use of LaneLines (alpha)", lanelessToggle, true);
-        addKeyValueTable(currentSettingTable, "Disengage on Accelerator Pedal", disengageAccToggle, false);
+        addKeyValueTable(currentSettingTable, "Disable Use of LaneLines (alpha)", lanelessToggle, false);
+        //addKeyValueTable(currentSettingTable, "Disengage on Accelerator Pedal", disengageAccToggle, false);
     }
 
     public SettingsScreen(FlowUI appContext) {
@@ -140,7 +142,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(closeButton).align(Align.left).padLeft(100).padBottom(70).size(70);
         settingTable.row();
 
-        buttonDevice = new TextButton("Device", appContext.skin, "no-bg-bold");
+        buttonDevice = getPaddedButton("Device", appContext.skin, "no-bg-bold", 5);
         buttonDevice.setChecked(true);
         buttonDevice.addListener(new ClickListener() {
             @Override
@@ -151,7 +153,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(buttonDevice).pad(10).align(Align.right);
         settingTable.row();
 
-        buttonSoftware = new TextButton("Software", appContext.skin, "no-bg-bold");
+        buttonSoftware = getPaddedButton("Software", appContext.skin, "no-bg-bold", 5);
         buttonSoftware.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -161,7 +163,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(buttonSoftware).pad(10).align(Align.right);
         settingTable.row();
 
-        buttonToggle = new TextButton("Toggles", appContext.skin, "no-bg-bold");
+        buttonToggle = getPaddedButton("Toggles", appContext.skin, "no-bg-bold", 5);
         buttonToggle.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -171,7 +173,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(buttonToggle).pad(10).align(Align.right);
         settingTable.row();
 
-        buttonCalibrate = new TextButton("RESET", appContext.skin);
+        buttonCalibrate = getPaddedButton("RESET", appContext.skin, 5);
         buttonCalibrate.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -179,7 +181,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        buttonWideCalibrate = new TextButton("RESET", appContext.skin);
+        buttonWideCalibrate = getPaddedButton("RESET", appContext.skin, 5);
         buttonWideCalibrate.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -187,7 +189,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        buttonCalibrateExtrinsic = new TextButton("RESET", appContext.skin);
+        buttonCalibrateExtrinsic = getPaddedButton("RESET", appContext.skin, 5);
         buttonCalibrateExtrinsic.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -195,7 +197,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        buttonTraining = new TextButton("REVIEW", appContext.skin);
+        buttonTraining = getPaddedButton("REVIEW", appContext.skin, 5);
         buttonTraining.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -203,28 +205,28 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        buttonCheckUpdate = new TextButton("CHECK", appContext.skin);
+        buttonCheckUpdate = getPaddedButton("CHECK", appContext.skin, 5);
         buttonCheckUpdate.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        buttonReboot = new TextButton("Reboot", appContext.skin);
+        buttonReboot = getPaddedButton("Reboot", appContext.skin, 5);
         buttonReboot.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        buttonPowerOff = new TextButton("Power Off", appContext.skin, "critical");
+        buttonPowerOff = getPaddedButton("Power Off", appContext.skin, "critical", 5);
         buttonPowerOff.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        buttonUninstall = new TextButton("UNINSTALL", appContext.skin, "critical");
+        buttonUninstall = getPaddedButton("UNINSTALL", appContext.skin, "critical", 5);
         buttonUninstall.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {

@@ -115,7 +115,7 @@
     "default": {
       "over": "button-over",
       "disabled": "button",
-      "font": "default-font",
+      "font": "default-font-30",
       "fontColor": "white",
       "disabledFontColor": "grey",
       "down": "button-down",
@@ -124,7 +124,7 @@
     "critical": {
       "over": "button-red",
       "disabled": "button",
-      "font": "default-font",
+      "font": "default-font-30",
       "fontColor": "white",
       "disabledFontColor": "grey",
       "down": "button-down",
@@ -133,7 +133,7 @@
     "blue": {
       "over": "button-blue-over",
       "disabled": "button",
-      "font": "default-font",
+      "font": "default-font-30",
       "fontColor": "white",
       "disabledFontColor": "grey",
       "down": "button-blue-down",

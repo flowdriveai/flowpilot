@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Core;
 
@@ -106,6 +107,18 @@ public class FlowUI extends Game {
         warningSoft = Gdx.audio.newSound(Gdx.files.absolute(Path.internal("selfdrive/assets/sounds/warning_soft.wav")));
     }
 
+    public static TextButton getPaddedButton(String text, Skin skin, String styleName, int padding){
+        TextButton button = new TextButton(text, skin, styleName);
+        button.getLabelCell().pad(padding);
+        return button;
+    }
+
+    public static TextButton getPaddedButton(String text, Skin skin, int padding){
+        TextButton button = new TextButton(text, skin);
+        button.getLabelCell().pad(padding);
+        return button;
+    }
+
     @Override
     public void create() {
         params.putInt("FlowpilotPID", pid);
@@ -118,6 +131,8 @@ public class FlowUI extends Game {
             font.setColor(0f, 1f, 0f, 1f);
             font.getData().setScale(2);
             skin = new Skin(new TextureAtlas(Gdx.files.absolute(Path.internal("selfdrive/assets/skins/uiskin.atlas"))));
+            for (Texture texture: skin.getAtlas().getTextures())
+                texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             loadInternalFonts(skin);
             loadSounds();
             skin.load(Gdx.files.absolute(Path.internal("selfdrive/assets/skins/uiskin.json")));
