@@ -186,23 +186,23 @@
   },
   "com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle": {
     "default": {
-      "titleFont": "default-font",
+      "titleFont": "default-font-30",
       "background": "window",
       "titleFontColor": "white"
     },
     "resizable": {
       "background": "window-resizable",
-      "titleFont": "default-font",
+      "titleFont": "default-font-30",
       "titleFontColor": "white"
     },
     "noborder": {
       "background": "window-noborder",
-      "titleFont": "default-font",
+      "titleFont": "default-font-30",
       "titleFontColor": "white"
     },
     "dialog": {
       "stageBackground": "dialogDim",
-      "titleFont": "default-font",
+      "titleFont": "default-font-30",
       "background": "window",
       "titleFontColor": "white"
     }
@@ -255,7 +255,7 @@
       "fontColor": "white",
       "disabledFontColor": "grey",
       "selection": "selection",
-      "background": "textfield",
+      "background": "button",
       "cursor": "cursor",
       "messageFont": "default-font",
       "messageFontColor": "grey"
