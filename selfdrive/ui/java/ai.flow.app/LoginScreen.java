@@ -1,10 +1,12 @@
 package ai.flow.app;
 
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.net.HttpRequestBuilder;
 import com.badlogic.gdx.net.HttpRequestHeader;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -13,11 +15,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class LoginScreen extends ScreenAdapter {
     FlowUI appContext;
-    Stage stage;
+    Stage stageUI, stageBackground;
     Table table;
     TextField txfEmail;
     TextField txfPassword;
@@ -32,6 +35,7 @@ public class LoginScreen extends ScreenAdapter {
 
     String LOGIN_URI;
     ParamsInterface params;
+    Image background;
 
     public LoginScreen(FlowUI appContext, String email) {
         this.appContext = appContext;
@@ -39,17 +43,23 @@ public class LoginScreen extends ScreenAdapter {
 
         this.LOGIN_URI = appContext.AUTH_ENDPOINT + "/login";
         params = ParamsInterface.getInstance();
-    }
 
-    @Override
-    public void show() {
-        this.stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        Gdx.input.setInputProcessor(stage);
+        this.stageUI = new Stage(new FitViewport(1280, 640));
+
+        Texture tex = new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/images/phones.jpg")));
+        tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        background = new Image(tex);
+        background.setColor(1, 1, 1, 0.3f);
+
+        stageBackground = new Stage(new FillViewport(background.getWidth(), background.getHeight()));
+        stageBackground.addActor(background);
 
         txfEmail = new TextField(email, appContext.skin);
-        txfEmail.setMessageText(" Email");
+        txfEmail.setMessageText(" email");
         txfPassword = new TextField("", appContext.skin);
-        txfPassword.setMessageText(" Password");
+        txfPassword.setPasswordMode(true);
+        txfPassword.setPasswordCharacter('*');
+        txfPassword.setMessageText(" password");
 
         btnBack = new TextButton("Back", appContext.skin);
         btnBack.addListener(
@@ -60,7 +70,7 @@ public class LoginScreen extends ScreenAdapter {
                     }
                 });
 
-        btnLogin = new TextButton("Login", appContext.skin);
+        btnLogin = new TextButton("Login", appContext.skin, "blue");
         btnLogin.addListener(
                 new ClickListener() {
                     @Override
@@ -79,19 +89,24 @@ public class LoginScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        title = new Label("Flowdrive Login", appContext.skin);
+        title = new Label("Login", appContext.skin);
 
         table.add(title).align(Align.center).height(75f).colspan(2);
         table.row();
-        table.add(txfEmail).width(440f).height(100f).colspan(2).pad(20);
+        table.add(txfEmail).width(450f).height(80f).colspan(2).pad(20);
         table.row();
-        table.add(txfPassword).width(440f).height(100f).colspan(2).pad(20);
+        table.add(txfPassword).width(450f).height(80f).colspan(2).pad(20);
         table.row();
-        table.add(btnBack).width(200f).height(100f).uniform().pad(20);
-        table.add(btnLogin).width(200f).height(100f).uniform().pad(20);
+        table.add(btnBack).width(200f).height(70f).uniform().pad(20);
+        table.add(btnLogin).width(200f).height(70f).uniform().pad(20);
 
-        stage.addActor(table);
-        stage.addActor(tableProgressBar);
+        stageUI.addActor(table);
+        stageUI.addActor(tableProgressBar);
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(stageUI);
     }
 
     private void btnLoginClicked() {
@@ -179,7 +194,7 @@ public class LoginScreen extends ScreenAdapter {
         dialog.text(defaultResponse.message);
         dialog.button("Retry", true);
 
-        dialog.show(stage);
+        dialog.show(stageUI);
     }
 
     @Override
@@ -188,31 +203,33 @@ public class LoginScreen extends ScreenAdapter {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // the session cookie is generated, we can check that to log in now.
-        if (params.exists("UserToken")) {
-            appContext.setScreen(new SetUpScreen(appContext));
-        }
-
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        if (Gdx.graphics.getFrameId() % 10 == 0) {
+            if (params.exists("UserToken")) {
+                appContext.setScreen(new SetUpScreen(appContext));
+                return;
+            }
         }
 
         progressBar.setValue(progressVal);
 
-        stage.act(delta);
-        stage.draw();
+        stageBackground.getViewport().apply();
+        stageBackground.act(delta);
+        stageBackground.draw();
+
+        stageUI.getViewport().apply();
+        stageUI.act(delta);
+        stageUI.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(width, height);
+        stageUI.getViewport().update(width, height);
     }
 
 
     @Override
     public void dispose() {
-        stage.dispose();
+        stageUI.dispose();
         params.dispose();
     }
 }

@@ -25,7 +25,6 @@ public class RegisterScreen extends ScreenAdapter {
     TextField txfEmail;
     TextField txfPassword;
     TextButton btnContinue;
-    Dialog invalidEmailFmtDialog;
     Dialog sentMailDialog;
     Dialog customDialog;
     Dialog emailAlreadyExistsDialog;
@@ -51,10 +50,12 @@ public class RegisterScreen extends ScreenAdapter {
         stageBackground.addActor(background);
 
         txfEmail = new TextField("", appContext.skin);
-        txfEmail.setMessageText(" Email");
+        txfEmail.setMessageText(" email");
 
         txfPassword = new TextField("", appContext.skin);
-        txfPassword.setMessageText(" Password");
+        txfPassword.setPasswordMode(true);
+        txfPassword.setPasswordCharacter('*');
+        txfPassword.setMessageText(" password");
 
         btnContinue = new TextButton("Continue", appContext.skin, "blue");
         btnContinue.addListener(
@@ -74,7 +75,7 @@ public class RegisterScreen extends ScreenAdapter {
                         }
                     }
                 };
-        sentMailDialog.text("A verification link has been sent to your Email inbox");
+        sentMailDialog.text(new Label("A verification link has been sent to your Email inbox", appContext.skin, "default-font-30", "white"));
         sentMailDialog.button("  Go  ", true);
 
         emailAlreadyExistsDialog =
@@ -86,7 +87,7 @@ public class RegisterScreen extends ScreenAdapter {
                         }
                     }
                 };
-        emailAlreadyExistsDialog.text("Email already exists. Please log in");
+        emailAlreadyExistsDialog.text(new Label("Email already exists. Please log in", appContext.skin, "default-font-30", "white"));
         emailAlreadyExistsDialog.button("  Go  ", true);
 
         noInternetDialog =
@@ -97,7 +98,7 @@ public class RegisterScreen extends ScreenAdapter {
                         }
                     }
                 };
-        noInternetDialog.text("Facing network issues\nPlease retry");
+        noInternetDialog.text(new Label("Facing network issues\nPlease retry", appContext.skin, "default-font-30", "white"));
         noInternetDialog.button("  OK  ", true);
 
         progressBar = new ProgressBar(0, 5, 1, false, appContext.skin);
@@ -110,15 +111,15 @@ public class RegisterScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        label = new Label("FlowDrive Registration", appContext.skin);
+        label = new Label("Register", appContext.skin);
 
         table.add(label).align(Align.center).height(75f);
         table.row();
-        table.add(txfEmail).width(450f).height(100f).pad(20);
+        table.add(txfEmail).width(450f).height(80f).pad(20);
         table.row();
-        table.add(txfPassword).width(450f).height(100f).pad(20);
+        table.add(txfPassword).width(450f).height(80f).pad(20);
         table.row();
-        table.add(btnContinue).width(200f).height(75f).pad(20);
+        table.add(btnContinue).width(200f).height(70f).pad(20);
 
         stageUI.addActor(table);
         stageUI.addActor(tableProgressBar);
@@ -240,5 +241,6 @@ public class RegisterScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         stageUI.dispose();
+        stageBackground.dispose();
     }
 }

@@ -45,6 +45,7 @@ public class TrainingScreen extends ScreenAdapter {
     public TrainingScreen(FlowUI appContext) {
         this.appContext = appContext;
         texture = new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/training/step" + trainingStep + ".png")));
+        texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         texImage = new Image(texture);
         stage = new Stage(new FillViewport(1920, 1080));
         stage.addActor(texImage);
@@ -121,6 +122,7 @@ public class TrainingScreen extends ScreenAdapter {
                 } else {
                     texture.dispose();
                     texture = new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/training/step" + trainingStep + ".png")));
+                    texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
                     texImage = new Image(texture);
                     stage.clear();
                     stage.addActor(texImage);
