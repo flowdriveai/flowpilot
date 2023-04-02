@@ -1,6 +1,5 @@
 package ai.flow.calibration;
 
-import ai.flow.common.ParamsInterface;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
@@ -24,14 +23,12 @@ public class CameraCalibratorIntrinsic implements Runnable {
     public int status = STATUS_UNCALIBRATED;
     public float THRESHOLD_ERROR = 50f;
     Mat cachedImagePoints = new Mat();
-    ParamsInterface params;
     Size winSize = new Size(7, 7);
     Size zeroZone = new Size(-1, -1);
     TermCriteria criteria = new TermCriteria(TermCriteria.EPS + TermCriteria.COUNT, 40, 0.001);
 
-    public CameraCalibratorIntrinsic(int patternColumns, int patternRows, ParamsInterface params) {
+    public CameraCalibratorIntrinsic(int patternColumns, int patternRows) {
         patternSize = new Size(patternColumns, patternRows);
-        this.params = params;
     }
 
     public boolean isValidRMSE(Mat currentImagePoints) {

@@ -1,9 +1,9 @@
 package ai.flow.app.CalibrationScreens;
 
 import ai.flow.app.FlowUI;
-import ai.flow.app.NV12Renderer;
 import ai.flow.app.SetUpScreen;
 import ai.flow.calibration.CameraCalibratorIntrinsic;
+import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformations.Camera;
 import ai.flow.common.transformations.YUV2RGB;
 import ai.flow.definitions.Definitions;
@@ -66,8 +66,8 @@ public class CalibrateScreen extends ScreenAdapter {
     Definitions.FrameBuffer.Reader msgFrameBuffer;
     Definitions.FrameData.Reader msgFrameData;
     ByteBuffer imgBuffer;
-    NV12Renderer nv12Renderer;
     YUV2RGB yuv2RGB = null;
+    ParamsInterface params = ParamsInterface.getInstance();
 
     public CalibrateScreen(FlowUI appContext, int cameraType, boolean enableCancel) {
         this.appContext = appContext;
@@ -88,7 +88,7 @@ public class CalibrateScreen extends ScreenAdapter {
         }
 
         pixelMap.setBlending(Blending.None);
-        calibrator = new CameraCalibratorIntrinsic(9, 6, appContext.params); // 6 by 9 chessboard :))
+        calibrator = new CameraCalibratorIntrinsic(9, 6); // 6 by 9 chessboard :))
         stageUI = new Stage(new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
         btnBack = new TextButton("Cancel", appContext.skin);
@@ -198,8 +198,8 @@ public class CalibrateScreen extends ScreenAdapter {
                 byte[] cameraMatrixBuffer = MatToByte(calibrator.cameraMatrix);
                 byte[] distortionCoefficientsBuffer = MatToByte(calibrator.distortionCoefficients);
 
-                appContext.params.put(intrinsicParamName, cameraMatrixBuffer);
-                appContext.params.put(distortionParamName, distortionCoefficientsBuffer);
+                params.put(intrinsicParamName, cameraMatrixBuffer);
+                params.put(distortionParamName, distortionCoefficientsBuffer);
 
                 // new camera matrix would be published in FrameData.
                 appContext.sensors.get(cameraName).updateProperty("intrinsics", byteToFloat(cameraMatrixBuffer));
@@ -236,5 +236,6 @@ public class CalibrateScreen extends ScreenAdapter {
         if (yuv2RGB != null)
             yuv2RGB.dispose();
         sh.releaseAll();
+        params.dispose();
     }
 }

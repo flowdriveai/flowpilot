@@ -36,8 +36,8 @@ public class FlowUI extends Game {
     public OnRoadScreen onRoadScreen;
     public ParamsInterface params = ParamsInterface.getInstance();
     public boolean isOnRoad = false;
-    public boolean isF3 = false;
-    public Thread updateOnroadThread = null;
+    public boolean isF3;
+    public Thread updateOnroadThread;
     Sound engageSound, disengageSound, promptSound, promptDistractedSound,
             refuseSound, warningImmediate, warningSoft;
 
@@ -155,5 +155,6 @@ public class FlowUI extends Game {
             font.dispose();
             launcher.dispose();
         }
+        params.dispose();
     }
 }

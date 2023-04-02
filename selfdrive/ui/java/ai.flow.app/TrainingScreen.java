@@ -1,10 +1,10 @@
 package ai.flow.app;
 
+import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -19,6 +19,7 @@ public class TrainingScreen extends ScreenAdapter {
     Image texImage;
     int trainingStep = 0;
     boolean restart = false;
+    ParamsInterface params = ParamsInterface.getInstance();
 
     int[][][] touchBoxes = {{{115, 275}, {115, 111}, {731, 109}, {721, 270}},
             {{1624, 1080}, {1920, 1080}, {1920, 0}, {1624, 0}},
@@ -65,11 +66,11 @@ public class TrainingScreen extends ScreenAdapter {
         if (step == 9){ // handle driver monitoring data collection.
             if (inside(x, y, new int[][] {{115, 251}, {113, 118},
                                         {572, 117}, {574, 253}})){
-                appContext.params.putBool("RecordFront", false);
+                params.putBool("RecordFront", false);
                 return true;
             } else if (inside(x, y, new int[][] {{643, 253}, {645, 113},
                                                 {1104, 109}, {1102, 255}})) {
-                appContext.params.putBool("RecordFront", true);
+                params.putBool("RecordFront", true);
                 return true;
             }
             return false;
@@ -80,7 +81,7 @@ public class TrainingScreen extends ScreenAdapter {
                 return true;
             } else if (inside(x, y, new int[][] {{627, 276}, {627, 113},
                                             {1263, 115}, {1257, 274}})) {
-                appContext.params.putBool("CompletedTrainingVersion", true);
+                params.putBool("CompletedTrainingVersion", true);
                 return true;
             }
             return false;
@@ -133,5 +134,6 @@ public class TrainingScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(null);
         texture.dispose();
         stage.dispose();
+        params.dispose();
     }
 }

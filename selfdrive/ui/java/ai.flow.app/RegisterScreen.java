@@ -1,9 +1,11 @@
 package ai.flow.app;
 
+import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.net.HttpRequestBuilder;
 import com.badlogic.gdx.net.HttpRequestHeader;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -11,12 +13,13 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class RegisterScreen extends ScreenAdapter {
     // RFC822 Compliant email pattern
     FlowUI appContext;
-    Stage stage;
+    Stage stageUI, stageBackground;
     Table table;
     Table tableProgressBar;
     TextField txfEmail;
@@ -31,16 +34,21 @@ public class RegisterScreen extends ScreenAdapter {
     Integer progressVal = 0; // ranges from 0 - 5
     ProgressBar progressBar;
     Label label;
+    Image background;
 
     public RegisterScreen(FlowUI appContext) {
         this.appContext = appContext;
         this.REGISTER_URI = appContext.AUTH_ENDPOINT + "/register";
-    }
 
-    @Override
-    public void show() {
-        this.stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        Gdx.input.setInputProcessor(stage);
+        this.stageUI = new Stage(new FitViewport(1280, 640));
+
+        Texture tex = new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/images/phones.jpg")));
+        tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        background = new Image(tex);
+        background.setColor(1, 1, 1, 0.3f);
+
+        stageBackground = new Stage(new FillViewport(background.getWidth(), background.getHeight()));
+        stageBackground.addActor(background);
 
         txfEmail = new TextField("", appContext.skin);
         txfEmail.setMessageText(" Email");
@@ -48,7 +56,7 @@ public class RegisterScreen extends ScreenAdapter {
         txfPassword = new TextField("", appContext.skin);
         txfPassword.setMessageText(" Password");
 
-        btnContinue = new TextButton("Continue", appContext.skin);
+        btnContinue = new TextButton("Continue", appContext.skin, "blue");
         btnContinue.addListener(
                 new ClickListener() {
                     @Override
@@ -112,8 +120,13 @@ public class RegisterScreen extends ScreenAdapter {
         table.row();
         table.add(btnContinue).width(200f).height(75f).pad(20);
 
-        stage.addActor(table);
-        stage.addActor(tableProgressBar);
+        stageUI.addActor(table);
+        stageUI.addActor(tableProgressBar);
+    }
+
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(stageUI);
     }
 
     private void btnContinueClicked() {
@@ -151,10 +164,10 @@ public class RegisterScreen extends ScreenAdapter {
                         progressVal++;
                         int statusCode = httpResponse.getStatus().getStatusCode();
                         if (statusCode == 201) {
-                            sentMailDialog.show(stage);
+                            sentMailDialog.show(stageUI);
                             progressVal++;
                         } else if (statusCode == 202){
-                            emailAlreadyExistsDialog.show(stage);
+                            emailAlreadyExistsDialog.show(stageUI);
                             progressVal++;
                         } else {
                             // Unknown error, respond with a response message
@@ -171,7 +184,7 @@ public class RegisterScreen extends ScreenAdapter {
                                     };
                             customDialog.text(response.message);
                             customDialog.button("  OK  ", true);
-                            customDialog.show(stage);
+                            customDialog.show(stageUI);
                             progressVal = 0;
                         }
                     }
@@ -190,14 +203,14 @@ public class RegisterScreen extends ScreenAdapter {
                                 (t.getMessage() == null) ? t.toString() : t.getMessage()
                         );
                         customDialog.button("  OK  ", true);
-                        customDialog.show(stage);
+                        customDialog.show(stageUI);
                         progressVal = 0;
                     }
 
                     @Override
                     public void cancelled() {
                         progressVal = 0;
-                        noInternetDialog.show(stage);
+                        noInternetDialog.show(stageUI);
                     }
                 });
     }
@@ -209,18 +222,23 @@ public class RegisterScreen extends ScreenAdapter {
 
         progressBar.setValue(progressVal);
 
-        stage.act(delta);
-        stage.draw();
+        stageBackground.getViewport().apply();
+        stageBackground.act(delta);
+        stageBackground.draw();
+
+        stageUI.getViewport().apply();
+        stageUI.act(delta);
+        stageUI.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(width, height);
+        stageUI.getViewport().update(width, height);
     }
 
 
     @Override
     public void dispose() {
-        stage.dispose();
+        stageUI.dispose();
     }
 }
