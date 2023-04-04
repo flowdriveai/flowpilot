@@ -25,12 +25,17 @@ import android.provider.Settings;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.telephony.TelephonyManager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import com.badlogic.gdx.backends.android.AndroidApplication;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
 import org.acra.ACRA;
 import org.acra.BuildConfig;
 import org.acra.ErrorReporter;
@@ -39,13 +44,14 @@ import org.acra.config.HttpSenderConfigurationBuilder;
 import org.acra.config.ToastConfigurationBuilder;
 import org.acra.data.StringFormat;
 import org.acra.sender.HttpSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static android.os.Build.VERSION.SDK_INT;
 
 /** Launches the Android application. */
-public class AndroidLauncher extends AndroidApplication {
+public class AndroidLauncher extends FragmentActivity implements AndroidFragmentApplication.Callbacks {
 	public static Map<String, SensorInterface> sensors;
 	public static Context appContext;
 	public static ParamsInterface params;
@@ -60,7 +66,7 @@ public class AndroidLauncher extends AndroidApplication {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		appContext = getContext();
+		appContext = getApplicationContext();
 
 		// set environment variables from intent extras.
 		Bundle bundle = getIntent().getExtras();
@@ -114,7 +120,7 @@ public class AndroidLauncher extends AndroidApplication {
 
 		AndroidApplicationConfiguration configuration = new AndroidApplicationConfiguration();
 		int cameraType = f3 ? Camera.CAMERA_TYPE_WIDE : Camera.CAMERA_TYPE_ROAD;
-		CameraManager cameraManager = new CameraManager(appContext, 20, cameraType);
+		CameraManager cameraManager = new CameraManager(getApplication().getApplicationContext(), 20, cameraType);
 		SensorManager sensorManager = new SensorManager(appContext, "sensorEvents", 50);
 		sensors = new HashMap<String, SensorInterface>() {{
 			put("roadCamera", cameraManager);
@@ -146,7 +152,24 @@ public class AndroidLauncher extends AndroidApplication {
 		ACRAreporter.putCustomData("GitBranch", params.getString("GitBranch"));
 		ACRAreporter.putCustomData("GitRemote", params.getString("GitRemote"));
 
-		initialize(new FlowUI(launcher, pid), configuration);
+		MainFragment fragment = new MainFragment(new FlowUI(launcher, pid));
+		cameraManager.setLifeCycleFragment(fragment);
+		FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
+		trans.replace(android.R.id.content, fragment);
+		trans.commit();
+	}
+
+	public static class MainFragment extends AndroidFragmentApplication {
+		FlowUI flowUI;
+
+		MainFragment(FlowUI flowUI) {
+			this.flowUI = flowUI;
+		}
+
+		@Override
+		public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			return initializeForView(flowUI);
+		}
 	}
 
 	@Override
@@ -231,4 +254,10 @@ public class AndroidLauncher extends AndroidApplication {
 			}
 		}
 	}
+
+	@Override
+	public void exit() {
+		System.out.println("exitted app #################### fuck");
+	}
 }
+

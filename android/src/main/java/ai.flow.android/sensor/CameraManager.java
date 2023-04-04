@@ -27,6 +27,7 @@ import androidx.camera.core.VideoCapture;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
@@ -63,6 +64,7 @@ public class CameraManager extends SensorInterface {
     public boolean recording = false;
     public Context context;
     public ParamsInterface params = ParamsInterface.getInstance();
+    public Fragment lifeCycleFragment;
     ByteBuffer yuvBuffer;
 
     static class CustomLifecycle implements LifecycleOwner {
@@ -136,6 +138,10 @@ public class CameraManager extends SensorInterface {
         K.set(8, 1f);
     }
 
+    public void setLifeCycleFragment(Fragment lifeCycleFragment){
+        this.lifeCycleFragment = lifeCycleFragment;
+    }
+
     public void start() {
         if (running)
             return;
@@ -201,7 +207,7 @@ public class CameraManager extends SensorInterface {
         CustomLifecycle lifecycle=new CustomLifecycle();
         lifecycle.doOnResume();
         lifecycle.doOnStart();
-        cameraProvider.bindToLifecycle(lifecycle, cameraSelector,
+        cameraProvider.bindToLifecycle(lifeCycleFragment.getViewLifecycleOwner(), cameraSelector,
                 imageAnalysis, videoCapture);
     }
 
