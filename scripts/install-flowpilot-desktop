@@ -30,7 +30,7 @@ wget -q --show-progress --no-clobber --tries=5 https://dl.google.com/android/rep
 unzip commandlinetools-linux-8092744_latest.zip
 mkdir -p ~/Android/Sdk/cmdline-tools/latest
 mv cmdline-tools/* ~/Android/Sdk/cmdline-tools/latest/
-rm -rf cmdline-tools
+rm -rf cmdline-tools commandlinetools-linux-8092744_latest.zip
 echo 'export ANDROID_SDK_ROOT=$HOME/Android/Sdk' >> ~/.bashrc
 echo 'export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin' >> ~/.bashrc
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
