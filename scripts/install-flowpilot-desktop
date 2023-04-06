@@ -26,29 +26,52 @@ fail() {
 # install android and java sdk
 sudo apt update
 sudo apt install -y openjdk-11-jdk git
-wget -q --show-progress --no-clobber --tries=5 https://dl.google.com/android/repository/commandlinetools-linux-8092744_latest.zip
-unzip commandlinetools-linux-8092744_latest.zip
-mkdir -p ~/Android/Sdk/cmdline-tools/latest
-mv cmdline-tools/* ~/Android/Sdk/cmdline-tools/latest/
-rm -rf cmdline-tools commandlinetools-linux-8092744_latest.zip
+
+if ! [ -e ./commandlinetools-linux-8092744_latest.zip ]; then
+    wget -q --show-progress --no-clobber --tries=5 https://dl.google.com/android/repository/commandlinetools-linux-8092744_latest.zip
+    unzip commandlinetools-linux-8092744_latest.zip
+else
+    info "Skipping Command Line tools download as it is already downloaded."
+fi
+
+if ! [ -e ~/Android ]; then
+    mkdir -p ~/Android/Sdk/cmdline-tools/latest
+    mv cmdline-tools/* ~/Android/Sdk/cmdline-tools/latest/
+    rm -rf cmdline-tools
+else
+    info "Skipping Android SDK installation as it is already installed."
+fi
+
 echo 'export ANDROID_SDK_ROOT=$HOME/Android/Sdk' >> ~/.bashrc
 echo 'export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin' >> ~/.bashrc
+
 export ANDROID_SDK_ROOT=$HOME/Android/Sdk
 export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin
+
 yes | sdkmanager --licenses
 sdkmanager --install "platform-tools"
 sdkmanager --install "build-tools;32.0.0"
 
 # get python 3.9
-DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+DEBIAN_FRONTEND=noninteractive sudo apt-get install -y tzdata
 sudo apt install -y software-properties-common
 yes | sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install -y python3.9 python3.9-dev python3.9-distutils 
 
 # get flowpilot
-cd ~/ && git clone https://github.com/flowdriveai/flowpilot.git
-cd flowpilot && git submodule update --init
 
-pip install pipenv
+if ! [ -e ~/flowpilot ]; then
+    cd ~/ && git clone https://github.com/flowdriveai/flowpilot.git
+    cd flowpilot && git submodule update --init
+    python3.9 -m pip install pipenv
+    python3.9 -m pipenv shell
+    ./get_dependencies.sh
+    ./flowpilot_env.sh
+
+else
+    cd ~/flowpilot && git pull origin master && git submodule update --init
+    ./get_dependencies.sh
+    ./flowpilot_env.sh
+fi
 
 success "Flowpilot successfully installed." 
