@@ -95,7 +95,6 @@ public class CameraManager extends SensorInterface {
             .setVideoFrameRate(20)
             .setBitRate(2000_000)
             .setTargetRotation(Surface.ROTATION_90)
-            .setAudioBitRate(0)
             .build();
 
     public CameraManager(Context context, int frequency, int cameraType){

@@ -76,7 +76,7 @@ public class ParsedOutputs {
     public void initMeta() {
         metaData = new MetaData();
 
-        meta = new float[1][44];
+        meta = new float[1][72];
         state = new float[1][512];
     }
 

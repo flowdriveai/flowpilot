@@ -52,6 +52,12 @@ public class Parser {
         }
     }
 
+    public void copyOfRangeOffset(float[] src, float[] dst, int start, int length){
+        for (int i=start; i<start+length; i++){
+            dst[i-start] = src[i];
+        }
+    }
+
     public float getMax(float[] x){
          float max = x[0];
          for (int i=1; i<x.length; i++){
@@ -300,12 +306,11 @@ public class Parser {
         float[] brake_4ms2_sigmoid = metaDataOutput.disengagePredictions.brake4MetersPerSecondSquaredProbs;
         float[] brake_5ms2_sigmoid = metaDataOutput.disengagePredictions.brake5MetersPerSecondSquaredProbs;
 
-        copyOfRange(metaData, desire_state_softmax, DESIRE_LEN+1, DESIRE_LEN);
+        System.arraycopy(metaData, 0, desire_state_softmax, 0, DESIRE_LEN);
         softmax(desire_state_softmax, desire_state_softmax);
-        int offset = DESIRE_LEN + OTHER_META_SIZE;
         for (int i=0; i<4; i++)
         {
-            copyOfRange(metaData, desire_pred_softmax, offset+i*DESIRE_LEN, i*DESIRE_LEN);
+            System.arraycopy(metaData, DESIRE_LEN+OTHER_META_SIZE+i*DESIRE_LEN, desire_pred_softmax, 0, DESIRE_LEN);
             softmax(desire_pred_softmax, desire_pred_softmax);
         }
 
@@ -316,10 +321,13 @@ public class Parser {
         fill_sigmoid(metaData, brake_4ms2_sigmoid, 5, NUM_META_INTERVALS, META_STRIDE);
         fill_sigmoid(metaData, brake_5ms2_sigmoid, 6, NUM_META_INTERVALS, META_STRIDE);
 
-        copyOfRange(prev_brake_5ms2_probs, prev_brake_5ms2_probs, 1, prev_brake_5ms2_probs.length);
-        copyOfRange(prev_brake_3ms2_probs, prev_brake_3ms2_probs, 1, prev_brake_3ms2_probs.length);
-        boolean above_fcw_threshold = true;
+        System.arraycopy(prev_brake_5ms2_probs, 1, prev_brake_5ms2_probs, 0, 4);
+        System.arraycopy(prev_brake_3ms2_probs, 1, prev_brake_3ms2_probs, 0, 2);
+        prev_brake_5ms2_probs[4] = brake_5ms2_sigmoid[0];
+        prev_brake_3ms2_probs[2] = brake_3ms2_sigmoid[0];
+        System.out.println(Arrays.toString(prev_brake_5ms2_probs));
 
+        boolean above_fcw_threshold = true;
         for(int i = 0; i < 5; i++)
         {
             float threshold = i < 2 ? FCW_THRESHOLD_5MS2_LOW : FCW_THRESHOLD_5MS2_HIGH;
@@ -336,7 +344,6 @@ public class Parser {
     }
 
     public ParsedOutputs parser(float[] outs){
-
         copyOfRange(outs, net_outputs.get("lead"), LEAD_IDX, LEAD_PROB_IDX);
         copyOfRange(outs, net_outputs.get("leadProb"), LEAD_PROB_IDX, DESIRE_STATE_IDX);
         copyOfRange(outs, net_outputs.get("meta"), DESIRE_STATE_IDX, POSE_IDX);
