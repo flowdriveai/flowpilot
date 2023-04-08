@@ -325,7 +325,6 @@ public class Parser {
         System.arraycopy(prev_brake_3ms2_probs, 1, prev_brake_3ms2_probs, 0, 2);
         prev_brake_5ms2_probs[4] = brake_5ms2_sigmoid[0];
         prev_brake_3ms2_probs[2] = brake_3ms2_sigmoid[0];
-        System.out.println(Arrays.toString(prev_brake_5ms2_probs));
 
         boolean above_fcw_threshold = true;
         for(int i = 0; i < 5; i++)
