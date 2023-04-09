@@ -25,8 +25,7 @@ public class Launcher {
     }
 
     public void startModelD() {
-        if (!modeld.isRunning())
-            modeld.start();
+        modeld.start();
     }
 
     public void startSensorD() {
