@@ -1,5 +1,6 @@
 package ai.flow.app;
 
+import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformations.Camera;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -11,6 +12,7 @@ import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 public class SetUpScreen extends ScreenAdapter {
 
     FlowUI appContext;
+    ParamsInterface params = ParamsInterface.getInstance();
 
     public SetUpScreen(FlowUI appContext) {
         this.appContext = appContext;
@@ -19,28 +21,29 @@ public class SetUpScreen extends ScreenAdapter {
     @Override
     public void show() {
 
-        if (!appContext.params.existsAndCompare("HasAcceptedTerms", true)) {
+        if (!params.existsAndCompare("HasAcceptedTerms", true)) {
             appContext.setScreen(new TermsScreen(appContext));
             return;
         }
 
-        if (!appContext.params.exists("UserToken")) {
+        if (!params.exists("UserToken")) {
             appContext.setScreen(new RegisterScreen(appContext));
             return;
         }
 
-        if (!appContext.params.existsAndCompare("CompletedTrainingVersion", true)){
+        if (!params.existsAndCompare("CompletedTrainingVersion", true)){
             appContext.setScreen(new TrainingScreen(appContext));
             return;
         }
 
-        if (!appContext.params.exists(fcamIntrinsicParam)){
+        // no need to calibrate fcam in WideCameraOnly mode.
+        if (!params.exists(fcamIntrinsicParam) & !params.existsAndCompare("WideCameraOnly", true)){
            appContext.launcher.startSensorD();
            appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_ROAD, false));
            return;
         }
 
-        if (!appContext.params.exists("WideCameraMatrix") & appContext.isF3 & !appContext.params.existsAndCompare("WideCameraOnly", true)){
+        if (!params.exists("WideCameraMatrix") & appContext.isF3 & !params.existsAndCompare("WideCameraOnly", true)){
             appContext.launcher.startSensorD();
             appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_WIDE, false));
             return;
@@ -59,5 +62,6 @@ public class SetUpScreen extends ScreenAdapter {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        params.dispose();
     }
 }

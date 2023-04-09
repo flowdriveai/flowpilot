@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <ftw.h>
 
+#include <sys/time.h>
+#include <ctime>
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -14,6 +16,7 @@
 #include <fstream>
 #include <iostream>
 #include <streambuf>
+#include <time.h>
 
 #include "common/params.h"
 #include "common/swaglog.h"
@@ -89,7 +92,15 @@ std::string logger_get_route_name() {
   struct tm timeinfo;
   localtime_r(&rawtime, &timeinfo);
   strftime(route_name, sizeof(route_name), "%Y-%m-%d--%H-%M-%S", &timeinfo);
-  return route_name;
+
+  timeval curTime;
+  gettimeofday(&curTime, NULL);
+  int milli = curTime.tv_usec / 1000;
+
+  char route_name_with_millis[64] = "";
+  sprintf(route_name_with_millis, "%s.%03d", route_name, milli);
+
+  return route_name_with_millis;
 }
 
 void log_init_data(LoggerState *s) {

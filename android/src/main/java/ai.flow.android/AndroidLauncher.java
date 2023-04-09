@@ -17,10 +17,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
 import android.os.Process;
+import android.os.*;
 import android.provider.Settings;
 import android.system.ErrnoException;
 import android.system.Os;
@@ -55,11 +53,12 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 	public static Map<String, SensorInterface> sensors;
 	public static Context appContext;
 	public static ParamsInterface params;
-	List<String> requiredPermissions = Arrays.asList(android.Manifest.permission.CAMERA,
-			android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
-			android.Manifest.permission.READ_EXTERNAL_STORAGE,
-			android.Manifest.permission.RECORD_AUDIO,
-			android.Manifest.permission.READ_PHONE_STATE,
+	List<String> requiredPermissions = Arrays.asList(Manifest.permission.CAMERA,
+			Manifest.permission.WRITE_EXTERNAL_STORAGE,
+			Manifest.permission.READ_EXTERNAL_STORAGE,
+			Manifest.permission.RECORD_AUDIO,
+			Manifest.permission.READ_PHONE_STATE,
+			Manifest.permission.WAKE_LOCK,
 			Manifest.permission.VIBRATE);
 
 	@SuppressLint("HardwareIds")
@@ -89,6 +88,11 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 
 		// keep app from dimming due to inactivity.
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		// get wakelock so we can switch windows without getting killed.
+		PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+		PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ai.flow.app::wakelock");
+		wakeLock.acquire();
 
 		// tune system for max throughput. Does this really help ?
 		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -257,7 +261,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 
 	@Override
 	public void exit() {
-		System.out.println("exitted app #################### fuck");
+
 	}
 }
 

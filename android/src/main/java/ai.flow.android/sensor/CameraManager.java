@@ -11,6 +11,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.util.Range;
@@ -20,17 +21,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.camera.camera2.interop.Camera2Interop;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageProxy;
-import androidx.camera.core.VideoCapture;
+import android.hardware.camera2.CameraCharacteristics;
+import androidx.camera.core.*;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.LifecycleRegistry;
 import com.google.common.util.concurrent.ListenableFuture;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
@@ -41,12 +37,13 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 import static ai.flow.android.sensor.Utils.fillYUVBuffer;
 import static ai.flow.common.BufferUtils.byteToFloat;
 import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
-
 
 public class CameraManager extends SensorInterface {
 
@@ -65,28 +62,37 @@ public class CameraManager extends SensorInterface {
     public Context context;
     public ParamsInterface params = ParamsInterface.getInstance();
     public Fragment lifeCycleFragment;
+    int cameraType;
+    CameraControl cameraControl;
+    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss.SSS");
     ByteBuffer yuvBuffer;
 
-    static class CustomLifecycle implements LifecycleOwner {
+    public CameraSelector getCameraSelector(boolean  wide){
+        if (wide) {
+            List<CameraInfo> availableCamerasInfo = cameraProvider.getAvailableCameraInfos();
+            android.hardware.camera2.CameraManager cameraService = (android.hardware.camera2.CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
 
-        private final LifecycleRegistry mLifecycleRegistry;
-        CustomLifecycle() {
-            mLifecycleRegistry = new LifecycleRegistry(this);
-            mLifecycleRegistry.setCurrentState(Lifecycle.State.CREATED);
-        }
+            float minFocalLen = Float.MAX_VALUE;
+            String wideAngleCameraId = null;
 
-        void doOnResume() {
-            mLifecycleRegistry.setCurrentState(Lifecycle.State.RESUMED);
+            try {
+                String[] cameraIds = cameraService.getCameraIdList();
+                for (String id : cameraIds) {
+                    CameraCharacteristics characteristics = cameraService.getCameraCharacteristics(id);
+                    float focal_length = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)[0];
+                    boolean backCamera = CameraCharacteristics.LENS_FACING_BACK == characteristics.get(CameraCharacteristics.LENS_FACING);
+                    if ((focal_length < minFocalLen) && backCamera) {
+                        minFocalLen = focal_length;
+                        wideAngleCameraId = id;
+                    }
+                }
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+            return availableCamerasInfo.get(Integer.parseInt(wideAngleCameraId)).getCameraSelector();
         }
-
-        void doOnStart() {
-            mLifecycleRegistry.setCurrentState(Lifecycle.State.STARTED);
-        }
-
-        @NonNull
-        public Lifecycle getLifecycle() {
-            return mLifecycleRegistry;
-        }
+        else
+            return new CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
     }
 
     @SuppressLint("RestrictedApi")
@@ -99,8 +105,10 @@ public class CameraManager extends SensorInterface {
 
     public CameraManager(Context context, int frequency, int cameraType){
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+        df.setTimeZone(TimeZone.getTimeZone("UTC"));
         this.context = context;
         this.frequency = frequency;
+        this.cameraType = cameraType;
 
         if (cameraType == Camera.CAMERA_TYPE_WIDE){
             this.frameDataTopic = "wideRoadCameraState";
@@ -151,7 +159,7 @@ public class CameraManager extends SensorInterface {
             public void run() {
                 try {
                     cameraProvider = cameraProviderFuture.get();
-                    bindImageAnalysis(cameraProvider);
+                    bindUseCases(cameraProvider);
                 } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -160,7 +168,7 @@ public class CameraManager extends SensorInterface {
     }
 
     @SuppressLint({"RestrictedApi", "UnsafeOptInUsageError"})
-    private void bindImageAnalysis(@NonNull ProcessCameraProvider cameraProvider) {
+    private void bindUseCases(@NonNull ProcessCameraProvider cameraProvider) {
         ImageAnalysis.Builder builder = new ImageAnalysis.Builder();
         builder.setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST);
         builder.setTargetResolution(new Size(W, H));
@@ -200,14 +208,16 @@ public class CameraManager extends SensorInterface {
             }
         });
 
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK).build();
+        // f3 uses wide camera.
+        CameraSelector cameraSelector = getCameraSelector(cameraType == Camera.CAMERA_TYPE_WIDE);
 
-        CustomLifecycle lifecycle=new CustomLifecycle();
-        lifecycle.doOnResume();
-        lifecycle.doOnStart();
-        cameraProvider.bindToLifecycle(lifeCycleFragment.getViewLifecycleOwner(), cameraSelector,
+        androidx.camera.core.Camera camera = cameraProvider.bindToLifecycle(lifeCycleFragment.getViewLifecycleOwner(), cameraSelector,
                 imageAnalysis, videoCapture);
+
+        cameraControl = camera.getCameraControl();
+
+        // disable autofocus
+        cameraControl.cancelFocusAndMetering();
     }
 
     @SuppressLint("RestrictedApi")
@@ -221,7 +231,7 @@ public class CameraManager extends SensorInterface {
             movieDir.mkdirs();
         }
 
-        String videoFileName = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss--SSS").format(new Date());
+        String videoFileName = df.format(new Date());
         String vidFilePath = movieDir.getAbsolutePath() + "/" + videoFileName + ".mp4";
 
         File vidFile = new File(vidFilePath);

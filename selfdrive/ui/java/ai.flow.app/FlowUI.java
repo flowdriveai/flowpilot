@@ -36,6 +36,7 @@ public class FlowUI extends Game {
     public OnRoadScreen onRoadScreen;
     public ParamsInterface params = ParamsInterface.getInstance();
     public boolean isOnRoad = false;
+    public boolean prevIsOnRoad = false;
     public boolean isF3;
     public Thread updateOnroadThread;
     Sound engageSound, disengageSound, promptSound, promptDistractedSound,
@@ -58,17 +59,20 @@ public class FlowUI extends Game {
                 while (!Thread.interrupted()){
                     isOnRoad = params.existsAndCompare("IsOnroad", true);
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-
-                    if (!isOnRoad){
-                        modelExecutor.stop();
+                    if (prevIsOnRoad != isOnRoad) {
+                        if (!isOnRoad) {
+                            modelExecutor.stop();
+                            sensors.get("roadCamera").record(false);
+                        } else {
+                            modelExecutor.start();
+                            sensors.get("roadCamera").record(true);
+                        }
                     }
-                    else{
-                        modelExecutor.start();
-                    }
+                    prevIsOnRoad = isOnRoad;
                 }
             }
         });

@@ -32,7 +32,7 @@ public class SettingsScreen extends ScreenAdapter {
             buttonTraining, buttonPowerOff, buttonReboot, buttonSoftware,
             buttonUninstall, buttonToggle, buttonCheckUpdate;
     ImageButton closeButton;
-    TextButton recordRoadCamToggle, FPToggle, F3Toggle, LDWToggle, RHDToggle, MetricToggle,
+    TextButton FPToggle, F3Toggle, LDWToggle, RHDToggle, MetricToggle,
             recordDriverCamToggle, lanelessToggle, disengageAccToggle;
 
     SpriteBatch batch;
@@ -104,7 +104,6 @@ public class SettingsScreen extends ScreenAdapter {
         addKeyValueTable(currentSettingTable, "Enable Lane Departure Warnings", LDWToggle, true);
         addKeyValueTable(currentSettingTable, "Enable Right Hand Driving", RHDToggle, true);
         addKeyValueTable(currentSettingTable, "Use Metric System", MetricToggle, true);
-        addKeyValueTable(currentSettingTable, "Record & Upload Road Camera", recordRoadCamToggle, true);
         addKeyValueTable(currentSettingTable, "Record & Upload Driver Camera", recordDriverCamToggle, true);
         addKeyValueTable(currentSettingTable, "Disable Use of LaneLines (alpha)", lanelessToggle, false);
         //addKeyValueTable(currentSettingTable, "Disengage on Accelerator Pedal", disengageAccToggle, false);
@@ -277,15 +276,6 @@ public class SettingsScreen extends ScreenAdapter {
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 params.putBool("IsMetric", MetricToggle.isChecked());
                 appContext.onRoadScreen.isMetric = MetricToggle.isChecked();
-            }
-        });
-
-        recordRoadCamToggle = new TextButton("  ", appContext.skin, "toggle");
-        recordRoadCamToggle.setChecked(params.exists("RecordRoad") && params.getBool("RecordRoad"));
-        recordRoadCamToggle.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                appContext.sensors.get("roadCamera").record(recordRoadCamToggle.isChecked());
             }
         });
 
