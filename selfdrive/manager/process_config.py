@@ -35,7 +35,7 @@ procs = [
   ManagerProcess("keyvald", "keyvald", offroad=True),
   ManagerProcess("flowpilot", "./gradlew", args=["desktop:run"], rename=False, offroad=True, platform=["desktop"]),
   ManagerProcess("pandad", "pandad", offroad=True),
-  ManagerProcess("loggerd", "./selfdrive/loggerd/loggerd", enabled=False, onroad=False, callback=logging),
+  ManagerProcess("loggerd", "./selfdrive/loggerd/loggerd", enabled=True, onroad=False, callback=logging),
   ManagerProcess("uploader", "uploader", enabled=False, offroad=True),
   ManagerProcess("deleter", "deleter", enabled=False, offroad=True),
 ]

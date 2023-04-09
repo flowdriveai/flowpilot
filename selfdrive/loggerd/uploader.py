@@ -18,6 +18,7 @@ from common.params import Params
 from common.realtime import set_core_affinity
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
+from selfdrive.loggerd.video_process import segment_sync_videos
 from selfdrive.swaglog import cloudlog
 
 logger = logging.getLogger(__name__)
@@ -307,6 +308,9 @@ def main():
       format="%(asctime)s %(filename)s [%(levelname)s] %(message)s",
   )
 
+  # Flowpilot stores a single long video. Need to make and sync segments
+  # with respective route segments.
+  segment_sync_videos()
   uploader_fn(threading.Event())
 
 

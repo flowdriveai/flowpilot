@@ -16,8 +16,9 @@ else:
 os.makedirs(ROOT, exist_ok=True)
 os.makedirs(VIDEO_LOGS, exist_ok=True)
 
-LOG_FORMAT = "%Y-%m-%d--%H-%M-%S"
-VIDEO_LOG_FORMAT = "%Y-%m-%d--%H-%M-%S.%f.mp4"
+VIDEO_EXTENSION = "mp4"
+LOG_FORMAT = "%Y-%m-%d--%H-%M-%S.%f"
+VIDEO_LOG_FORMAT = f"%Y-%m-%d--%H-%M-%S.%f.{VIDEO_EXTENSION}"
 
 CAMERA_FPS = 20
 SEGMENT_LENGTH = 60
