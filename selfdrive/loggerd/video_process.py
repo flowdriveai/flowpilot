@@ -28,10 +28,15 @@ def get_video_duration(filename):
 def segment_sync_videos():
     logs = os.listdir(ROOT)
     video_segments_dir = os.path.join(VIDEO_LOGS, ".segments")
+    # we move proessed videos to other directory. cannot set xattr because android
+    # sdcard dosen't allows it.
+    processed_dir = os.path.join(VIDEO_LOGS, "processed")
     os.makedirs(video_segments_dir, exist_ok=True)
+    os.makedirs(processed_dir, exist_ok=True)
 
     video_names = os.listdir(VIDEO_LOGS)
     video_names.remove(".segments")
+    video_names.remove("processed")
 
     segments_sofs = [datetime.strptime(log[:log.rfind("--")], LOG_FORMAT).timestamp() for log in logs]
     video_sofs = [datetime.strptime(video_name, VIDEO_LOG_FORMAT).timestamp() for video_name in video_names]
@@ -42,7 +47,6 @@ def segment_sync_videos():
         idxs.append(closest_value(segments_sofs, vid_sof))
 
     for i, video_name in enumerate(video_names):
-        print("processing video", video_name)
         full_video_path = os.path.join(VIDEO_LOGS, video_name)
         
         time_diff = video_sofs[i] - segments_sofs[idxs[i]]
@@ -76,7 +80,8 @@ def segment_sync_videos():
             else:
                 os.remove(created_segment_path)
         os.rmdir(current_video_segment_dir)
-        #os.remove(full_video_path)
+        shutil.move(full_video_path, processed_dir)
+        print("processed video", video_name)
 
 if __name__ == "__main__":
     segment_sync_videos()
