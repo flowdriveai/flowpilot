@@ -39,7 +39,7 @@ if ! [ -e ~/Android ]; then
     mv cmdline-tools/* ~/Android/Sdk/cmdline-tools/latest/
     rm -rf cmdline-tools
 else
-    info "Skipping Android SDK installation as it is already installed."
+    info "Skipping Android SDK installation, ~/Android already exists"
 fi
 
 echo 'export ANDROID_SDK_ROOT=$HOME/Android/Sdk' >> ~/.bashrc
