@@ -9,7 +9,7 @@ import urllib3
 
 logger = logging.getLogger(__name__)
 
-API_HOST = os.getenv('API_HOST', 'https://api.flowdrive.ai')
+API_HOST = os.getenv('API_HOST', 'https://staging-api.flowdrive.ai')
 
 class Api():
   def __init__(self):
@@ -18,9 +18,12 @@ class Api():
 
   def get_credentials(self):
     # Get auth token
-    self.user_id = self.params.get("UserID")
-    self.token = self.params.get("UserToken")
+    self.user_id = self.params.get("UserID").decode()
+    self.token = self.params.get("UserToken").decode()
     self.dongle_id = self.params.get("DongleId")
+    if self.dongle_id is None:
+      self.dongle_id = b"f"*16
+    self.dongle_id = self.dongle_id.decode()
 
     if self.token is None:
       logger.error(f"Error retrieving auth token")

@@ -30,7 +30,7 @@ public class SettingsScreen extends ScreenAdapter {
     Stage stage;
     TextButton buttonDevice, buttonCalibrate, buttonWideCalibrate, buttonCalibrateExtrinsic,
             buttonTraining, buttonPowerOff, buttonReboot, buttonSoftware,
-            buttonUninstall, buttonToggle, buttonCheckUpdate;
+            buttonUninstall, buttonToggle, buttonCheckUpdate, buttonLogOut;
     ImageButton closeButton;
     TextButton FPToggle, F3Toggle, LDWToggle, RHDToggle, MetricToggle,
             recordDriverCamToggle, lanelessToggle, disengageAccToggle;
@@ -39,6 +39,7 @@ public class SettingsScreen extends ScreenAdapter {
     Table rootTable, settingTable, scrollTable, currentSettingTable;
     Texture lineTex = Utils.getLineTexture(700, 1, Color.WHITE);
     ScrollPane scrollPane;
+    Dialog dialog;
 
     public void addKeyValueTable(Table table, String key, String value, boolean addLine) {
         table.add(new Label(key, appContext.skin, "default-font", "white")).left().pad(30);
@@ -70,6 +71,7 @@ public class SettingsScreen extends ScreenAdapter {
         addKeyValueTable(currentSettingTable, "Device Manufacturer", deviceManufacturer, true);
         String deviceModel = params.exists("DeviceModel") ? params.getString("DeviceModel") : "";
         addKeyValueTable(currentSettingTable, "Device Name", deviceModel, true);
+        addKeyValueTable(currentSettingTable, "Log Out", buttonLogOut, true);
         addKeyValueTable(currentSettingTable, "Reset Intrinsic Calibration", buttonCalibrate, true);
         if (appContext.isF3 & !params.existsAndCompare("WideCameraOnly", true))
             addKeyValueTable(currentSettingTable, "Reset Wide Intrinsic Calibration", buttonWideCalibrate, true);
@@ -210,6 +212,28 @@ public class SettingsScreen extends ScreenAdapter {
             public void clicked(InputEvent event, float x, float y) {
             }
         });
+
+        buttonLogOut = getPaddedButton("LOG OUT", appContext.skin, 5);
+        buttonLogOut.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialog = new Dialog("confirm", appContext.skin) {
+                            public void result(Object obj) {
+                                if (obj.equals(true)) {
+                                    params.deleteKey("UserID");
+                                    params.deleteKey("UserToken");
+                                    dialog.hide();
+                                }
+                            }
+                        };
+                dialog.text("Are you sure ?");
+                dialog.button(getPaddedButton("Yes", appContext.skin, 5), true);
+                dialog.button(getPaddedButton("No", appContext.skin, "blue", 5), false);
+                dialog.getContentTable().pad(20);
+                dialog.show(stage);
+            }
+        });
+
 
         buttonReboot = getPaddedButton("Reboot", appContext.skin, 5);
         buttonReboot.addListener(new ClickListener() {

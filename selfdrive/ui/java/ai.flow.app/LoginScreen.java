@@ -193,7 +193,7 @@ public class LoginScreen extends ScreenAdapter {
                 };
         dialog.text(defaultResponse.message);
         dialog.button("Retry", true);
-
+        dialog.getContentTable().pad(20);
         dialog.show(stageUI);
     }
 

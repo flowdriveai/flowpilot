@@ -89,6 +89,7 @@ public class RegisterScreen extends ScreenAdapter {
                 };
         emailAlreadyExistsDialog.text(new Label("Email already exists. Please log in", appContext.skin, "default-font-30", "white"));
         emailAlreadyExistsDialog.button("  Go  ", true);
+        emailAlreadyExistsDialog.getContentTable().pad(20);
 
         noInternetDialog =
                 new Dialog("Info", appContext.skin) {
@@ -185,6 +186,7 @@ public class RegisterScreen extends ScreenAdapter {
                                     };
                             customDialog.text(response.message);
                             customDialog.button("  OK  ", true);
+                            customDialog.getContentTable().pad(20);
                             customDialog.show(stageUI);
                             progressVal = 0;
                         }
@@ -205,6 +207,7 @@ public class RegisterScreen extends ScreenAdapter {
                         );
                         customDialog.button("  OK  ", true);
                         customDialog.show(stageUI);
+                        customDialog.getContentTable().pad(20);
                         progressVal = 0;
                     }
 

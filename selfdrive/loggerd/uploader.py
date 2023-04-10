@@ -2,7 +2,6 @@
 import bz2
 import io
 import os
-import sys
 import argparse
 import random
 import threading
@@ -72,6 +71,8 @@ class Uploader():
 
     self.last_resp = None
     self.last_exc = None
+    self.credentials = None
+    self.s3 = None
 
     self.immediate_size = 0
     self.immediate_count = 0
@@ -82,7 +83,7 @@ class Uploader():
     self.last_filename = ""
 
     self.immediate_folders = ["crash/", "boot/"]
-    self.immediate_priority = {"qlog": 0, "qlog.bz2": 0, "qcamera.ts": 1}
+    self.immediate_priority = {"qlog": 0, "qlog.bz2": 0, "fcam.mp4": 0, "ecam.mp4": 0}
 
   def get_upload_sort(self, name):
     if name in self.immediate_priority:
@@ -142,18 +143,20 @@ class Uploader():
 
   def do_upload(self, key, fn):
     try:
-      credentials = self.api.get_credentials()
+      if self.credentials is None:
+        self.credentials = self.api.get_credentials()
 
-      access_key = credentials["access_key"]
-      secret_access_key = credentials["secret_access_key"]
-      session_token = credentials["session_token"]
+        access_key = self.credentials["access_key"]
+        secret_access_key = self.credentials["secret_access_key"]
+        session_token = self.credentials["session_token"]
 
-      s3=boto3.client(
-          's3',
-          aws_access_key_id=access_key,
-          aws_secret_access_key=secret_access_key,
-          aws_session_token=session_token,
-      )
+
+        self.s3=boto3.client(
+            's3',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_access_key,
+            aws_session_token=session_token,
+        )
 
       if fake_upload:
         cloudlog.debug(f"*** WARNING, THIS IS A FAKE UPLOAD ***")
@@ -167,20 +170,19 @@ class Uploader():
           else:
             data = f
 
-          # Params are fetched as bytes, have to convert them to string
-          user_id_san = self.api.user_id.decode("utf-8")
-          dongle_id_san = self.api.dongle_id.decode("utf-8")
+          user_id_san = self.api.user_id
+          dongle_id_san = self.api.dongle_id
 
           # api.get_credentials should populate api.email field, saving us a DB call
           object_name = f"unprocessed/{user_id_san}/{dongle_id_san}/{key}"
           bucket = "fdusermedia"
 
           self.last_resp = FakeResponse()
-          s3.upload_fileobj(data, bucket, object_name)
-          s3.Object(bucket, object_name).wait_until_exists()
+          self.s3.upload_fileobj(data, bucket, object_name)
 
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
+      print(e)
       raise e
 
   def normal_upload(self, key, fn):
