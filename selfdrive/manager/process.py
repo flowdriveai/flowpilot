@@ -12,7 +12,7 @@ LOG_TO_FILES = os.getenv("LOG_TO_FILES")
 class ManagerProcess:
     def __init__(
         self, name: str, command: str, args: List[str]=[], enabled=True, onroad=True, offroad=False, 
-        callback=None, unkillable=False, platform=["android", "desktop"], rename=False):
+        callback=None, unkillable=False, platform=["android", "desktop"], rename=False, pipe_std=True):
 
         self.name: str = name
         self.command: str = command
@@ -24,6 +24,7 @@ class ManagerProcess:
         self.unkillable = unkillable
         self.platform = platform
         self.shell = rename
+        self.pipe_std = pipe_std
 
         self.phandler = None
         self.proc = None
@@ -57,7 +58,9 @@ class ManagerProcess:
         cloudlog.info("Starting " + self.name)
 
         # pipe only stderr for sentry
-        stdout, stderr = None, subprocess.PIPE 
+        stdout, stderr = None, subprocess.PIPE
+        if not self.pipe_std:
+            stdout = stderr = None
         if LOG_TO_FILES:
             with open(
                 os.path.join(LOGPATH, f"{self.name}.stdout"), "a"

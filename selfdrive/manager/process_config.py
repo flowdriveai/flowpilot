@@ -33,7 +33,7 @@ procs = [
   ManagerProcess("thermald_", "thermald_", offroad=True),
   ManagerProcess("statsd", "statsd", offroad=True),
   ManagerProcess("keyvald", "keyvald", offroad=True),
-  ManagerProcess("flowpilot", "./gradlew", args=["desktop:run"], rename=False, offroad=True, platform=["desktop"]),
+  ManagerProcess("flowpilot", "./gradlew", args=["desktop:run"], rename=False, offroad=True, platform=["desktop"], pipe_std=False),
   ManagerProcess("pandad", "pandad", offroad=True),
   ManagerProcess("loggerd", "./selfdrive/loggerd/loggerd", enabled=True, onroad=False, callback=logging),
   ManagerProcess("uploader", "uploader", enabled=is_android(), offroad=True),
