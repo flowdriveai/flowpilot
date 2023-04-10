@@ -182,7 +182,7 @@ class Uploader():
 
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
-      print(e)
+      logger.debug(e)
       raise e
 
   def normal_upload(self, key, fn):
