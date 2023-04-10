@@ -55,7 +55,6 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"IsOnroad", PERSISTENT},   
     {"IsEngaged", PERSISTENT},
     {"HasAcceptedTerms", PERSISTENT},
-    {"OpenpilotEnabledToggle", PERSISTENT},
     {"PandaHeartbeatLost", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
     {"PandaSignatures", CLEAR_ON_MANAGER_START},
     {"ResetExtrinsicCalibration", CLEAR_ON_MANAGER_START},

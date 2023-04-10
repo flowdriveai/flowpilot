@@ -80,7 +80,8 @@ def main():
                         ("CompletedTrainingVersion", "0"),
                         ("DisengageOnAccelerator", "1"),
                         ("HasAcceptedTerms", "0"),
-                        ("OpenpilotEnabledToggle", "1"),
+                        ("FlowpilotEnabledToggle", "0"),
+                        ("WideCameraOnly", "1"),
                          ]
 
         if params.get_bool("RecordFrontLock"):
