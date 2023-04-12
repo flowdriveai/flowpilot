@@ -9,7 +9,7 @@ from selfdrive.loggerd.config import ROOT, VIDEO_LOGS, LOG_FORMAT, VIDEO_LOG_FOR
 
 def make_chunks(vid_path, out_dir, prefix_name, chunk_duration=SEGMENT_LENGTH, skip=0, segment_start=0, ext=VIDEO_EXTENSION):
     os.makedirs(out_dir, exist_ok=True)
-    subprocess.check_output(f"ffmpeg -ss {skip} -i {vid_path} -c copy -map 0 -segment_time {int(chunk_duration)} -segment_start_number {segment_start} -f segment {os.path.join(out_dir, f'{prefix_name}-%d.{ext}')}".split(" "),
+    subprocess.check_output(f"ffmpeg -ss {skip} -i {vid_path} -c copy -an -map 0 -segment_time {int(chunk_duration)} -segment_start_number {segment_start} -f segment {os.path.join(out_dir, f'{prefix_name}-%d.{ext}')}".split(" "),
                              stderr=subprocess.DEVNULL)
 
 def closest_value(input_list, input_value):

@@ -374,7 +374,7 @@ public class OnRoadScreen extends ScreenAdapter {
         updateStatusLabel(statusLabelCan, StatusColors.colorStatusCritical);
         infoTable.add(statusLabelCan).align(Align.top).height(uiHeight/8f).width(settingsBarWidth*0.8f).padTop(20);
         infoTable.row();
-        statusLabelOnline = getStatusLabel("CONNECT\nOFFLINE");
+        statusLabelOnline = getStatusLabel("FLICKS\nOFFLINE");
         updateStatusLabel(statusLabelOnline, StatusColors.colorStatusWarn);
         infoTable.add(statusLabelOnline).align(Align.top).height(uiHeight/8f).width(settingsBarWidth*0.8f).padTop(20);
         infoTable.row();
