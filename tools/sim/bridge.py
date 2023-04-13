@@ -141,7 +141,7 @@ def gps_callback(gps, vehicle_state):
   ]
 
   dat.gpsLocationExternal = {
-    "unixTimestampMillis": int(time.time() * 1000),
+    "timestamp": int(time.time() * 1000),
     "flags": 1,  # valid fix
     "accuracy": 1.0,
     "verticalAccuracy": 1.0,
