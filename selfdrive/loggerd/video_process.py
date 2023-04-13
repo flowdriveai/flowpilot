@@ -39,6 +39,8 @@ def segment_sync_videos():
     video_names.remove("processed")
 
     segments_sofs = [datetime.strptime(log[:log.rfind("--")], LOG_FORMAT).timestamp() for log in logs]
+    if not segments_sofs:
+        return
     video_sofs = [datetime.strptime(video_name, VIDEO_LOG_FORMAT).timestamp() for video_name in video_names]
 
     # match video respective route
