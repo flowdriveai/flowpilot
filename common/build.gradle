@@ -36,4 +36,5 @@ dependencies {
     implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version"
     implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version:$rootProject.javacpp_platform_suffix"
     implementation 'org.jocl:jocl:2.0.4'
+    implementation "com.squareup.okhttp3:okhttp:4.10.0"
 }

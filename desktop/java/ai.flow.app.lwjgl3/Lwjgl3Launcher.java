@@ -1,10 +1,12 @@
 package ai.flow.app.lwjgl3;
 
 import ai.flow.app.FlowUI;
+import ai.flow.app.RequestSink;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.SystemUtils;
 import ai.flow.common.transformations.Camera;
+import ai.flow.launcher.FlowInitd;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
@@ -52,6 +54,14 @@ public class Lwjgl3Launcher {
 		modelExecutor = f3 ? new ModelExecutorF3(model) : new ModelExecutorF2(model);
 
 		Launcher launcher = new Launcher(sensors, modelExecutor);
+
+		if (params.exists("UserToken")) {
+			// Perform every time
+			if (RequestSink.isConnectedToInternet()) {
+				RequestSink.fetchUserInfo();
+			}
+		}
+
 		return new Lwjgl3Application(new FlowUI(launcher, SystemUtils.getPID()), getDefaultConfiguration());
 	}
 
