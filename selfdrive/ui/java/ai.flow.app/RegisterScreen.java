@@ -112,7 +112,7 @@ public class RegisterScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        label = new Label("Register", appContext.skin);
+        label = new Label("Register", appContext.skin, "default-font-bold-med", "white");
 
         table.add(label).align(Align.center).height(75f);
         table.row();

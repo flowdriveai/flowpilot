@@ -27,13 +27,8 @@ public class PlanInvalidScreen extends ScreenAdapter {
     ScrollPane scrollPane;
 
     Label txtReasons;
-    String strReasons =
-            "You are viewing this screen because of one of these reasons: " +
-            "\n\n" +
-            "* You are currently not enrolled in F3 Beta" +
-            "\n" +
-            "* You are enrolled in F3 Beta, but your plan is expired";
-
+    String strReasons = "You are currently not enrolled in the beta program. If you have a beta invite key, " +
+            "redeem it on your flicks account and click 'try-again'";
     private static final ParamsInterface params = ParamsInterface.getInstance();
     Image background;
 
@@ -91,7 +86,7 @@ public class PlanInvalidScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        title = new Label("Plan Invalid", appContext.skin);
+        title = new Label("Not Enrolled", appContext.skin, "default-font-bold-med", "red");
 
         table.add(title).align(Align.center).height(75f).colspan(2);
         table.row();

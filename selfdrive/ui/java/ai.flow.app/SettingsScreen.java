@@ -194,7 +194,19 @@ public class SettingsScreen extends ScreenAdapter {
         buttonCalibrateExtrinsic.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                params.putBool("ResetExtrinsicCalibration", true);
+                dialog = new Dialog("confirm", appContext.skin) {
+                    public void result(Object obj) {
+                        if (obj.equals(true)) {
+                            params.putBool("ResetExtrinsicCalibration", true);
+                            dialog.hide();
+                        }
+                    }
+                };
+                dialog.text("Are you sure ?");
+                dialog.button(getPaddedButton("Yes", appContext.skin, 5), true);
+                dialog.button(getPaddedButton("No", appContext.skin, "blue", 5), false);
+                dialog.getContentTable().pad(20);
+                dialog.show(stage);
             }
         });
 

@@ -32,12 +32,9 @@ public class DeviceNotAllowedScreen extends ScreenAdapter {
     String strReasons =
             "You are viewing this screen because of one of these reasons: " +
                     "\n\n" +
-                    "* You have reached your plan's max device limit. In this case, please revoke an older device to use this one." +
+                    "1) You have reached your plan's max device limit. You can revoke an older device and use this one via your flicks dashboard" +
                     "\n" +
-                    "* You recently switched plans. In this case, try again to re-add your device" +
-                    "\n" +
-                    "* You had revoked this device earlier. In this case please click on try again to re-add your device.";
-
+                    "2) You recently switched plans, click 'try again' to re-register this device";
     private static final ParamsInterface params = ParamsInterface.getInstance();
     Image background;
 
@@ -54,7 +51,7 @@ public class DeviceNotAllowedScreen extends ScreenAdapter {
         stageBackground = new Stage(new FillViewport(background.getWidth(), background.getHeight()));
         stageBackground.addActor(background);
 
-        txtReasons = new Label(strReasons, appContext.skin);
+        txtReasons = new Label(strReasons, appContext.skin, "default-font-25", "white");
         txtReasons.setAlignment(Align.left);
         txtReasons.setWrap(true);
         Container container = new Container(txtReasons);
@@ -94,7 +91,7 @@ public class DeviceNotAllowedScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        title = new Label("Device Invalid", appContext.skin);
+        title = new Label("Device Unregistered", appContext.skin, "default-font-bold-med", "red");
 
         table.add(title).align(Align.center).height(75f).colspan(2);
         table.row();

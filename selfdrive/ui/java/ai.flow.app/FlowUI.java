@@ -93,6 +93,7 @@ public class FlowUI extends Game {
     public void loadInternalFonts(Skin skin){
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-16", 16, skin);
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-20", 20, skin);
+        loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-25", 25, skin);
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-30", 30, skin);
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font", 36, skin);
         loadFont("selfdrive/assets/fonts/Inter-Regular.ttf", "default-font-64", 64, skin);
