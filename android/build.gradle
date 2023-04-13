@@ -126,6 +126,8 @@ dependencies {
 	implementation "ch.acra:acra-toast:$acraVersion"
 	implementation "ch.acra:acra-limiter:$acraVersion"
 
+	implementation "com.squareup.okhttp3:okhttp:4.10.0"
+
 	natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
 	natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
 }

@@ -79,7 +79,11 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"Offroad_StorageMissing", CLEAR_ON_MANAGER_START},
     {"Offroad_TemperatureTooHigh", CLEAR_ON_MANAGER_START},
     {"Offroad_UnofficialHardware", CLEAR_ON_MANAGER_START},
-    {"Offroad_UpdateFailed", CLEAR_ON_MANAGER_START},   
+    {"Offroad_UpdateFailed", CLEAR_ON_MANAGER_START},
+    {"Plan", PERSISTENT},
+    {"PlanExpiresAt", PERSISTENT},
+    {"PlanValid", PERSISTENT},
+    {"DeviceRegId", PERSISTENT},
 };
 
 lmdb::env Params::env = nullptr;

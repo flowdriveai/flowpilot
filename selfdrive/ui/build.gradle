@@ -33,6 +33,9 @@ dependencies {
 	implementation "org.bytedeco:openblas:$rootProject.openblas_version-$rootProject.javacpp_version:$rootProject.javacpp_platform_suffix"
 	implementation 'org.capnproto:runtime:0.1.13'
 	implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+
+	implementation "com.squareup.okhttp3:okhttp:4.10.0"
+
 	implementation project(path: ':common')
     implementation project(path: ':launcher')
     implementation project(path: ':calibration')

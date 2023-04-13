@@ -18,6 +18,8 @@ import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import java.util.concurrent.TimeUnit;
+
 public class LoginScreen extends ScreenAdapter {
     FlowUI appContext;
     Stage stageUI, stageBackground;
@@ -205,6 +207,7 @@ public class LoginScreen extends ScreenAdapter {
         // the session cookie is generated, we can check that to log in now.
         if (Gdx.graphics.getFrameId() % 10 == 0) {
             if (params.exists("UserToken")) {
+                RequestSink.fetchUserInfo();
                 appContext.setScreen(new SetUpScreen(appContext));
                 return;
             }
