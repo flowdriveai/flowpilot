@@ -1,11 +1,13 @@
 package ai.flow.modeld;
 
+import static ai.flow.modeld.CommonModelF2.NUM_META_INTERVALS;
+
 public class DisengagePredictions {
-    public float[] t = new float[44];
-    public float[] brakeDisengageProbs = new float[44];
-    public float[] gasDesengageProbs = new float[44];
-    public float[] steerOverrideProbs = new float[44];
-    public float[] brake3MetersPerSecondSquaredProbs = new float[44];
-    public float[] brake4MetersPerSecondSquaredProbs = new float[44];
-    public float[] brake5MetersPerSecondSquaredProbs = new float[44];
+    public float[] t = {2f, 4f, 6f, 8f, 10f};
+    public float[] brakeDisengageProbs = new float[NUM_META_INTERVALS];
+    public float[] gasDesengageProbs = new float[NUM_META_INTERVALS];
+    public float[] steerOverrideProbs = new float[NUM_META_INTERVALS];
+    public float[] brake3MetersPerSecondSquaredProbs = new float[NUM_META_INTERVALS];
+    public float[] brake4MetersPerSecondSquaredProbs = new float[NUM_META_INTERVALS];
+    public float[] brake5MetersPerSecondSquaredProbs = new float[NUM_META_INTERVALS];
 }

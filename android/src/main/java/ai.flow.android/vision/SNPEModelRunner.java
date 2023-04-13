@@ -9,7 +9,6 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,14 +19,10 @@ public class SNPEModelRunner extends ModelRunner {
     NeuralNetwork network;
     String modelPath;
     public Map<String, FloatTensor> container = new HashMap<>();
-    public Map<String, int[]> shapes;
+    public Map<String, float[]> containerArrs = new HashMap<>();
+    public Map<String, int[]> inputShapes;
     public int warmupIters = 50;
     boolean useGPU;
-
-    float[] imgTensorSequenceArr = new float[128*256*12];
-    float[] desireArr = new float[8];
-    float[] trafficArr = new float[2];
-    float[] stateArr = new float[512];
 
     public SNPEModelRunner(Application context, String modelPath, boolean useGPU){
         this.context = context;
@@ -35,9 +30,16 @@ public class SNPEModelRunner extends ModelRunner {
         this.useGPU = useGPU;
     }
 
+    public static double numElements(int[] shape){
+        double ret = 1;
+        for (int i:shape)
+            ret *= i;
+        return ret;
+    }
+
     @Override
-    public void init(Map<String, int[]> shapes) {
-        this.shapes = shapes;
+    public void init(Map<String, int[]> inputShapes, Map<String, int[]> outputShapes) {
+        this.inputShapes = inputShapes;
 
         SNPE.NeuralNetworkBuilder builder = null;
         File modelStream = new File(modelPath + ".dlc");
@@ -46,7 +48,8 @@ public class SNPEModelRunner extends ModelRunner {
                     .setDebugEnabled(false)
                     .setPerformanceProfile(NeuralNetwork.PerformanceProfile.SUSTAINED_HIGH_PERFORMANCE)
                     .setExecutionPriorityHint(NeuralNetwork.ExecutionPriorityHint.HIGH)
-                    .setModel(modelStream);
+                    .setModel(modelStream)
+                    .setInitCacheEnabled(true, "snpe", context);
 
             if (useGPU)
                 builder.setRuntimeOrder(Runtime.GPU_FLOAT16);
@@ -58,15 +61,10 @@ public class SNPEModelRunner extends ModelRunner {
         assert builder != null;
         network = builder.build();
 
-        container.put("input_imgs", network.createFloatTensor(shapes.get("input_imgs")));
-        container.put("desire", network.createFloatTensor(shapes.get("desire")));
-        container.put("traffic_convention", network.createFloatTensor(shapes.get("traffic_convention")));
-        container.put("initial_state", network.createFloatTensor(shapes.get("initial_state")));
-    }
-
-    public void BufferToFloatArr(float[] arr, ByteBuffer buffer){
-        for (int i=0; i<arr.length; i++)
-            arr[i] = buffer.getFloat(i*4);
+        for (String inputName : this.inputShapes.keySet()) {
+            container.put(inputName, network.createFloatTensor(this.inputShapes.get(inputName)));
+            containerArrs.put(inputName, new float[(int)numElements(this.inputShapes.get(inputName))]);
+        }
     }
 
     public void writeTensor(FloatTensor tensor, float[] arr){
@@ -80,24 +78,17 @@ public class SNPEModelRunner extends ModelRunner {
     }
 
     @Override
-    public void run(ByteBuffer inputImgs, ByteBuffer desire, ByteBuffer trafficConvention, ByteBuffer state, float[] netOutputs){
-        // not implemented
-    }
+    public void run(Map<String, INDArray> inputMap, Map<String, float[]> outputMap){
+        for (String inputName : inputMap.keySet()) {
+            inputMap.get(inputName).data().asNioFloat().get(containerArrs.get(inputName));
+            writeTensor(container.get(inputName), containerArrs.get(inputName));
+        }
 
-    @Override
-    public void run(INDArray inputImgs, INDArray desire, INDArray trafficConvention, INDArray state, float[] netOutputs){
+        Map<String, FloatTensor> out = network.execute(container);
 
-        inputImgs.data().asNioFloat().get(imgTensorSequenceArr);
-        desire.data().asNioFloat().get(desireArr);
-        trafficConvention.data().asNioFloat().get(trafficArr);
-        state.data().asNioFloat().get(stateArr);
-
-        writeTensor(container.get("input_imgs"), imgTensorSequenceArr);
-        writeTensor(container.get("desire"), desireArr);
-        writeTensor(container.get("traffic_convention"), trafficArr);
-        writeTensor(container.get("initial_state"), stateArr);
-
-        network.execute(container).get("outputs").read(netOutputs, 0, netOutputs.length);
+        for (String outputName : outputMap.keySet()) {
+            out.get(outputName).read(outputMap.get(outputName), 0, outputMap.get(outputName).length);
+        }
     }
 
     @Override

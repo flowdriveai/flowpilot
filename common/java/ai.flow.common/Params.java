@@ -50,7 +50,6 @@ public class Params extends ParamsInterface {
     }
 
     public void putBool(String key, boolean value){
-        System.out.println(key + " " + value);
         byte[] byteKey = bytes(key);
         db.put(byteKey, value ? "1".getBytes() : "0".getBytes());
     }
@@ -132,5 +131,10 @@ public class Params extends ParamsInterface {
             return getBool(key) == value;
         }
         return false;
+    }
+
+    public void dispose(){
+        db.close();
+        env.close();
     }
 }

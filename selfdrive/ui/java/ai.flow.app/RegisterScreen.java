@@ -1,85 +1,63 @@
 package ai.flow.app;
 
+import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.net.HttpRequestBuilder;
-import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.net.HttpRequestHeader;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RegisterScreen extends ScreenAdapter {
     // RFC822 Compliant email pattern
-    public static final Pattern emailPattern = Pattern.compile("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
     FlowUI appContext;
-    Stage stage;
+    Stage stageUI, stageBackground;
     Table table;
     Table tableProgressBar;
     TextField txfEmail;
+    TextField txfPassword;
     TextButton btnContinue;
-    CheckBox noEmailFreqCheckBox;
-    CheckBox infrequentEmailFreqCheckBox;
-    CheckBox allEmailFreqCheckBox;
-    ButtonGroup freqGroup;
-    Dialog invalidEmailFmtDialog;
     Dialog sentMailDialog;
+    Dialog customDialog;
+    Dialog emailAlreadyExistsDialog;
     Dialog noInternetDialog;
     String REGISTER_URI;
     Integer progressVal = 0; // ranges from 0 - 5
     ProgressBar progressBar;
     Label label;
+    Image background;
 
     public RegisterScreen(FlowUI appContext) {
         this.appContext = appContext;
         this.REGISTER_URI = appContext.AUTH_ENDPOINT + "/register";
-    }
 
-    @Override
-    public void show() {
-        this.stage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
-        Gdx.input.setInputProcessor(stage);
+        this.stageUI = new Stage(new FitViewport(1280, 640));
+
+        Texture tex = new Texture(Gdx.files.absolute(Path.internal("selfdrive/assets/images/phones.jpg")));
+        tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        background = new Image(tex);
+        background.setColor(1, 1, 1, 0.3f);
+
+        stageBackground = new Stage(new FillViewport(background.getWidth(), background.getHeight()));
+        stageBackground.addActor(background);
 
         txfEmail = new TextField("", appContext.skin);
-        txfEmail.setMessageText(" Email");
+        txfEmail.setMessageText(" email");
 
-        noEmailFreqCheckBox = new CheckBox(" No Emails", appContext.skin);
-        noEmailFreqCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-            }
-        });
+        txfPassword = new TextField("", appContext.skin);
+        txfPassword.setPasswordMode(true);
+        txfPassword.setPasswordCharacter('*');
+        txfPassword.setMessageText(" password");
 
-        infrequentEmailFreqCheckBox = new CheckBox(" Infrequent Emails", appContext.skin);
-        infrequentEmailFreqCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-            }
-        });
-
-        allEmailFreqCheckBox = new CheckBox(" All Emails", appContext.skin);
-        allEmailFreqCheckBox.toggle();
-        allEmailFreqCheckBox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-            }
-        });
-
-        freqGroup = new ButtonGroup(noEmailFreqCheckBox, infrequentEmailFreqCheckBox, allEmailFreqCheckBox);
-        freqGroup.setChecked("allEmailFreqCheckBox");
-        freqGroup.setUncheckLast(true);
-
-        btnContinue = new TextButton("Continue", appContext.skin);
+        btnContinue = new TextButton("Continue", appContext.skin, "blue");
         btnContinue.addListener(
                 new ClickListener() {
                     @Override
@@ -97,19 +75,21 @@ public class RegisterScreen extends ScreenAdapter {
                         }
                     }
                 };
-        sentMailDialog.text("A secret token has been sent to your mailbox.\nPlease enter it in the next page");
+        sentMailDialog.text(new Label("A verification link has been sent to your Email inbox", appContext.skin, "default-font-30", "white"));
         sentMailDialog.button("  Go  ", true);
 
-        invalidEmailFmtDialog =
+        emailAlreadyExistsDialog =
                 new Dialog("Info", appContext.skin) {
                     public void result(Object obj) {
                         if (obj.equals(true)) {
-                            invalidEmailFmtDialog.hide();
+                            emailAlreadyExistsDialog.hide();
+                            appContext.setScreen(new LoginScreen(appContext, txfEmail.getText()));
                         }
                     }
                 };
-        invalidEmailFmtDialog.text("Please enter a valid Email Address");
-        invalidEmailFmtDialog.button("  OK  ", true);
+        emailAlreadyExistsDialog.text(new Label("Email already exists. Please log in", appContext.skin, "default-font-30", "white"));
+        emailAlreadyExistsDialog.button("  Go  ", true);
+        emailAlreadyExistsDialog.getContentTable().pad(20);
 
         noInternetDialog =
                 new Dialog("Info", appContext.skin) {
@@ -119,9 +99,8 @@ public class RegisterScreen extends ScreenAdapter {
                         }
                     }
                 };
-        noInternetDialog.text("Facing network issues\nPlease retry");
+        noInternetDialog.text(new Label("Facing network issues\nPlease retry", appContext.skin, "default-font-30", "white"));
         noInternetDialog.button("  OK  ", true);
-
 
         progressBar = new ProgressBar(0, 5, 1, false, appContext.skin);
         tableProgressBar = new Table();
@@ -133,52 +112,37 @@ public class RegisterScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        label = new Label("FlowDrive Registration", appContext.skin);
+        label = new Label("Register", appContext.skin);
 
         table.add(label).align(Align.center).height(75f);
         table.row();
-        table.add(txfEmail).width(450f).height(100f);
+        table.add(txfEmail).width(450f).height(80f).pad(20);
         table.row();
-        table.add(noEmailFreqCheckBox).height(25f).uniform().left().padTop(10).padBottom(10);
+        table.add(txfPassword).width(450f).height(80f).pad(20);
         table.row();
-        table.add(infrequentEmailFreqCheckBox).uniform().left().padTop(10).padBottom(10);
-        table.row();
-        table.add(allEmailFreqCheckBox).uniform().left().padTop(10).padBottom(10);
-        table.row();
-        table.add(btnContinue).width(200f).height(75f);
+        table.add(btnContinue).width(200f).height(70f).pad(20);
 
-        stage.addActor(table);
-        stage.addActor(tableProgressBar);
+        stageUI.addActor(table);
+        stageUI.addActor(tableProgressBar);
     }
 
-    private boolean validEmailFmt(String email) {
-        Matcher matcher = emailPattern.matcher(email);
-        return matcher.find();
+    @Override
+    public void show() {
+        Gdx.input.setInputProcessor(stageUI);
     }
 
     private void btnContinueClicked() {
         progressVal++;
 
         String email = txfEmail.getText();
-        String email_frequency = String.valueOf(freqGroup.getCheckedIndex());
+        String password = txfPassword.getText();
 
-        if (!validEmailFmt(email)) {
-            invalidEmailFmtDialog.show(stage);
-            progressVal--;
-        } else {
-            manageRegistration(email, email_frequency);
-            progressVal++;
-        }
+        manageRegistration(email, password);
+        progressVal++;
     }
 
-    private void manageRegistration(String email, String email_frequency) {
-        Map<String, String> form =
-                new HashMap<String, String>() {
-                    {
-                        put("email", email);
-                        put("email_frequency", email_frequency);
-                    }
-                };
+    private void manageRegistration(String email, String password) {
+        String content = "{\n\t\"email\": \"" + email + "\",\n\t\"password\": \"" + password +"\"\n}";
 
         progressVal++;
 
@@ -188,7 +152,9 @@ public class RegisterScreen extends ScreenAdapter {
                         .newRequest()
                         .url(REGISTER_URI)
                         .method(Net.HttpMethods.POST)
-                        .formEncodedContent(form)
+                        .header(HttpRequestHeader.ContentType, "application/json")
+                        .content(content)
+                        .timeout(0) // block until the request is completed
                         .build();
 
         progressVal++;
@@ -198,20 +164,57 @@ public class RegisterScreen extends ScreenAdapter {
                     @Override
                     public void handleHttpResponse(Net.HttpResponse httpResponse) {
                         progressVal++;
-                        sentMailDialog.show(stage);
-                        progressVal++;
+                        int statusCode = httpResponse.getStatus().getStatusCode();
+                        if (statusCode == 201) {
+                            sentMailDialog.show(stageUI);
+                            progressVal++;
+                        } else if (statusCode == 202){
+                            emailAlreadyExistsDialog.show(stageUI);
+                            progressVal++;
+                        } else {
+                            // Unknown error, respond with a response message
+                            String responseString = httpResponse.getResultAsString();
+                            HttpUtils.DefaultResponse response = HttpUtils.parseDefaultResponse(responseString);
+
+                            customDialog =
+                                    new Dialog("Info", appContext.skin) {
+                                        public void result(Object obj) {
+                                            if (obj.equals(true)) {
+                                                customDialog.hide();
+                                            }
+                                        }
+                                    };
+                            customDialog.text(response.message);
+                            customDialog.button("  OK  ", true);
+                            customDialog.getContentTable().pad(20);
+                            customDialog.show(stageUI);
+                            progressVal = 0;
+                        }
                     }
 
                     @Override
                     public void failed(Throwable t) {
+                        customDialog =
+                                new Dialog("Error", appContext.skin) {
+                                    public void result(Object obj) {
+                                        if (obj.equals(true)) {
+                                            customDialog.hide();
+                                        }
+                                    }
+                                };
+                        customDialog.text(
+                                (t.getMessage() == null) ? t.toString() : t.getMessage()
+                        );
+                        customDialog.button("  OK  ", true);
+                        customDialog.show(stageUI);
+                        customDialog.getContentTable().pad(20);
                         progressVal = 0;
-                        noInternetDialog.show(stage);
                     }
 
                     @Override
                     public void cancelled() {
                         progressVal = 0;
-                        noInternetDialog.show(stage);
+                        noInternetDialog.show(stageUI);
                     }
                 });
     }
@@ -223,18 +226,24 @@ public class RegisterScreen extends ScreenAdapter {
 
         progressBar.setValue(progressVal);
 
-        stage.act(delta);
-        stage.draw();
+        stageBackground.getViewport().apply();
+        stageBackground.act(delta);
+        stageBackground.draw();
+
+        stageUI.getViewport().apply();
+        stageUI.act(delta);
+        stageUI.draw();
     }
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(width, height);
+        stageUI.getViewport().update(width, height);
     }
 
 
     @Override
     public void dispose() {
-        stage.dispose();
+        stageUI.dispose();
+        stageBackground.dispose();
     }
 }

@@ -1,5 +1,6 @@
 package ai.flow.app.CalibrationScreens;
 
+import ai.flow.app.FlowUI;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
@@ -11,9 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import ai.flow.app.FlowUI;
 
 
 public class CalibrationInfo extends ScreenAdapter {
@@ -25,7 +24,7 @@ public class CalibrationInfo extends ScreenAdapter {
     TextButton btnProceed;
     Label chessboardLink;
 
-    public CalibrationInfo(FlowUI appContext, boolean enableCancel) {
+    public CalibrationInfo(FlowUI appContext ,boolean enableCancel) {
         this.appContext = appContext;
 
         stage = new Stage(new FitViewport(1280, 720));

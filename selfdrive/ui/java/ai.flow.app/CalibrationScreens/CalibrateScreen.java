@@ -1,5 +1,11 @@
 package ai.flow.app.CalibrationScreens;
 
+import ai.flow.app.FlowUI;
+import ai.flow.app.SetUpScreen;
+import ai.flow.calibration.CameraCalibratorIntrinsic;
+import ai.flow.common.ParamsInterface;
+import ai.flow.common.transformations.Camera;
+import ai.flow.common.transformations.YUV2RGB;
 import ai.flow.definitions.Definitions;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
@@ -17,34 +23,32 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
-import ai.flow.app.FlowUI;
-import ai.flow.app.SetUpScreen;
-import ai.flow.calibration.CameraCalibratorIntrinsic;
-import ai.flow.modeld.messages.MsgFrameData;
 import messaging.ZMQSubHandler;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static ai.flow.common.BufferUtils.MatToByte;
+import static ai.flow.common.BufferUtils.byteToFloat;
+import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 
 public class CalibrateScreen extends ScreenAdapter {
     FlowUI appContext;
     // For camera frame receiving
-    MsgFrameData msgFrameData = new MsgFrameData(1164*874*3);
-    ByteBuffer msgFrameDataBuffer = msgFrameData.getSerializedBuffer();
-    Definitions.FrameData.Reader frameData;
-    ByteBuffer imgBuffer;
-    Pixmap pixelMap = new Pixmap(1164, 874, Pixmap.Format.RGB888);
+    int frameWidth = Camera.frameSize[0];
+    int frameHeight = Camera.frameSize[1];
+    Pixmap pixelMap = new Pixmap(frameWidth, frameHeight, Pixmap.Format.RGB888);
     Texture texture = new Texture(pixelMap);
     Image texImage = new Image(texture);
     Mat imageMat;
     SpriteBatch batch = new SpriteBatch();
-    Stage stageFill = new Stage(new FillViewport(1164, 874));
+    Stage stageFill = new Stage(new FillViewport(frameWidth, frameHeight));
     Stage stageUI;
     TextButton btnInstructions;
     TextButton btnBack;
@@ -53,17 +57,29 @@ public class CalibrateScreen extends ScreenAdapter {
     ProgressBar progressBar;
     int currFrameID = -1, prevFrameID = -1;
     int numImages = 30;
+    String frameDataTopic, frameBufferTopic, intrinsicParamName, distortionParamName, cameraName;
     // messaging
     ZMQSubHandler sh = new ZMQSubHandler(true);
     // calibrator object
     CameraCalibratorIntrinsic calibrator;
-
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+    Definitions.FrameBuffer.Reader msgFrameBuffer;
+    Definitions.FrameData.Reader msgFrameData;
+    ByteBuffer imgBuffer;
+    YUV2RGB yuv2RGB = null;
+    ParamsInterface params = ParamsInterface.getInstance();
 
     public CalibrateScreen(FlowUI appContext, boolean enableCancel) {
         this.appContext = appContext;
+
+        frameDataTopic = "roadCameraState";
+        frameBufferTopic = "roadCameraBuffer";
+        intrinsicParamName = "CameraMatrix";
+        distortionParamName = "DistortionCoefficients";
+        cameraName = "roadCamera";
+
         pixelMap.setBlending(Blending.None);
-        calibrator = new CameraCalibratorIntrinsic(9, 6, appContext.params); // 6 by 9 chessboard :))
+        calibrator = new CameraCalibratorIntrinsic(9, 6); // 6 by 9 chessboard :))
         stageUI = new Stage(new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
 
         btnBack = new TextButton("Cancel", appContext.skin);
@@ -103,7 +119,7 @@ public class CalibrateScreen extends ScreenAdapter {
         stageUI.addActor(tableProgressBar);
         stageUI.addActor(tableMenuBar);
 
-        sh.createSubscriber("roadCameraState");
+        sh.createSubscribers(Arrays.asList(frameBufferTopic, frameDataTopic));
     }
 
     @Override
@@ -111,42 +127,27 @@ public class CalibrateScreen extends ScreenAdapter {
         Gdx.input.setInputProcessor(stageUI);
     }
 
-    public void updateCamera() {
-        sh.recvBuffer("roadCameraState", msgFrameDataBuffer);
-        frameData = msgFrameData.deserialize().getFrameData();
-        if (imgBuffer == null){
-            if (frameData.getNativeImageAddr() != 0)
-                imgBuffer = msgFrameData.getImageBuffer(frameData.getNativeImageAddr());
-            else
-                imgBuffer = ByteBuffer.allocateDirect(1164*874*3);
-            imageMat = new Mat(874, 1164, CvType.CV_8UC3, imgBuffer);
+    public void updateCamera(){
+        // handles receiving, rendering and converting to rgb of images.
+        msgFrameBuffer = sh.recv(frameBufferTopic).getRoadCameraBuffer();
+        msgFrameData = sh.recv(frameDataTopic).getFrameData();
+        currFrameID = msgFrameData.getFrameId();
+        imgBuffer = updateImageBuffer(msgFrameBuffer, imgBuffer);
+
+        boolean rgb = msgFrameBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB;
+        if (rgb){
+            pixelMap.setPixels(imgBuffer);
+            texture.draw(pixelMap, 0, 0);
+            imageMat = new Mat(Camera.frameSize[1], Camera.frameSize[0], CvType.CV_8UC3, imgBuffer);
         }
         else {
-            if (frameData.getNativeImageAddr() == 0)
-                imgBuffer.put(frameData.getImage().asByteBuffer());
-            imgBuffer.rewind();
+            if (yuv2RGB == null)
+                yuv2RGB = new YUV2RGB(Camera.frameSize[0], Camera.frameSize[1], Camera.frameSize[1], 2);
+            yuv2RGB.run(imgBuffer);
+            pixelMap.setPixels(yuv2RGB.getRGBBuffer());
+            texture.draw(pixelMap, 0, 0);
+            imageMat = yuv2RGB.getRGBMat();
         }
-        currFrameID = frameData.getFrameId();
-        pixelMap.setPixels(imgBuffer);
-        texture.draw(pixelMap, 0, 0);
-    }
-
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length / 4];
-        for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        }
-        return ret;
-    }
-
-    public static byte[] MatToByte(Mat mat){
-        byte[] ret = new byte[(int)(mat.total() * mat.channels()) * 4];
-        for(int i = 0; i < mat.rows(); i++) {
-            for(int j = 0; j < mat.cols(); j++) {
-                ByteBuffer.wrap(ret, (i * mat.cols() + j)*4, 4).order(ByteOrder.LITTLE_ENDIAN).putFloat((float) mat.get(i, j)[0]);
-            }
-        }
-        return ret;
     }
 
     @Override
@@ -154,7 +155,7 @@ public class CalibrateScreen extends ScreenAdapter {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (sh.updated("roadCameraState")) {
+        if (sh.updated(frameBufferTopic)) {
             updateCamera();
         }
 
@@ -185,15 +186,15 @@ public class CalibrateScreen extends ScreenAdapter {
                 byte[] cameraMatrixBuffer = MatToByte(calibrator.cameraMatrix);
                 byte[] distortionCoefficientsBuffer = MatToByte(calibrator.distortionCoefficients);
 
-                appContext.params.put("CameraMatrix", cameraMatrixBuffer);
-                appContext.params.put("DistortionCoefficients", distortionCoefficientsBuffer);
+                params.put(intrinsicParamName, cameraMatrixBuffer);
+                params.put(distortionParamName, distortionCoefficientsBuffer);
 
                 // new camera matrix would be published in FrameData.
-                appContext.sensors.get("roadCamera").updateProperty("intrinsics", byteToFloat(cameraMatrixBuffer));
+                appContext.sensors.get(cameraName).updateProperty("intrinsics", byteToFloat(cameraMatrixBuffer));
             }
             else
-                System.err.println("[WARN]: Camera not calibrated.");
-            appContext.setScreen(new SetUpScreen(appContext)); // TODO display in GUI.
+                System.err.println("[WARN]: Camera not calibrated.");  // TODO display in GUI.
+            appContext.setScreen(new SetUpScreen(appContext));
             return;
         }
 
@@ -220,6 +221,9 @@ public class CalibrateScreen extends ScreenAdapter {
         stageFill.dispose();
         batch.dispose();
         imageMat.release();
+        if (yuv2RGB != null)
+            yuv2RGB.dispose();
         sh.releaseAll();
+        params.dispose();
     }
 }

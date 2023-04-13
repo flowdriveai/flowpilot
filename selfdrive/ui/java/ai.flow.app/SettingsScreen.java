@@ -1,86 +1,44 @@
 package ai.flow.app;
 
-import ai.flow.common.Path;
+import ai.flow.app.CalibrationScreens.CalibrationInfo;
+import ai.flow.app.helpers.Utils;
+import ai.flow.common.ParamsInterface;
+import ai.flow.common.SystemUtils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import ai.flow.app.CalibrationScreens.CalibrationInfo;
-import ai.flow.common.ParamsInterface;
-import ai.flow.common.SystemUtils;
+
+import static ai.flow.app.FlowUI.getPaddedButton;
 
 
 public class SettingsScreen extends ScreenAdapter {
 
     FlowUI appContext;
-    ParamsInterface params;
+    ParamsInterface params = ParamsInterface.getInstance();
     Stage stage;
     TextButton buttonDevice, buttonCalibrate, buttonCalibrateExtrinsic,
             buttonTraining, buttonPowerOff, buttonReboot, buttonSoftware,
-            buttonUninstall, buttonToggle, buttonCheckUpdate;
+            buttonUninstall, buttonToggle, buttonCheckUpdate, buttonLogOut;
     ImageButton closeButton;
-    CheckBox recordRoadCamToggle, FPToggle, LDWToggle, RHDToggle, MetricToggle,
+    TextButton FPToggle, LDWToggle, RHDToggle, MetricToggle,
             recordDriverCamToggle, lanelessToggle, disengageAccToggle;
 
     SpriteBatch batch;
     Table rootTable, settingTable, scrollTable, currentSettingTable;
-    Texture lineTex = getLineTexture(700, 1, Color.WHITE);
+    Texture lineTex = Utils.getLineTexture(700, 1, Color.WHITE);
     ScrollPane scrollPane;
-
-    public ImageButton getImageButton(String texturePath){ //TODO Move to common
-        Texture buttonTexture = loadTextureMipMap(texturePath);
-        return new ImageButton(new TextureRegionDrawable(buttonTexture));
-    }
-
-    public Texture loadTextureMipMap(String path){
-        Texture texture = new Texture(Gdx.files.absolute(Path.internal(path)), true);
-        texture.setFilter(Texture.TextureFilter.MipMapLinearNearest, Texture.TextureFilter.Linear);
-        return texture;
-    }
-
-    public TextureRegionDrawable createRoundedRectangle(int width, int height, int cornerRadius, Color color) {
-
-        Pixmap pixmap = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        Pixmap ret = new Pixmap(width, height, Pixmap.Format.RGBA8888);
-
-        pixmap.setColor(color);
-
-        pixmap.fillCircle(cornerRadius, cornerRadius, cornerRadius);
-        pixmap.fillCircle(width - cornerRadius - 1, cornerRadius, cornerRadius);
-        pixmap.fillCircle(cornerRadius, height - cornerRadius - 1, cornerRadius);
-        pixmap.fillCircle(width - cornerRadius - 1, height - cornerRadius - 1, cornerRadius);
-
-        pixmap.fillRectangle(cornerRadius, 0, width - cornerRadius * 2, height);
-        pixmap.fillRectangle(0, cornerRadius, width, height - cornerRadius * 2);
-
-        ret.setColor(color);
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                if (pixmap.getPixel(x, y) != 0) ret.drawPixel(x, y);
-            }
-        }
-        return new TextureRegionDrawable(new TextureRegion(new Texture(ret)));
-    }
-
-    public Texture getLineTexture(int width, int height, Color color){
-        Pixmap pixmap=new Pixmap(width, height, Pixmap.Format.RGBA8888);
-        pixmap.setColor(color);
-        pixmap.fillRectangle(0,0, pixmap.getWidth(), pixmap.getHeight());
-        return new Texture(pixmap);
-    }
+    Dialog dialog;
 
     public void addKeyValueTable(Table table, String key, String value, boolean addLine) {
         table.add(new Label(key, appContext.skin, "default-font", "white")).left().pad(30);
@@ -112,10 +70,10 @@ public class SettingsScreen extends ScreenAdapter {
         addKeyValueTable(currentSettingTable, "Device Manufacturer", deviceManufacturer, true);
         String deviceModel = params.exists("DeviceModel") ? params.getString("DeviceModel") : "";
         addKeyValueTable(currentSettingTable, "Device Name", deviceModel, true);
+        addKeyValueTable(currentSettingTable, "Log Out", buttonLogOut, true);
         addKeyValueTable(currentSettingTable, "Reset Intrinsic Calibration", buttonCalibrate, true);
         addKeyValueTable(currentSettingTable, "Reset Extrinsic Calibration", buttonCalibrateExtrinsic, true);
         addKeyValueTable(currentSettingTable, "Review Training Guide", buttonTraining, true);
-        
         currentSettingTable.add(buttonReboot).pad(20);
         currentSettingTable.add(buttonPowerOff).pad(20);
     }
@@ -144,16 +102,14 @@ public class SettingsScreen extends ScreenAdapter {
         addKeyValueTable(currentSettingTable, "Enable Lane Departure Warnings", LDWToggle, true);
         addKeyValueTable(currentSettingTable, "Enable Right Hand Driving", RHDToggle, true);
         addKeyValueTable(currentSettingTable, "Use Metric System", MetricToggle, true);
-        addKeyValueTable(currentSettingTable, "Record & Upload Road Camera", recordRoadCamToggle, true);
         addKeyValueTable(currentSettingTable, "Record & Upload Driver Camera", recordDriverCamToggle, true);
-        addKeyValueTable(currentSettingTable, "Disable Use of LaneLines (alpha)", lanelessToggle, true);
-        addKeyValueTable(currentSettingTable, "Disengage on Accelerator Pedal", disengageAccToggle, false);
+        addKeyValueTable(currentSettingTable, "Disable Use of LaneLines (alpha)", lanelessToggle, false);
+        //addKeyValueTable(currentSettingTable, "Disengage on Accelerator Pedal", disengageAccToggle, false);
     }
 
     public SettingsScreen(FlowUI appContext) {
         this.appContext = appContext;
 
-        params = appContext.params;
         stage = new Stage(new FitViewport(1280, 720));
         batch = new SpriteBatch();
 
@@ -170,9 +126,9 @@ public class SettingsScreen extends ScreenAdapter {
         scrollPane = new ScrollPane(currentSettingTable);
         scrollPane.setSmoothScrolling(true);
         scrollTable.add(scrollPane);
-        scrollTable.setBackground(createRoundedRectangle(800, 700, 20, new Color(0.18f, 0.18f, 0.18f, 0.8f)));
+        scrollTable.setBackground(Utils.createRoundedRectangle(800, 700, 20, new Color(0.18f, 0.18f, 0.18f, 0.8f)));
 
-        closeButton = getImageButton("selfdrive/assets/icons/icon_close.png");
+        closeButton = Utils.getImageButton("selfdrive/assets/icons/icon_close.png");
         closeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -183,7 +139,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(closeButton).align(Align.left).padLeft(100).padBottom(70).size(70);
         settingTable.row();
 
-        buttonDevice = new TextButton("Device", appContext.skin, "no-bg-bold");
+        buttonDevice = getPaddedButton("Device", appContext.skin, "no-bg-bold", 5);
         buttonDevice.setChecked(true);
         buttonDevice.addListener(new ClickListener() {
             @Override
@@ -194,7 +150,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(buttonDevice).pad(10).align(Align.right);
         settingTable.row();
 
-        buttonSoftware = new TextButton("Software", appContext.skin, "no-bg-bold");
+        buttonSoftware = getPaddedButton("Software", appContext.skin, "no-bg-bold", 5);
         buttonSoftware.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -204,7 +160,7 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(buttonSoftware).pad(10).align(Align.right);
         settingTable.row();
 
-        buttonToggle = new TextButton("Toggles", appContext.skin, "no-bg-bold");
+        buttonToggle = getPaddedButton("Toggles", appContext.skin, "no-bg-bold", 5);
         buttonToggle.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -214,15 +170,15 @@ public class SettingsScreen extends ScreenAdapter {
         settingTable.add(buttonToggle).pad(10).align(Align.right);
         settingTable.row();
 
-        buttonCalibrate = new TextButton("RESET", appContext.skin);
+        buttonCalibrate = getPaddedButton("RESET", appContext.skin, 5);
         buttonCalibrate.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                appContext.setScreen(new CalibrationInfo(appContext, true));
+                appContext.setScreen(new CalibrationInfo(appContext,true));
             }
         });
 
-        buttonCalibrateExtrinsic = new TextButton("RESET", appContext.skin);
+        buttonCalibrateExtrinsic = getPaddedButton("RESET", appContext.skin, 5);
         buttonCalibrateExtrinsic.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -230,7 +186,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        buttonTraining = new TextButton("REVIEW", appContext.skin);
+        buttonTraining = getPaddedButton("REVIEW", appContext.skin, 5);
         buttonTraining.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -238,35 +194,58 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        buttonCheckUpdate = new TextButton("CHECK", appContext.skin);
+        buttonCheckUpdate = getPaddedButton("CHECK", appContext.skin, 5);
         buttonCheckUpdate.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        buttonReboot = new TextButton("Reboot", appContext.skin);
+        buttonLogOut = getPaddedButton("LOG OUT", appContext.skin, 5);
+        buttonLogOut.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialog = new Dialog("confirm", appContext.skin) {
+                            public void result(Object obj) {
+                                if (obj.equals(true)) {
+                                    params.deleteKey("UserID");
+                                    params.deleteKey("UserToken");
+                                    dialog.hide();
+                                }
+                            }
+                        };
+                dialog.text("Are you sure ?");
+                dialog.button(getPaddedButton("Yes", appContext.skin, 5), true);
+                dialog.button(getPaddedButton("No", appContext.skin, "blue", 5), false);
+                dialog.getContentTable().pad(20);
+                dialog.show(stage);
+            }
+        });
+
+
+        buttonReboot = getPaddedButton("Reboot", appContext.skin, 5);
         buttonReboot.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        buttonPowerOff = new TextButton("Power Off", appContext.skin, "critical");
+        buttonPowerOff = getPaddedButton("Power Off", appContext.skin, "critical", 5);
         buttonPowerOff.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        buttonUninstall = new TextButton("UNINSTALL", appContext.skin, "critical");
+        buttonUninstall = getPaddedButton("UNINSTALL", appContext.skin, "critical", 5);
         buttonUninstall.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
             }
         });
 
-        FPToggle = new CheckBox("", appContext.skin);
+        //TODO: Get better toggle buttons.
+        FPToggle = new TextButton("  ", appContext.skin, "toggle");
         FPToggle.setChecked(params.exists("FlowpilotEnabledToggle") && params.getBool("FlowpilotEnabledToggle"));
         FPToggle.addListener(new ChangeListener() {
             @Override
@@ -275,7 +254,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        LDWToggle = new CheckBox("", appContext.skin);
+        LDWToggle = new TextButton("  ", appContext.skin, "toggle");
         LDWToggle.setChecked(params.exists("IsLdwEnabled") && params.getBool("IsLdwEnabled"));
         LDWToggle.addListener(new ChangeListener() {
             @Override
@@ -284,7 +263,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        RHDToggle = new CheckBox("", appContext.skin);
+        RHDToggle = new TextButton("  ", appContext.skin, "toggle");
         RHDToggle.setChecked(params.exists("IsRHD") && params.getBool("IsRHD"));
         RHDToggle.addListener(new ChangeListener() {
             @Override
@@ -293,7 +272,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        MetricToggle = new CheckBox("", appContext.skin);
+        MetricToggle = new TextButton("  ", appContext.skin, "toggle");
         MetricToggle.setChecked(params.exists("IsMetric") && params.getBool("IsMetric"));
         MetricToggle.addListener(new ChangeListener() {
             @Override
@@ -303,16 +282,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        recordRoadCamToggle = new CheckBox("", appContext.skin);
-        recordRoadCamToggle.setChecked(params.exists("RecordRoad") && params.getBool("RecordRoad"));
-        recordRoadCamToggle.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                appContext.sensors.get("roadCamera").record(recordRoadCamToggle.isChecked());
-            }
-        });
-
-        recordDriverCamToggle = new CheckBox("", appContext.skin);
+        recordDriverCamToggle = new TextButton("  ", appContext.skin, "toggle");
         recordDriverCamToggle.setChecked(params.exists("RecordFront") && params.getBool("RecordFront"));
         recordDriverCamToggle.addListener(new ChangeListener() {
             @Override
@@ -320,7 +290,7 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        lanelessToggle = new CheckBox("", appContext.skin);
+        lanelessToggle = new TextButton("  ", appContext.skin, "toggle");
         lanelessToggle.setChecked(params.exists("EndToEndToggle") && params.getBool("EndToEndToggle"));
         lanelessToggle.addListener(new ChangeListener() {
             @Override
@@ -329,14 +299,14 @@ public class SettingsScreen extends ScreenAdapter {
             }
         });
 
-        disengageAccToggle = new CheckBox("", appContext.skin);
-        disengageAccToggle.setChecked(params.exists("DisengageOnAccelerator") && params.getBool("DisengageOnAccelerator"));
-        disengageAccToggle.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                params.putBool("DisengageOnAccelerator", disengageAccToggle.isChecked());
-            }
-        });
+//        disengageAccToggle = new TextButton("  ", appContext.skin, "toggle");
+//        disengageAccToggle.setChecked(params.exists("DisengageOnAccelerator") && params.getBool("DisengageOnAccelerator"));
+//        disengageAccToggle.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+//                params.putBool("DisengageOnAccelerator", disengageAccToggle.isChecked());
+//            }
+//        });
 
         fillDeviceSettings();
 

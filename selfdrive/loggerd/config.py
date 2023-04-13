@@ -1,12 +1,24 @@
 import os
 from pathlib import Path
 from system.hardware import PC
+from common.path import external_android_storage
+from common.system import is_android
 
 if os.environ.get('LOG_ROOT', False):
   ROOT = os.environ['LOG_ROOT']
 else:
   ROOT = os.path.join(str(Path.home()), ".flowdrive", "media", "0", "realdata")
 
+if is_android():
+  VIDEO_LOGS = os.path.join(external_android_storage(), "flowpilot", ".flowdrive", "media", "0", "realdata", "videos")
+else:
+  VIDEO_LOGS = os.path.join(os.path.dirname(ROOT), "videos")
+os.makedirs(ROOT, exist_ok=True)
+os.makedirs(VIDEO_LOGS, exist_ok=True)
+
+VIDEO_EXTENSION = "mp4"
+LOG_FORMAT = "%Y-%m-%d--%H-%M-%S.%f"
+VIDEO_LOG_FORMAT = f"%Y-%m-%d--%H-%M-%S.%f.{VIDEO_EXTENSION}"
 
 CAMERA_FPS = 20
 SEGMENT_LENGTH = 60

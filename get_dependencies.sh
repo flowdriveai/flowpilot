@@ -3,7 +3,7 @@ pip install pkgconfig==1.5.5
 pip install Cython==0.29.32
 
 sudo apt-get install -y rsync clang capnproto libcapnp-dev libzmq3-dev cmake libjson11-1 libjson11-1-dev liblmdb-dev libusb-1.0-0-dev
-sudo apt-get install -y dfu-util gcc-arm-none-eabi libcurl4-openssl-dev libssl-dev
+sudo apt-get install -y dfu-util gcc-arm-none-eabi libcurl4-openssl-dev libssl-dev ffmpeg libeigen3-dev
 
 # install capnpc-java
 if ! command -v capnpc-java --version &> /dev/null  # TODO: Running through scons misses this

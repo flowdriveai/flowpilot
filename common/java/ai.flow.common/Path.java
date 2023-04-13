@@ -19,6 +19,11 @@ public class Path {
         return Paths.get(getFlowPilotRoot(), relativePath).toString();
     }
 
+    public static String getModelDir(){
+        String prefix = "f2";
+        return internal("selfdrive/assets/models/" + prefix + "/supercombo");
+    }
+
     public static String getFlowdriveDir(){
         if (SystemUtils.isAndroid())
             return "/sdcard/flowpilot/.flowdrive";

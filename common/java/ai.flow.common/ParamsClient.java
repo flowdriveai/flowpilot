@@ -20,8 +20,8 @@ public class ParamsClient extends ParamsInterface {
         sockPut = context.socket(ZMQ.REQ);
         sockDel = context.socket(ZMQ.REQ);
         sockGet.connect(Utils.getSocketPath("6001")); // get socket
-        sockPut.connect(Utils.getSocketPath("6002")); // get socket
-        sockDel.connect(Utils.getSocketPath("6003")); // get socket
+        sockPut.connect(Utils.getSocketPath("6002")); // put socket
+        sockDel.connect(Utils.getSocketPath("6003")); // delete socket
     }
 
     public ZMsg makeFrame(byte[]... bytes){
@@ -147,6 +147,12 @@ public class ParamsClient extends ParamsInterface {
             return getBool(key) == value;
         }
         return false;
+    }
+
+    public void dispose(){
+        sockGet.close();
+        sockDel.close();
+        sockPut.close();
     }
 }
 

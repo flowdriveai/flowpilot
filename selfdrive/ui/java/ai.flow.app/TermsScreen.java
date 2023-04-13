@@ -1,31 +1,24 @@
 package ai.flow.app;
 
+import ai.flow.common.ParamsInterface;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import ai.flow.app.CalibrationScreens.CalibrationInfo;
-import ai.flow.common.ParamsInterface;
-import ai.flow.common.SystemUtils;
+
+import static ai.flow.app.FlowUI.getPaddedButton;
 
 
 public class TermsScreen extends ScreenAdapter {
 
     FlowUI appContext;
-    ParamsInterface params;
+    ParamsInterface params = ParamsInterface.getInstance();
     Stage stage;
     TextButton acceptTerms;
     Label termsText;
@@ -40,7 +33,7 @@ public class TermsScreen extends ScreenAdapter {
             "Communications:\n\n" +
             "You agree that flowdrive may contact you by email or telephone in connection with flowpilot or for other business purposes. You may opt out of receiving email messages at any time by contacting us at support@flowdrive.ai.\n" +
             "\n" +
-            "We collect, use, and share information from and about you and your vehicle in connection with flowpilot. You consent to comma accessing the systems associated with flowpilot, without additional notice or consent, for the purposes of providing flowpilot, data collection, software updates, safety and cybersecurity, suspension or removal of your account, and as disclosed in the Privacy Policy (available at https://flowdrie.ai/privacy).\n" +
+            "We collect, use, and share information from and about you and your vehicle in connection with flowpilot. You consent to comma accessing the systems associated with flowpilot, without additional notice or consent, for the purposes of providing flowpilot, data collection, software updates, safety and cybersecurity, suspension or removal of your account, and as disclosed in the Privacy Policy (available at https://flowdrive.ai/privacy).\n" +
             "\n" +
             "Safety:\n\n" +
             "flowpilot performs the functions of Adaptive Cruise Control (ACC) and Lane Keeping Assist System (LKAS) designed for use in compatible motor vehicles. While using openpilot, it is your responsibility to obey all laws, traffic rules, and traffic regulations governing your vehicle and its operation. Access to and use of flowpilot is at your own risk and responsibility, and flowpilot should be accessed and/or used only when you can do so safely.\n" +
@@ -81,7 +74,6 @@ public class TermsScreen extends ScreenAdapter {
     public TermsScreen(FlowUI appContext) {
         this.appContext = appContext;
 
-        params = appContext.params;
         stage = new Stage(new FitViewport(1920, 1080));
         batch = new SpriteBatch();
 
@@ -91,11 +83,13 @@ public class TermsScreen extends ScreenAdapter {
         termsText = new Label(termsString, appContext.skin);
         termsText.setAlignment(Align.center);
         termsText.setWrap(true);
+        Container container = new Container(termsText);
+        container.pad(20).width(1620);
 
-        scrollPane = new ScrollPane(termsText, appContext.skin);
+        scrollPane = new ScrollPane(container, appContext.skin);
         scrollPane.setSmoothScrolling(true);
 
-        acceptTerms = new TextButton("ACCEPT", appContext.skin, "blue");
+        acceptTerms = getPaddedButton("ACCEPT", appContext.skin, "blue", 5);
         acceptTerms.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -140,5 +134,6 @@ public class TermsScreen extends ScreenAdapter {
     public void dispose() {
         Gdx.input.setInputProcessor(null);
         stage.dispose();
+        params.dispose();
     }
 }

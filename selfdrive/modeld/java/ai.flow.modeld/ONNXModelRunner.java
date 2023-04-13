@@ -15,11 +15,6 @@ public class ONNXModelRunner extends ModelRunner{
     OrtSession session;
     Map<String, long[]> shapes = new HashMap<>();
 
-    OnnxTensor inputImgTensor = null;
-    OnnxTensor inputStateTensor = null;
-    OnnxTensor inputDesireTensor = null;
-    OnnxTensor inputTrafficTensor = null;
-
     boolean useGPU;
 
     public ONNXModelRunner(String modelPath, boolean useGPU){
@@ -28,7 +23,7 @@ public class ONNXModelRunner extends ModelRunner{
     }
 
     @Override
-    public void init(Map<String, int[]> shapes) {
+    public void init(Map<String, int[]> shapes, Map<String, int[]> outputShapes) {
         try {
             OrtSession.SessionOptions opts = new OrtSession.SessionOptions();
             opts.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT);
@@ -50,48 +45,14 @@ public class ONNXModelRunner extends ModelRunner{
     }
 
     @Override
-    public void run(ByteBuffer inputImgs, ByteBuffer desire, ByteBuffer trafficConvention, ByteBuffer state, float[] netOutputs) {
-        float[] netOutputsCpy = null;
+    public void run(Map<String, INDArray> inputMap, Map<String, float[]> outputMap) {
+        float[] netOutputs = null;
         try {
-            if (inputImgTensor==null)
-                inputImgTensor = OnnxTensor.createTensor(env, inputImgs.asFloatBuffer(), shapes.get("input_imgs"));
-                inputDesireTensor = OnnxTensor.createTensor(env, desire.asFloatBuffer(), shapes.get("desire"));
-                inputTrafficTensor = OnnxTensor.createTensor(env, trafficConvention.asFloatBuffer(), shapes.get("traffic_convention"));
-                inputStateTensor = OnnxTensor.createTensor(env, state.asFloatBuffer(), shapes.get("initial_state"));
-
-            container.put("input_imgs", inputImgTensor);
-            container.put("desire", inputDesireTensor);
-            container.put("traffic_convention", inputTrafficTensor);
-            container.put("initial_state", inputStateTensor);
-
-            try (OrtSession.Result netOutputsTensor = session.run(container);){
-                netOutputsCpy = ((float[][])netOutputsTensor.get(0).getValue())[0];
-                } catch(OrtException e){
-                    System.out.println(e);
+            for (String inputName : inputMap.keySet()) {
+                container.put(inputName, OnnxTensor.createTensor(env, inputMap.get(inputName).data().asNioFloat(), shapes.get(inputName)));
             }
-
-            } catch (OrtException e) {
-                throw new RuntimeException(e);
-        }
-        System.arraycopy(netOutputsCpy, 0, netOutputs, 0, netOutputs.length);
-    }
-
-    @Override
-    public void run(INDArray inputImgs, INDArray desire, INDArray trafficConvention, INDArray state, float[] netOutputs) {
-        float[] netOutputsCpy = null;
-        try {
-            inputImgTensor = OnnxTensor.createTensor(env, inputImgs.data().asNioFloat(), shapes.get("input_imgs"));
-            inputDesireTensor = OnnxTensor.createTensor(env, desire.data().asNioFloat(), shapes.get("desire"));
-            inputTrafficTensor = OnnxTensor.createTensor(env, trafficConvention.data().asNioFloat(), shapes.get("traffic_convention"));
-            inputStateTensor = OnnxTensor.createTensor(env, state.data().asNioFloat(), shapes.get("initial_state"));
-
-            container.put("input_imgs", inputImgTensor);
-            container.put("desire", inputDesireTensor);
-            container.put("traffic_convention", inputTrafficTensor);
-            container.put("initial_state", inputStateTensor);
-
             try (OrtSession.Result netOutputsTensor = session.run(container);){
-                netOutputsCpy = ((float[][])netOutputsTensor.get(0).getValue())[0];
+                netOutputs = ((float[][])netOutputsTensor.get(0).getValue())[0];
             } catch(OrtException e){
                 System.out.println(e);
             }
@@ -99,7 +60,8 @@ public class ONNXModelRunner extends ModelRunner{
         } catch (OrtException e) {
             throw new RuntimeException(e);
         }
-        System.arraycopy(netOutputsCpy, 0, netOutputs, 0, netOutputs.length);
+        assert netOutputs != null;
+        System.arraycopy(netOutputs, 0, outputMap.get("outputs"), 0, outputMap.get("outputs").length);
     }
 
     @Override

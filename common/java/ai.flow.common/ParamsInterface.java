@@ -30,4 +30,5 @@ public abstract class ParamsInterface {
     public void deleteKey(String key){};
     public boolean existsAndCompare(String key, boolean value){return false;}
     public void blockTillExists(String Key) throws InterruptedException{}
+    public void dispose(){}
 }

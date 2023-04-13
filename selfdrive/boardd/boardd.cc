@@ -30,7 +30,7 @@
 #include "common/util.h"
 #include "system/hardware/hw.h"
 
-//#include "selfdrive/boardd/pigeon.h"
+#include "selfdrive/boardd/pigeon.h"
 
 // -- Multi-panda conventions --
 // Ordering:
@@ -109,7 +109,7 @@ void sync_time(Panda *panda, SyncTimeDir dir) {
 }
 
 bool safety_setter_thread(std::vector<Panda *> pandas) {
-  LOGW("Starting safety setter thread");
+  LOGD("Starting safety setter thread");
 
   // there should be at least one panda connected
   if (pandas.size() == 0) {
@@ -130,7 +130,7 @@ bool safety_setter_thread(std::vector<Panda *> pandas) {
       return false;
     }
 
-    LOGW("getting car vin");
+    LOGD("getting car vin");
     std::string value_vin = p.get("CarVin");
     if (value_vin.size() > 0) {
       // sanity check VIN format
@@ -579,54 +579,54 @@ void peripheral_control_thread(Panda *panda) {
   }
 }
 
-// static void pigeon_publish_raw(PubMaster &pm, const std::string &dat) {
-//   // create message
-//   MessageBuilder msg;
-//   msg.initEvent().setUbloxRaw(capnp::Data::Reader((uint8_t*)dat.data(), dat.length()));
-//   pm.send("ubloxRaw", msg);
-// }
+static void pigeon_publish_raw(PubMaster &pm, const std::string &dat) {
+  // create message
+  MessageBuilder msg;
+  msg.initEvent().setUbloxRaw(capnp::Data::Reader((uint8_t*)dat.data(), dat.length()));
+  pm.send("ubloxRaw", msg);
+}
 
 void pigeon_thread(Panda *panda) {
-  // util::set_thread_name("boardd_pigeon");
+  util::set_thread_name("boardd_pigeon");
 
-  // PubMaster pm({"ubloxRaw"});
-  // bool ignition_last = false;
+  PubMaster pm({"ubloxRaw"});
+  bool ignition_last = false;
 
-  // std::unique_ptr<Pigeon> pigeon(Hardware::TICI() ? Pigeon::connect("/dev/ttyHS0") : Pigeon::connect(panda));
+   std::unique_ptr<Pigeon> pigeon(Hardware::TICI() ? Pigeon::connect("/dev/ttyHS0") : Pigeon::connect(panda));
 
-  // while (!do_exit && panda->connected) {
-  //   bool need_reset = false;
-  //   bool ignition_local = ignition;
-  //   std::string recv = pigeon->receive();
+  while (!do_exit && panda->connected) {
+    bool need_reset = false;
+    bool ignition_local = ignition;
+    std::string recv = pigeon->receive();
 
-  //   // Check based on null bytes
-  //   if (ignition_local && recv.length() > 0 && recv[0] == (char)0x00) {
-  //     need_reset = true;
-  //     LOGW("received invalid ublox message while onroad, resetting panda GPS");
-  //   }
+    // Check based on null bytes
+    if (ignition_local && recv.length() > 0 && recv[0] == (char)0x00) {
+      need_reset = true;
+      LOGW("received invalid ublox message while onroad, resetting panda GPS");
+    }
 
-  //   if (recv.length() > 0) {
-  //     pigeon_publish_raw(pm, recv);
-  //   }
+    if (recv.length() > 0) {
+      pigeon_publish_raw(pm, recv);
+    }
 
-  //   // init pigeon on rising ignition edge
-  //   // since it was turned off in low power mode
-  //   if((ignition_local && !ignition_last) || need_reset) {
-  //     pigeon_active = true;
-  //     pigeon->init();
-  //   } else if (!ignition_local && ignition_last) {
-  //     // power off on falling edge of ignition
-  //     LOGD("powering off pigeon\n");
-  //     pigeon->stop();
-  //     pigeon->set_power(false);
-  //     pigeon_active = false;
-  //   }
+    // init pigeon on rising ignition edge
+    // since it was turned off in low power mode
+    if((ignition_local && !ignition_last) || need_reset) {
+      pigeon_active = true;
+      pigeon->init();
+    } else if (!ignition_local && ignition_last) {
+      // power off on falling edge of ignition
+      LOGD("powering off pigeon\n");
+      pigeon->stop();
+      pigeon->set_power(false);
+      pigeon_active = false;
+    }
 
-  //   ignition_last = ignition_local;
+    ignition_last = ignition_local;
 
-  //   // 10ms - 100 Hz
-  //   util::sleep_for(10);
-  // }
+    // 10ms - 100 Hz
+    util::sleep_for(10);
+  }
 }
 
 void boardd_main_thread(std::vector<std::string> serials) {

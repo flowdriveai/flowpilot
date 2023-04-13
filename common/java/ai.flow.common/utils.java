@@ -1,5 +1,9 @@
 package ai.flow.common;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 public class utils {
     public static boolean getBoolEnvVar(String key) {
         String val = System.getenv(key);
@@ -21,5 +25,52 @@ public class utils {
 
     public static double nanoSinceBoot() {
         return System.nanoTime();
+    }
+
+    public static double numElements(int[] shape){
+        double ret = 1;
+        for (int i:shape)
+            ret *= i;
+        return ret;
+    }
+
+    public static String readFile(String fileName)
+    {
+        BufferedReader br = null;
+        try
+        {
+            br = new BufferedReader(new FileReader(fileName));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while (true)
+            {
+                line = br.readLine();
+                if (line == null)
+                {
+                    break;
+                }
+                sb.append(line+"\n");
+            }
+            return sb.toString();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return "";
+        }
+        finally
+        {
+            if (br != null)
+            {
+                try
+                {
+                    br.close();
+                }
+                catch (IOException ex)
+                {
+                    ex.printStackTrace();
+                }
+            }
+        }
     }
 }

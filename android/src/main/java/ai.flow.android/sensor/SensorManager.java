@@ -92,11 +92,22 @@ public class SensorManager extends SensorInterface implements Runnable{
     }
 
     public void stop() {
+        if (!running)
+            return;
         sensorManager.unregisterListener(listenerAccelerometer);
         sensorManager.unregisterListener(listenerGyroscope);
         initialized = false;
         running = false;
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         thread = null;
+    }
+
+    public void dispose(){
+        stop();
     }
 
     public boolean isRunning(){

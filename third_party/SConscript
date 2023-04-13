@@ -1,0 +1,4 @@
+Import('env')
+
+env.Library('kaitai', ['kaitai/kaitaistream.cpp'], CPPDEFINES=['KS_STR_ENCODING_NONE'])
+

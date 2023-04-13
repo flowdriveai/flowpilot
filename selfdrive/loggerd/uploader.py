@@ -2,11 +2,13 @@
 import bz2
 import io
 import os
+import argparse
 import random
 import threading
 import time
 import traceback
 import boto3
+import logging
 
 from cereal import log
 import cereal.messaging as messaging
@@ -15,8 +17,10 @@ from common.params import Params
 from common.realtime import set_core_affinity
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
+from selfdrive.loggerd.video_process import segment_sync_videos
 from selfdrive.swaglog import cloudlog
 
+logger = logging.getLogger(__name__)
 
 NetworkType = log.DeviceState.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
@@ -39,6 +43,7 @@ def listdir_by_creation(d):
     return paths
   except OSError:
     cloudlog.exception("listdir_by_creation failed")
+    logger.warning("listdir_by_creation failed")
     return list()
 
 def clear_locks(root):
@@ -50,6 +55,7 @@ def clear_locks(root):
           os.unlink(os.path.join(path, fname))
     except OSError:
       cloudlog.exception("clear_locks failed")
+      logger.warning("clear_locks failed")
 
 class FakeResponse():
         def __init__(self):
@@ -65,6 +71,8 @@ class Uploader():
 
     self.last_resp = None
     self.last_exc = None
+    self.credentials = None
+    self.s3 = None
 
     self.immediate_size = 0
     self.immediate_count = 0
@@ -75,7 +83,7 @@ class Uploader():
     self.last_filename = ""
 
     self.immediate_folders = ["crash/", "boot/"]
-    self.immediate_priority = {"qlog": 0, "qlog.bz2": 0, "qcamera.ts": 1}
+    self.immediate_priority = {"qlog": 0, "qlog.bz2": 0, "fcam.mp4": 0, "ecam.mp4": 0}
 
   def get_upload_sort(self, name):
     if name in self.immediate_priority:
@@ -135,18 +143,20 @@ class Uploader():
 
   def do_upload(self, key, fn):
     try:
-      credentials = self.api.get_credentials()
+      if self.credentials is None:
+        self.credentials = self.api.get_credentials()
 
-      access_key = credentials["access_key"]
-      secret_access_key = credentials["secret_access_key"]
-      session_token = credentials["session_token"]
+        access_key = self.credentials["access_key"]
+        secret_access_key = self.credentials["secret_access_key"]
+        session_token = self.credentials["session_token"]
 
-      s3=boto3.client(
-          's3',
-          aws_access_key_id=access_key,
-          aws_secret_access_key=secret_access_key,
-          aws_session_token=session_token,
-      )
+
+        self.s3=boto3.client(
+            's3',
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_access_key,
+            aws_session_token=session_token,
+        )
 
       if fake_upload:
         cloudlog.debug(f"*** WARNING, THIS IS A FAKE UPLOAD ***")
@@ -160,17 +170,20 @@ class Uploader():
           else:
             data = f
 
+          user_id_san = self.api.user_id
+          dongle_id_san = self.api.dongle_id
+
           # api.get_credentials should populate api.email field, saving us a DB call
-          object_name = self.api.email.decode("utf-8") + "/" + key
+          object_name = f"unprocessed/{user_id_san}/{dongle_id_san}/{key}"
           bucket = "fdusermedia"
 
           self.last_resp = FakeResponse()
-          s3.upload_fileobj(data, bucket, object_name)
-          s3.Object(bucket, object_name).wait_until_exists()
+          self.s3.upload_fileobj(data, bucket, object_name)
 
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
-      raise
+      logger.debug(e)
+      raise e
 
   def normal_upload(self, key, fn):
     self.last_resp = None
@@ -178,8 +191,9 @@ class Uploader():
 
     try:
       self.do_upload(key, fn)
-    except Exception:
-      pass
+      logger.debug(f"S3 event successful for {key}")
+    except Exception as e:
+      logger.warning(f"S3 event failed for {key}: {e}")
 
     return self.last_resp
 
@@ -188,6 +202,7 @@ class Uploader():
       sz = os.path.getsize(fn)
     except OSError:
       cloudlog.exception("upload: getsize failed")
+      logger.warning("upload: getsize failed")
       return False
 
     cloudlog.event("upload_start", key=key, fn=fn, sz=sz, network_type=network_type, metered=metered)
@@ -215,7 +230,9 @@ class Uploader():
       # tag file as uploaded
       try:
         setxattr(fn, UPLOAD_ATTR_NAME, UPLOAD_ATTR_VALUE)
+        logger.debug(f"Successfully set attr on {key}")
       except OSError:
+        logger.warning(f"Successfully set attr on {key}")
         cloudlog.event("uploader_setxattr_failed", exc=self.last_exc, key=key, fn=fn, sz=sz)
 
     return success
@@ -236,6 +253,7 @@ def uploader_fn(exit_event):
     set_core_affinity([0, 1, 2, 3])
   except Exception:
     cloudlog.exception("failed to set core affinity")
+    logger.warning("failed to set core affinity")
 
   clear_locks(ROOT)
 
@@ -269,8 +287,10 @@ def uploader_fn(exit_event):
 
     success = uploader.upload(name, key, fn, sm['deviceState'].networkType.raw, sm['deviceState'].networkMetered)
     if success:
+      print("\033[92m" + f"Uploaded {key} !" + "\033[0m")
       backoff = 0.1
     elif allow_sleep:
+      logger.warning(f"Failed to upload {key}, retrying with a backoff")
       cloudlog.info("upload backoff %r", backoff)
       time.sleep(backoff + random.uniform(0, backoff))
       backoff = min(backoff*2, 120)
@@ -279,6 +299,20 @@ def uploader_fn(exit_event):
 
 
 def main():
+  parser = argparse.ArgumentParser(prog='Flowpilot uploader')
+  parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Get verbose logs",)
+
+  args = parser.parse_args()
+
+  log_level = logging.DEBUG if args.verbose else logging.ERROR
+  logging.basicConfig(
+      level=log_level,
+      format="%(asctime)s %(filename)s [%(levelname)s] %(message)s",
+  )
+
+  # Flowpilot stores a single long video. Need to make and sync segments
+  # with respective route segments.
+  segment_sync_videos()
   uploader_fn(threading.Event())
 
 

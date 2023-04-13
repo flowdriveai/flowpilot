@@ -2,7 +2,6 @@ import logging
 import tempfile
 import zmq
 import platform
-from selfdrive.manager.config import Config
 from cereal.messaging.utils import get_zmq_socket_path
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,7 @@ class Daemon:
         """Polls and returns a byte message if it recieved one"""
 
         # Poll for messages
-        poll_e = self.poller.poll(Config.DAEMON_POLL_FREQ)
+        poll_e = self.poller.poll(200)
 
         if len(poll_e) > 0:
             # Got a poll event

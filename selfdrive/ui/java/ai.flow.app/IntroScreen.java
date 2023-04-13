@@ -3,7 +3,6 @@ package ai.flow.app;
 import ai.flow.common.Path;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -80,7 +79,7 @@ public class IntroScreen extends ScreenAdapter {
         stage.draw();
         count++;
 
-        if (appContext.modelExecutor.isRunning())
+        if (appContext.modelExecutor.isInitialized())
             alpha -= 0.05;
 
         if (alpha < 0.0f)

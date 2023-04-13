@@ -1,13 +1,17 @@
 package ai.flow.app;
 
+import ai.flow.app.CalibrationScreens.CalibrationInfo;
+import ai.flow.common.ParamsInterface;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
-import ai.flow.app.CalibrationScreens.CalibrationInfo;
+
+import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 public class SetUpScreen extends ScreenAdapter {
 
     FlowUI appContext;
+    ParamsInterface params = ParamsInterface.getInstance();
 
     public SetUpScreen(FlowUI appContext) {
         this.appContext = appContext;
@@ -16,22 +20,22 @@ public class SetUpScreen extends ScreenAdapter {
     @Override
     public void show() {
 
-        if (!appContext.params.exists("HasAcceptedTerms")) {
+        if (!params.existsAndCompare("HasAcceptedTerms", true)) {
             appContext.setScreen(new TermsScreen(appContext));
             return;
         }
 
-        if (!appContext.params.exists("UserID")) {
+        if (!params.exists("UserToken")) {
             appContext.setScreen(new RegisterScreen(appContext));
             return;
         }
 
-        if (!appContext.params.existsAndCompare("CompletedTrainingVersion", true)){
+        if (!params.existsAndCompare("CompletedTrainingVersion", true)){
             appContext.setScreen(new TrainingScreen(appContext));
             return;
         }
 
-        if (!appContext.params.exists("CameraMatrix")) {
+        if (!params.exists(fcamIntrinsicParam)){
            appContext.launcher.startSensorD();
            appContext.setScreen(new CalibrationInfo(appContext, false));
            return;
@@ -50,5 +54,6 @@ public class SetUpScreen extends ScreenAdapter {
     @Override
     public void hide() {
         Gdx.input.setInputProcessor(null);
+        params.dispose();
     }
 }

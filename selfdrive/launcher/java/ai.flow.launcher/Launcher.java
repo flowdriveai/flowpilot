@@ -1,14 +1,13 @@
 package ai.flow.launcher;
 
 import ai.flow.common.ParamsInterface;
+import ai.flow.common.Path;
+import ai.flow.common.transformations.Camera;
+import ai.flow.modeld.*;
+import ai.flow.sensor.SensorInterface;
 import ai.flow.sensor.SensorManager;
 import ai.flow.sensor.camera.CameraManager;
-import ai.flow.sensor.SensorInterface;
-import ai.flow.modeld.ModelExecutor;
-import ai.flow.modeld.ModelRunner;
-import ai.flow.modeld.TNNModelRunner;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +17,7 @@ public class Launcher {
     public Map<String, SensorInterface> sensors;
     public FlowInitd flowInitd = new FlowInitd();
     public ParamsInterface params = ParamsInterface.getInstance();
-    CameraManager cameraManager;
+    SensorInterface cameraManager;
 
     public Launcher(Map<String, SensorInterface> sensors, ModelExecutor modelExecutor){
         this.sensors = sensors;
@@ -26,8 +25,7 @@ public class Launcher {
     }
 
     public void startModelD() {
-        if (!modeld.isRunning())
-            modeld.start();
+        modeld.start();
     }
 
     public void startSensorD() {
@@ -55,19 +53,22 @@ public class Launcher {
         startPythonDaemons();
     }
 
-    public void main(String[] args) throws IOException {
-
-        cameraManager = new CameraManager("roadCameraState", 20, System.getenv("ROAD_CAMERA_SOURCE"), 1164, 874);
+    public void main(String[] args) {
+        CameraManager fCameraManager = new CameraManager(20, System.getenv("ROAD_CAMERA_SOURCE"), Camera.frameSize[0], Camera.frameSize[1]);
         SensorManager sensorManager = new SensorManager();
         this.sensors = new HashMap<String, SensorInterface>() {{
-            put("roadCamera", cameraManager);
+            put("roadCamera", fCameraManager);
             put("motionSensors", sensorManager);
         }};
 
-        String modelPath = "models/supercombo";
+        String modelPath = Path.getModelDir();
+
         ModelRunner model = new TNNModelRunner(modelPath, true);
 
-        this.modeld = new ModelExecutor(model);
+        ModelExecutor modelExecutor;
+        modelExecutor = new ModelExecutorF2(model);
+
+        this.modeld = modelExecutor;
         this.startAllD();
     }
 }

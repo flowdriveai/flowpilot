@@ -1,43 +1,67 @@
 package ai.flow.sensor.camera;
 
 import ai.flow.common.ParamsInterface;
+import ai.flow.definitions.Definitions;
+import ai.flow.modeld.messages.MsgFrameData;
 import ai.flow.sensor.SensorInterface;
+import ai.flow.sensor.messages.MsgFrameBuffer;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
-import org.opencv.core.*;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.VideoWriter;
 import org.opencv.videoio.Videoio;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.util.Arrays;
+
+import static ai.flow.common.BufferUtils.bufferFromAddress;
+import static ai.flow.common.BufferUtils.byteToFloat;
+import static ai.flow.common.transformations.Camera.CAMERA_TYPE_ROAD;
+import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 public class CameraManager extends SensorInterface implements Runnable {
     public Thread thread;
     public boolean stopped = false;
+    public boolean exit = false;
     public boolean initialized = false;
     public VideoCapture capture;
     public static ZMQPubHandler ph = new ZMQPubHandler();
-    public String topic;
     public long deltaTime;
     public int defaultFrameWidth;
     public int defaultFrameHeight;
-    public MsgFrameData msgFrameData = new MsgFrameData(0);
+    public MsgFrameData msgFrameData = new MsgFrameData();
+    public MsgFrameBuffer msgFrameBuffer;
     public Mat frame, frameProcessed, frameCrop, framePadded;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
     public int frameID = 0;
     public ParamsInterface params = ParamsInterface.getInstance();
+    public String frameDataTopic;
+    public String frameBufferTopic;
+    public String cameraParamName;
+    ByteBuffer rgbBuffer;
 
     public void setIntrinsics(float[] intrinsics){
         assert (intrinsics.length == 9) : "invalid intrinsic matrix length";
-        for (int i=0; i<intrinsics.length; i++)
+        for (int i=0; i<intrinsics.length; i++) {
             K.set(i, intrinsics[i]);
+        }
     }
 
-    public CameraManager(String topic, int frequency, String videoSrc, int frameWidth, int frameHeight) {
+    public CameraManager(int frequency, String videoSrc, int frameWidth, int frameHeight) {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        this.topic = topic;
+
+
+        frameDataTopic = "roadCameraState";
+        frameBufferTopic = "roadCameraBuffer";
+        cameraParamName = fcamIntrinsicParam;
+
+        msgFrameBuffer = new MsgFrameBuffer(frameWidth*frameHeight*3/2, CAMERA_TYPE_ROAD);
+
         this.defaultFrameWidth = frameWidth;
         this.defaultFrameHeight = frameHeight;
 
@@ -61,7 +85,23 @@ public class CameraManager extends SensorInterface implements Runnable {
         frame = new Mat();
         framePadded = new Mat();
         frameProcessed = new Mat(defaultFrameHeight, defaultFrameWidth, CvType.CV_8UC3);
-        msgFrameData.frameData.setNativeImageAddr(frameProcessed.dataAddr());
+
+        msgFrameBuffer.frameBuffer.setEncoding(Definitions.FrameBuffer.Encoding.RGB);
+        msgFrameBuffer.setImageBufferAddress(frameProcessed.dataAddr());
+
+        msgFrameBuffer.frameBuffer.setFrameHeight(frameHeight);
+        msgFrameBuffer.frameBuffer.setFrameWidth(frameWidth);
+        msgFrameBuffer.frameBuffer.setYHeight(frameHeight);
+        msgFrameBuffer.frameBuffer.setYWidth(frameWidth);
+        msgFrameBuffer.frameBuffer.setYPixelStride(1);
+        msgFrameBuffer.frameBuffer.setUvWidth(frameWidth/2);
+        msgFrameBuffer.frameBuffer.setUvHeight(frameHeight/2);
+        msgFrameBuffer.frameBuffer.setUvPixelStride(2);
+        msgFrameBuffer.frameBuffer.setUOffset(frameHeight*frameWidth);
+        msgFrameBuffer.frameBuffer.setVOffset(frameHeight*frameWidth+1);
+        msgFrameBuffer.frameBuffer.setStride(frameWidth);
+
+        rgbBuffer = bufferFromAddress(frameProcessed.dataAddr(), frameHeight*frameWidth*3);
 
         deltaTime = (long) 1000/frequency; //ms
         loadIntrinsics();
@@ -105,18 +145,28 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void run(){
         initialized = true;
-        if (capture==null)
+        if (frameProcessed==null)
             return;
-        ph.createPublisher(topic);
+        ph.createPublishers(Arrays.asList(frameDataTopic, frameBufferTopic));
         long start, end, diff;
-        while (!stopped){
+        while (!exit){
+            if (stopped){
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                continue;
+            }
             start = System.currentTimeMillis();
             capture.read(frame);
             end = System.currentTimeMillis();
             frameID += 1;
             processFrame(frame);
+
             msgFrameData.frameData.setFrameId(frameID);
-            ph.publishBuffer(topic, msgFrameData.serialize(true));
+            ph.publishBuffer(frameDataTopic, msgFrameData.serialize(true));
+            ph.publishBuffer(frameBufferTopic, msgFrameBuffer.serialize(true));
             diff = end - start;
             if (diff < deltaTime){
                 try{
@@ -125,7 +175,7 @@ public class CameraManager extends SensorInterface implements Runnable {
                     ph.releaseAll();}
             }
             else if ((diff - deltaTime) > 5){
-                System.out.println("[WARNING]: camera lagging by " + (diff-deltaTime) + " ms");
+                System.out.println("[WARNING]: " + frameDataTopic + " camera lagging by " + (diff-deltaTime) + " ms");
             }
         }
     }
@@ -134,17 +184,9 @@ public class CameraManager extends SensorInterface implements Runnable {
         return this.initialized;
     }
 
-    public static float[] byteToFloat(byte[] input) {
-        float[] ret = new float[input.length / 4];
-        for (int x = 0; x < input.length; x += 4) {
-            ret[x / 4] = ByteBuffer.wrap(input, x, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-        }
-        return ret;
-    }
-
     public void loadIntrinsics(){
-        if (params.exists("CameraMatrix")) {
-            float[] cameraMatrix = byteToFloat(params.getBytes("CameraMatrix"));
+        if (params.exists(cameraParamName)) {
+            float[] cameraMatrix = byteToFloat(params.getBytes(cameraParamName));
             updateProperty("intrinsics", cameraMatrix);
         }
     }
@@ -158,8 +200,9 @@ public class CameraManager extends SensorInterface implements Runnable {
     }
 
     public void start() {
+        stopped = false;
         if (thread == null) {
-            thread = new Thread(this, "camerad");
+            thread = new Thread(this, "camerad:" + frameDataTopic);
             thread.setDaemon(false);
             thread.start();
         }
@@ -167,6 +210,17 @@ public class CameraManager extends SensorInterface implements Runnable {
 
     public void stop() {
         stopped = true;
+    }
+
+    public void dispose(){
+        exit = true;
+        stopped = true;
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        thread = null;
         ph.releaseAll();
         if (capture!=null)
             capture.release();
