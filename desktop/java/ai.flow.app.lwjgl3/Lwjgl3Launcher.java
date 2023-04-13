@@ -55,13 +55,6 @@ public class Lwjgl3Launcher {
 
 		Launcher launcher = new Launcher(sensors, modelExecutor);
 
-		if (params.exists("UserToken")) {
-			// Perform every time
-			if (RequestSink.isConnectedToInternet()) {
-				RequestSink.fetchUserInfo();
-			}
-		}
-
 		return new Lwjgl3Application(new FlowUI(launcher, SystemUtils.getPID()), getDefaultConfiguration());
 	}
 

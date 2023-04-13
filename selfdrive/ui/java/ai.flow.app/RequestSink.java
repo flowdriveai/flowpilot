@@ -2,6 +2,8 @@ package ai.flow.app;
 
 import ai.flow.common.ParamsInterface;
 import com.badlogic.gdx.utils.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -12,26 +14,32 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class RequestSink {
-    static final OkHttpClient client = new OkHttpClient();
+    static final OkHttpClient client = new OkHttpClient().newBuilder().cache(null).build();
     private static final String API_BASE_URL = "https://staging-api.flowdrive.ai";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final ParamsInterface params = ParamsInterface.getInstance();
+    public static Logger logger = LoggerFactory.getLogger(RequestSink.class);
     public static Boolean isConnectedToInternet() {
         String url = API_BASE_URL + "/health";
+
+        logger.info("Internet check initiated");
 
         Request request = new Request.Builder()
                 .url(url)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            logger.info("Internet check call made");
             return response.isSuccessful();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return false;
         }
     }
 
     public static void fetchUserInfo() {
+        logger.info("Fetch User Info called");
+
         String url = API_BASE_URL + "/user/status";
 
         Request request = new Request.Builder()
@@ -40,18 +48,23 @@ public class RequestSink {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            logger.info("Fetched User Info");
+
             assert response.body() != null;
             JsonValue toJson = HttpUtils.parseGenericResponse(response.body().string());
 
             if (!toJson.get("success").asBoolean()) {
-                System.out.println(toJson.get("message"));
+                logger.error(String.valueOf(toJson.get("message")));
             }
 
-            params.put("Plan", toJson.get("message").getString("plan"));
-            params.put("PlanExpiresAt", toJson.get("message").getString("plan_expires_at"));
+            String plan = toJson.get("message").getString("plan");
+            String plan_expires_at = toJson.get("message").getString("plan_expires_at");
+
+            params.put("Plan", plan);
+            params.put("PlanExpiresAt", plan_expires_at);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
     }
 
@@ -68,6 +81,8 @@ public class RequestSink {
 
     public static boolean isDeviceAllowed() {
         // Checks for whether the current plan supports this device
+
+        logger.info("Device Allowed called");
 
         String url = API_BASE_URL + "/device";
 
@@ -91,16 +106,17 @@ public class RequestSink {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
+                logger.info("Device Info Fetched");
                 assert response.body() != null;
                 JsonValue toJson = HttpUtils.parseGenericResponse(response.body().string());
                 if (!toJson.get("success").asBoolean()) {
-                    System.out.println(toJson.get("message"));
+                    logger.error(String.valueOf(toJson.get("message")));
                     return false;
                 }
 
                 params.put("DeviceRegId", toJson.get("message").getString("device_id"));
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error(e.getMessage());
                 return false;
             }
         }
@@ -118,7 +134,7 @@ public class RequestSink {
             String responseStr = response.body().string();
             JsonValue toJson = HttpUtils.parseGenericResponse(responseStr);
             if (!toJson.get("success").asBoolean()) {
-                System.out.println(toJson.get("message"));
+                logger.error(String.valueOf(toJson.get("message")));
                 return false;
             }
 
@@ -129,7 +145,7 @@ public class RequestSink {
                 return false;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return false;
         }
     }
