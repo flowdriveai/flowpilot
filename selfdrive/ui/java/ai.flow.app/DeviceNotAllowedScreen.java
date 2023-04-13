@@ -34,6 +34,8 @@ public class DeviceNotAllowedScreen extends ScreenAdapter {
                     "\n\n" +
                     "* You have reached your plan's max device limit. In this case, please revoke an older device to use this one." +
                     "\n" +
+                    "* You recently switched plans. In this case, try again to re-add your device" +
+                    "\n" +
                     "* You had revoked this device earlier. In this case please click on try again to re-add your device.";
 
     private static final ParamsInterface params = ParamsInterface.getInstance();
