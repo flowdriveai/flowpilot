@@ -684,7 +684,9 @@ public class OnRoadScreen extends ScreenAdapter {
             if (sh.updated(cameraTopic)) {
                 updateCamera();
             }
-            renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
+
+            if (msgframeBuffer != null)
+                renderImage(msgframeBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB);
 
             if (modelAlive)
                 drawModelOutputs();
