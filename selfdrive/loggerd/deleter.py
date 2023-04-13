@@ -7,7 +7,7 @@ from selfdrive.loggerd.config import ROOT, get_available_bytes, get_available_pe
 from selfdrive.loggerd.uploader import listdir_by_creation
 
 MIN_BYTES = 2 * 1024 * 1024 * 1024
-MIN_PERCENT = 10
+MIN_PERCENT = 7
 
 DELETE_LAST = ['boot', 'crash']
 
