@@ -18,6 +18,9 @@ def is_f3():
     
   # ai.flow.app:
   #   command: "am start --user 0 -n ai.flow.android/ai.flow.android.AndroidLauncher"
+  #   nowait: true
+  #   nomonitor: true
+  #   platforms: ["android"]
 
 procs = [
   ManagerProcess("controlsd", "controlsd"),

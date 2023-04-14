@@ -271,7 +271,6 @@ def uploader_fn(exit_event):
   while not exit_event.is_set():
     sm.update(0)
     offroad = params.get_bool("IsOffroad")
-    offroad = False
    
     d = uploader.next_file_to_upload()
     if d is None:  # Nothing to upload
