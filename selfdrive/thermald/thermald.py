@@ -64,8 +64,10 @@ def get_device_state():
   temps = psutil.sensors_temperatures()
   if temps.get("coretemp", None) is not None:
     msg.deviceState.cpuTempC = [cpu.current for cpu in temps['coretemp']]
-  elif temps.get("bms", None) is not None:
-    msg.deviceState.cpuTempC = [bms.current for bms in temps['bms']]
+  elif temps.get("battery", None) is not None:
+    msg.deviceState.cpuTempC = [bms.current for bms in temps['battery']]
+  else:
+    msg.deviceState.cpuTempC = [0.0]*8 # TODO: find a better way to get temps that works across platforms.
 
   msg.deviceState.networkType = log.DeviceState.NetworkType.none
   msg.deviceState.networkStrength = log.DeviceState.NetworkStrength.unknown
