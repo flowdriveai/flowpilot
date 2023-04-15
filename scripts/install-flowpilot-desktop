@@ -40,15 +40,17 @@ sdkmanager --install "platform-tools"
 sdkmanager --install "build-tools;32.0.0"
 
 # get python 3.9
-DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+DEBIAN_FRONTEND=noninteractive sudo apt-get install -y tzdata
 sudo apt install -y software-properties-common
 yes | sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt install -y python3.9 python3.9-dev python3.9-distutils 
+sudo apt install -y python3.9 python3.9-dev python3.9-distutils python3-pip scons
 
 # get flowpilot
 cd ~/ && git clone https://github.com/flowdriveai/flowpilot.git
 cd flowpilot && git submodule update --init
 
-pip install pipenv
+pip install pipenv numpy pycryptodome
+
+source ~/.bashrc
 
 success "Flowpilot successfully installed." 
