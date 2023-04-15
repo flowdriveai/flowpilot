@@ -379,7 +379,7 @@ public class OnRoadScreen extends ScreenAdapter {
         infoTable.add(statusLabelOnline).align(Align.top).height(uiHeight/8f).width(settingsBarWidth*0.8f).padTop(20);
         infoTable.row();
         Image logoTexture = new Image(loadTextureMipMap("selfdrive/assets/icons/circle-white.png"));
-        logoTexture.setColor(1, 1, 1, 0.85f);
+        logoTexture.setColor(1, 215/255f, 0, 0.6f);
         infoTable.add(logoTexture).align(Align.top).size(110).padTop(35).padBottom(40);
 
         stageFill.addActor(texImage);
