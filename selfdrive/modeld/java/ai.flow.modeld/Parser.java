@@ -350,9 +350,10 @@ public class Parser {
 
         getBestPlan(outs, best_plan, PLAN_IDX);
 
-        for (int xidx=1, tidx=0; xidx<TRAJECTORY_SIZE-1; xidx++) {
+        plan_t_arr[0] = 0.0f;
+        for (int xidx=1, tidx=0; xidx<TRAJECTORY_SIZE; xidx++) {
             // increment tidx until we find an element that's further away than the current xidx
-            while (tidx < TRAJECTORY_SIZE-1 && best_plan[(tidx+1)*PLAN_MHP_COLUMNS] < X_IDXS[xidx]) {
+            while (tidx < TRAJECTORY_SIZE-2 && best_plan[(tidx+1)*PLAN_MHP_COLUMNS] < X_IDXS[xidx]) {
                 tidx++;
             }
             float current_x_val = best_plan[tidx*PLAN_MHP_COLUMNS];
