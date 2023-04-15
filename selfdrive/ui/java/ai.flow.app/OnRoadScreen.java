@@ -469,7 +469,10 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCamera() {
-        msgframeBuffer = sh.recv(cameraBufferTopic).getWideRoadCameraBuffer();
+        if (isF3)
+            msgframeBuffer = sh.recv(cameraBufferTopic).getWideRoadCameraBuffer();
+        else
+            msgframeBuffer = sh.recv(cameraBufferTopic).getRoadCameraBuffer();
         msgframeData = sh.recv(cameraTopic).getFrameData();
         imgBuffer = updateImageBuffer(msgframeBuffer, imgBuffer);
 
@@ -567,7 +570,9 @@ public class OnRoadScreen extends ScreenAdapter {
             alertText2.setText(controlState.getAlertText2().toString());
             alertStatus = controlState.getAlertStatus();
             state = controlState.getState();
-            maxCruiseSpeedLabel.setText(Integer.toString((int)controlState.getVCruise()));
+            float maxVel = controlState.getVCruise();
+            maxVel = isMetric ? maxVel * 3.6f : maxVel * 2.237f;
+            maxCruiseSpeedLabel.setText(Integer.toString((int)maxVel));
         }
 
         if (alertStatus==null || controlState==null) {

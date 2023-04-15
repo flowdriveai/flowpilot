@@ -138,9 +138,8 @@ public class CalibrateScreen extends ScreenAdapter {
 
     public void updateCamera(){
         // handles receiving, rendering and converting to rgb of images.
-        if (cameraType == Camera.CAMERA_TYPE_ROAD) {
+        if (cameraType == Camera.CAMERA_TYPE_ROAD) 
             msgFrameBuffer = sh.recv(frameBufferTopic).getRoadCameraBuffer();
-        }
         else
             msgFrameBuffer = sh.recv(frameBufferTopic).getWideRoadCameraBuffer();
         msgFrameData = sh.recv(frameDataTopic).getFrameData();
