@@ -490,7 +490,7 @@ public class OnRoadScreen extends ScreenAdapter {
             INDArray Rt;
             Rt = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), -augmentRot.getFloat(0, 0), 0.0, false);
             RtPath = Preprocess.eulerAnglesToRotationMatrix(-augmentRot.getFloat(0, 1), -augmentRot.getFloat(0, 2), -augmentRot.getFloat(0, 0), 1.22, false);
-            for (int i = 0; i< CommonModelF3.TRAJECTORY_SIZE; i++) {
+            for (int i = 0; i< CommonModelF2.TRAJECTORY_SIZE; i++) {
                 parsed.position.get(0)[i] = Math.max(parsed.position.get(0)[i], minZ);
                 parsed.roadEdges.get(0).get(0)[i] = Math.max(parsed.roadEdges.get(0).get(0)[i], minZ);
                 parsed.roadEdges.get(1).get(0)[i] = Math.max(parsed.roadEdges.get(1).get(0)[i], minZ);
