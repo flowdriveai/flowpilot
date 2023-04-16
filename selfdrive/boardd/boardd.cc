@@ -298,11 +298,13 @@ void can_recv_thread(std::vector<Panda *> pandas) {
 
     uint64_t cur_time = nanos_since_boot();
     int64_t remaining = next_frame_time - cur_time;
-    if (remaining > 1) {
-      std::this_thread::sleep_for(std::chrono::nanoseconds(remaining));
+    if (remaining > 0) {
+          std::this_thread::sleep_for(std::chrono::nanoseconds(remaining));
     } else {
       if (ignition) {
-        LOGW("missed cycles (%d) %lld", (int)-1*remaining/dt, remaining);
+        if ((int)-1*remaining/dt > 1){
+            LOGW("missed cycles (%d) %lld", (int)-1*remaining/dt, remaining);
+        }
       }
       next_frame_time = cur_time;
     }
