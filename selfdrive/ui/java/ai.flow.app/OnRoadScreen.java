@@ -574,7 +574,7 @@ public class OnRoadScreen extends ScreenAdapter {
             alertStatus = controlState.getAlertStatus();
             state = controlState.getState();
             float maxVel = controlState.getVCruise();
-            maxVel = isMetric ? maxVel * 3.6f : maxVel * 2.237f;
+            maxVel = isMetric ? maxVel * 3.6f : maxVel * 0.621f;
             maxCruiseSpeedLabel.setText(Integer.toString((int)maxVel));
         }
 
