@@ -7,6 +7,7 @@ import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.transformations.Camera;
+import ai.flow.hardware.HardwareManager;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
@@ -85,9 +86,10 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		} catch (ErrnoException e) {
 			throw new RuntimeException(e);
 		}
-
+		
+		HardwareManager androidHardwareManager = new AndroidHardwareManager(getWindow());
 		// keep app from dimming due to inactivity.
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		androidHardwareManager.enableScreenWakeLock(true);
 
 		// get wakelock so we can switch windows without getting killed.
 		PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -182,7 +184,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		ACRAreporter.putCustomData("GitBranch", params.getString("GitBranch"));
 		ACRAreporter.putCustomData("GitRemote", params.getString("GitRemote"));
 
-		MainFragment fragment = new MainFragment(new FlowUI(launcher, pid));
+		MainFragment fragment = new MainFragment(new FlowUI(launcher, androidHardwareManager, pid));
 		cameraManager.setLifeCycleFragment(fragment);
 		FragmentTransaction trans = getSupportFragmentManager().beginTransaction();
 		trans.replace(android.R.id.content, fragment);

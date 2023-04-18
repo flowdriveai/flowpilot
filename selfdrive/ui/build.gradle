@@ -36,4 +36,5 @@ dependencies {
 	implementation project(path: ':common')
     implementation project(path: ':launcher')
     implementation project(path: ':calibration')
+	implementation project(':hardware')
 }

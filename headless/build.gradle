@@ -14,6 +14,7 @@ dependencies {
 	implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
 	implementation project(path: ':common')
 	implementation project(path: ':launcher')
+	implementation project(':hardware')
 }
 
 jar {
