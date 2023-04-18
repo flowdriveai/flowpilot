@@ -110,6 +110,7 @@ public class OnRoadScreen extends ScreenAdapter {
     ParsedOutputs parsed = new ParsedOutputs();
     int canErrCount = 0;
     int canErrCountPrev = 0;
+    int canMisses = 0;
     float uiWidth = 1280;
     float uiHeight = 640;
     int notificationWidth = 950;
@@ -474,10 +475,16 @@ public class OnRoadScreen extends ScreenAdapter {
     public void updateControls() {
         controlState = sh.recv(controlsStateTopic).getControlsState();
         canErrCount = controlState.getCanErrorCounter();
-        if (canErrCount != canErrCountPrev)
-            updateStatusLabel(statusLabelCan, "CAN\nOFFLINE", StatusColors.colorStatusCritical);
-        else
+
+        if (canErrCount != canErrCountPrev) {
+            canMisses++;
+            if (canMisses > 20)
+                updateStatusLabel(statusLabelCan, "CAN\nOFFLINE", StatusColors.colorStatusCritical);
+        }
+        else{
             updateStatusLabel(statusLabelCan, "CAN\nONLINE", StatusColors.colorStatusGood);
+            canMisses = 0;
+        }
         canErrCountPrev = canErrCount;
     }
 
