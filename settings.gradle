@@ -15,3 +15,5 @@ include ':calibration'
 project(':calibration').projectDir = file('selfdrive/calibration')
 include ':common'
 project(':common').projectDir = file('common')
+include ':hardware'
+project(':hardware').projectDir = file('system/hardware')

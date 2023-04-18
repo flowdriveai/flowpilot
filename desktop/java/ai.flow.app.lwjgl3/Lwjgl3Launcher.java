@@ -5,6 +5,8 @@ import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
 import ai.flow.common.SystemUtils;
 import ai.flow.common.transformations.Camera;
+import ai.flow.hardware.DesktopHardwareManager;
+import ai.flow.hardware.HardwareManager;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
@@ -52,7 +54,8 @@ public class Lwjgl3Launcher {
 		modelExecutor = f3 ? new ModelExecutorF3(model) : new ModelExecutorF2(model);
 
 		Launcher launcher = new Launcher(sensors, modelExecutor);
-		return new Lwjgl3Application(new FlowUI(launcher, SystemUtils.getPID()), getDefaultConfiguration());
+		HardwareManager hardwareManager = new DesktopHardwareManager();
+		return new Lwjgl3Application(new FlowUI(launcher, hardwareManager, SystemUtils.getPID()), getDefaultConfiguration());
 	}
 
 	private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {

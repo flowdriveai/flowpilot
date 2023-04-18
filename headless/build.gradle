@@ -7,6 +7,7 @@ eclipse.project.name = appName + '-headless'
 dependencies {
 	implementation project(':ui')
 	implementation project(':modeld')
+	implementation project(':hardware')
 	implementation project(":sensord")
 	implementation "com.badlogicgames.gdx:gdx-backend-headless:$gdxVersion"
 	implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"

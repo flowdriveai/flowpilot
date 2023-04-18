@@ -2,6 +2,7 @@ package ai.flow.app;
 
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
+import ai.flow.hardware.HardwareManager;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.ModelExecutor;
 import ai.flow.sensor.SensorInterface;
@@ -41,12 +42,14 @@ public class FlowUI extends Game {
     public Thread updateOnroadThread;
     Sound engageSound, disengageSound, promptSound, promptDistractedSound,
             refuseSound, warningImmediate, warningSoft;
+    public HardwareManager hardwareManager;
 
-    public FlowUI(Launcher launcher, int pid) {
+    public FlowUI(Launcher launcher, HardwareManager hardwareManager, int pid) {
         this.pid = pid;
         this.launcher = launcher;
         this.modelExecutor = launcher.modeld;
         this.sensors = launcher.sensors;
+        this.hardwareManager = hardwareManager;
 
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Nd4j.zeros(1); // init nd4j (any better ways?)
