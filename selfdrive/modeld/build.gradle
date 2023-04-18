@@ -23,6 +23,7 @@ dependencies {
         implementation 'com.microsoft.onnxruntime:onnxruntime_gpu:1.4.0'
     else
         implementation files("$rootProject.projectDir/libs/onnxruntime-stripped-1.7.0.jar")
+    implementation files("$rootProject.projectDir/libs/jocl-2.0.4.jar")
     implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
     {
         exclude ((HashMap) [group: 'org.bytedeco', module: 'openblas-platform'])
@@ -39,7 +40,6 @@ dependencies {
     implementation 'org.yaml:snakeyaml:1.18:android'
     implementation 'org.slf4j:slf4j-api:1.7.30'
     implementation 'org.slf4j:slf4j-simple:1.7.30'
-    implementation 'org.jocl:jocl:2.0.4'
     implementation project(":messaging")
     implementation project(':definitions')
     implementation project(":sensord")
