@@ -50,7 +50,7 @@ public class SetUpScreen extends ScreenAdapter {
 
         appContext.launcher.startSensorD();
 
-         if (appContext.isF3){
+         if (!appContext.isF3){
              if (!params.exists("CameraMatrix")){
                  appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_ROAD, false));
                  return;
