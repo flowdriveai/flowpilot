@@ -9,13 +9,9 @@
 int main(int argc, char *argv[]) {
   LOGW("starting boardd");
 
-  if (!Hardware::PC()) {
-    int err;
-    err = util::set_realtime_priority(54);
-    assert(err == 0);
-    err = util::set_core_affinity({4});
-    assert(err == 0);
-  }
+  int err;
+  err = util::set_realtime_priority(54);
+  err = util::set_core_affinity({4});
   
   std::vector<std::string> usb_devs(argv + 1, argv + argc);
   bool int_fd = usb_devs.size() != 0; // if no arguements are provided through termux-usb, fds cannot be used. 
