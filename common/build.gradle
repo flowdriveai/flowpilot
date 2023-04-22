@@ -19,7 +19,7 @@ sourceSets {
 
 dependencies {
     implementation 'org.deephacks.lmdbjni:lmdbjni-linux64:0.4.6'
-    implementation 'org.zeromq:jeromq:0.5.3'
+    implementation files("$rootProject.projectDir/libs/zmq.jar")
     implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
     implementation files("$rootProject.projectDir/libs/jocl-2.0.4.jar")
     implementation project(":messaging")

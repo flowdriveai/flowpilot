@@ -22,10 +22,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <uses-native-library android:name="libOpenCL.so" android:required="true" />
-        <uses-native-library android:name="libOpenCL-pixel.so" android:required="true" />
-
     </application>
 
     <uses-permission android:name="android.permission.VIBRATE" />
