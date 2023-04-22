@@ -146,7 +146,7 @@ public class CalibrateScreen extends ScreenAdapter {
             yuv2RGB.run(imgBuffer);
             pixelMap.setPixels(yuv2RGB.getRGBBuffer());
             texture.draw(pixelMap, 0, 0);
-            imageMat = yuv2RGB.getRGBMat();
+            imageMat = new Mat(Camera.frameSize[1], Camera.frameSize[0], CvType.CV_8UC3, yuv2RGB.getRGBBuffer());
         }
     }
 
@@ -165,6 +165,7 @@ public class CalibrateScreen extends ScreenAdapter {
             executor.submit(() -> {
                 // if current imageBuffer is accepted, new image points get added to calibrator object.
                 calibrator.addImage(imageMat);
+                imageMat.release();
             });
         }
 
