@@ -3,7 +3,7 @@ import os
 import shutil
 import threading
 from selfdrive.swaglog import cloudlog
-from selfdrive.loggerd.config import ROOT, PROCESSED_VIDEO_LOGS, get_available_bytes, get_available_percent
+from selfdrive.loggerd.config import ROOT, get_available_bytes, get_available_percent
 from selfdrive.loggerd.uploader import listdir_by_creation
 
 MIN_BYTES = 2 * 1024 * 1024 * 1024
@@ -11,15 +11,6 @@ MIN_PERCENT = 7
 
 DELETE_LAST = ['boot', 'crash']
 
-def delete(delete_path):
-  try:
-    cloudlog.info(f"deleting {delete_path}")
-    if os.path.isfile(delete_path):
-      os.remove(delete_path)
-    else:
-      shutil.rmtree(delete_path)
-  except OSError:
-    cloudlog.exception(f"issue deleting {delete_path}")
 
 def deleter_thread(exit_event):
   while not exit_event.is_set():
@@ -29,18 +20,21 @@ def deleter_thread(exit_event):
     if out_of_percent or out_of_bytes:
       # remove the earliest directory we can
       dirs = sorted(listdir_by_creation(ROOT), key=lambda x: x in DELETE_LAST)
-      videos = listdir_by_creation(PROCESSED_VIDEO_LOGS)
-      
-      for video in videos:
-        delete_path = os.path.join(PROCESSED_VIDEO_LOGS, video)
-        delete(delete_path)
-        
       for delete_dir in dirs:
         delete_path = os.path.join(ROOT, delete_dir)
+
         if any(name.endswith(".lock") for name in os.listdir(delete_path)):
           continue
-        delete(delete_path)
 
+        try:
+          cloudlog.info(f"deleting {delete_path}")
+          if os.path.isfile(delete_path):
+            os.remove(delete_path)
+          else:
+            shutil.rmtree(delete_path)
+          break
+        except OSError:
+          cloudlog.exception(f"issue deleting {delete_path}")
       exit_event.wait(.1)
     else:
       exit_event.wait(30)
