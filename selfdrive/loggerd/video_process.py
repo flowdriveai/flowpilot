@@ -36,12 +36,8 @@ def clear_video_locks():
 
 def segment_sync_videos():
     logs = os.listdir(ROOT)
-    video_segments_dir = os.path.join(VIDEO_LOGS, ".segments")
-    # we move proessed videos to other directory. cannot set xattr because android
-    # sdcard dosen't allows it.
-    processed_dir = os.path.join(VIDEO_LOGS, "processed")
+    video_segments_dir = os.path.join(VIDEO_LOGS, ".tmp")
     os.makedirs(video_segments_dir, exist_ok=True)
-    os.makedirs(processed_dir, exist_ok=True)
 
     video_names = os.listdir(VIDEO_LOGS)
     video_names = [video_name for video_name in video_names if "mp4" in video_name]
@@ -106,7 +102,7 @@ def segment_sync_videos():
             else:
                 os.remove(created_segment_path)
         os.rmdir(current_video_segment_dir)
-        shutil.move(full_video_path, processed_dir)
+        os.remove(full_video_path)
         print("processed video", video_name)
 
 if __name__ == "__main__":
