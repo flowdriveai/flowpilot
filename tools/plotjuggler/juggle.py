@@ -18,7 +18,7 @@ from urllib.parse import urlparse, parse_qs
 
 juggle_dir = os.path.dirname(os.path.realpath(__file__))
 
-RELEASES_URL="https://github.com/flowdriveai/PlotJuggler/releases/download/v0.0.1"
+RELEASES_URL="https://github.com/flowdriveai/PlotJuggler/releases/download/latest"
 INSTALL_DIR = os.path.join(juggle_dir, "bin")
 PLOTJUGGLER_BIN = os.path.join(juggle_dir, "bin/plotjuggler")
 MINIMUM_PLOTJUGGLER_VERSION = (3, 5, 2)

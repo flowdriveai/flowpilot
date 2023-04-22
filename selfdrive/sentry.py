@@ -15,7 +15,7 @@ def sentry_init() -> None:
 
     env = get_short_branch()
     sentry_sdk.init(
-        dsn="https://f58fa71b8d924fa79688f57ad81a6e4f@sentry.flowdrive.ai/2",
+        dsn="https://faca66e781974e26b6c0f6be67a4009f@o4504388423450624.ingest.sentry.io/4504965695471616",
         ignore_errors=["KeyboardInterrupt"],
         traces_sample_rate=1.0,
         environment=env,
