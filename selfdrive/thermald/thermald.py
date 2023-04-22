@@ -182,7 +182,7 @@ def thermald_thread(end_event, hw_queue):
                                                params.get_bool("Passive")
     # if any CPU gets above 107 or the battery gets above 63, kill all processes
     # controls will warn with CPU above 95 or battery above 60
-    onroad_conditions["device_temp_good"] = thermal_status < ThermalStatus.danger
+    onroad_conditions["device_temp_good"] = thermal_status < ThermalStatus.danger if is_android() else True
     set_offroad_alert_if_changed("Offroad_TemperatureTooHigh", (not onroad_conditions["device_temp_good"]))
 
     # Handle offroad/onroad transition
