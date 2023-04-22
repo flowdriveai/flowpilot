@@ -10,8 +10,7 @@ if live_calib_bytes is not None:
 else:
     print("extrinsic calibration not yet done")
 
-intrinsic_calib_bytes = p.get("CameraMatrix")
-if intrinsic_calib_bytes is not None:
-    print("intrinsic calibration:", np.frombuffer(intrinsic_calib_bytes, dtype="float32"))
-else:
-    print("extrriintrinsicnsic calibration not yet done")
+for camera_matrix in ["CameraMatrix", "F3CameraMatrix", "WideCameraMatrix"]:
+    intrinsic_calib_bytes = p.get(camera_matrix)
+    if intrinsic_calib_bytes is not None:
+        print(camera_matrix, ":", np.frombuffer(intrinsic_calib_bytes, dtype="float32").astype(int))
