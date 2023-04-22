@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import messaging.ZMQSubHandler;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import java.nio.ByteBuffer;
@@ -151,6 +152,7 @@ public class CalibrateScreen extends ScreenAdapter {
         if (rgb){
             pixelMap.setPixels(imgBuffer);
             texture.draw(pixelMap, 0, 0);
+            imageMat = new Mat(Camera.frameSize[1], Camera.frameSize[0], CvType.CV_8UC3, imgBuffer);
         }
         else {
             if (yuv2RGB == null)
@@ -158,6 +160,7 @@ public class CalibrateScreen extends ScreenAdapter {
             yuv2RGB.run(imgBuffer);
             pixelMap.setPixels(yuv2RGB.getRGBBuffer());
             texture.draw(pixelMap, 0, 0);
+            imageMat = new Mat(Camera.frameSize[1], Camera.frameSize[0], CvType.CV_8UC3, yuv2RGB.getRGBBuffer());
         }
     }
 
@@ -176,6 +179,7 @@ public class CalibrateScreen extends ScreenAdapter {
             executor.submit(() -> {
                 // if current imageBuffer is accepted, new image points get added to calibrator object.
                 calibrator.addImage(imageMat);
+                imageMat.release();
             });
         }
 
