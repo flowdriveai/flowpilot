@@ -25,6 +25,15 @@ def get_video_duration(filename):
     duration = fields['duration']
     return float(duration)
 
+def clear_video_locks():
+    for fname in os.listdir(VIDEO_LOGS):
+        path = os.path.join(VIDEO_LOGS, fname)
+        try:
+            if fname.endswith(".lock"):
+                os.unlink(path)
+        except OSError:
+            continue
+
 def segment_sync_videos():
     logs = os.listdir(ROOT)
     video_segments_dir = os.path.join(VIDEO_LOGS, ".segments")
@@ -35,13 +44,28 @@ def segment_sync_videos():
     os.makedirs(processed_dir, exist_ok=True)
 
     video_names = os.listdir(VIDEO_LOGS)
-    video_names.remove(".segments")
-    video_names.remove("processed")
+    video_names = [video_name for video_name in video_names if "mp4" in video_name]
+    video_names = [video_name for video_name in video_names if not os.path.exists(os.path.join(VIDEO_LOGS, video_name.replace("mp4", "lock")))]
 
-    segments_sofs = [datetime.strptime(log[:log.rfind("--")], LOG_FORMAT).timestamp() for log in logs]
+    segments_sofs = []
+    for log in logs:
+        try:
+            segments_sofs.append(datetime.strptime(log[:log.rfind("--")], LOG_FORMAT).timestamp())
+        except Exception as e:
+            print(e)
+            continue
     if not segments_sofs:
         return
-    video_sofs = [datetime.strptime(video_name, VIDEO_LOG_FORMAT).timestamp() for video_name in video_names]
+    
+    video_sofs = []
+    for video_name in video_names:
+        try:
+            video_sofs.append(datetime.strptime(video_name, VIDEO_LOG_FORMAT).timestamp())
+        except Exception as e:
+            print(e)
+            continue
+    if not video_sofs:
+        return
 
     # match video respective route
     idxs = []

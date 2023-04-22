@@ -56,9 +56,12 @@ def get_device_state():
 
   # Power
   if (not is_android()) or (is_android_rooted()):
-    battery = psutil.sensors_battery()
-    msg.deviceState.batteryPercent = int(battery.percent)
-    msg.deviceState.chargingDisabled = not battery.power_plugged
+    try: # TODO: causes crash on android when providing power via panda.
+      battery = psutil.sensors_battery()
+      msg.deviceState.batteryPercent = int(battery.percent)
+      msg.deviceState.chargingDisabled = not battery.power_plugged
+    except:
+      pass
 
   # Device Thermals
   temps = psutil.sensors_temperatures()
