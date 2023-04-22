@@ -94,7 +94,7 @@ public class CameraManager extends SensorInterface {
             }
             if (params.exists("WideCameraID")){
                 wideAngleCameraId = params.getString("WideCameraID");
-                System.out.println("Using camera ID provided by 'WideCameraID' param");
+                System.out.println("Using camera ID provided by 'WideCameraID' param, ID: " + wideAngleCameraId);
             }
             return availableCamerasInfo.get(Integer.parseInt(wideAngleCameraId)).getCameraSelector();
         }
