@@ -23,7 +23,6 @@ from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get
 from selfdrive.swaglog import cloudlog
 from selfdrive.sentry import sentry_init, capture_error
 
-logger = logging.getLogger(__name__)
 os.chdir(BASEDIR)
 
 POSSIBLE_PNAME_MATRIX = [
@@ -42,11 +41,13 @@ def flowpilot_running():
     ret = False
     pid_bytes = params.get("FlowpilotPID")
     pid = int.from_bytes(pid_bytes, "little") if pid_bytes is not None else None
-    if pid is not None and psutil.pid_exists(pid):
-        p = psutil.Process(pid)
-        if p.name() in POSSIBLE_PNAME_MATRIX:
-            logger.debug("flowpilot is running")
-            ret = True
+    try:
+        if pid is not None and psutil.pid_exists(pid):
+            p = psutil.Process(pid)
+            if p.name() in POSSIBLE_PNAME_MATRIX:
+                ret = True
+    except:
+        pass
     return ret
 
 
@@ -73,7 +74,7 @@ def main():
         for proc in psutil.process_iter():
             if proc.name() in managed_processes.keys() and \
                 not managed_processes[proc.name()].unkillable:
-                logger.warning(f"{proc.name()} already alive, restarting..")
+                cloudlog.warning(f"{proc.name()} already alive, restarting..")
                 proc.kill()
 
         default_params = [
@@ -195,7 +196,7 @@ def main():
         except Exception as e:
             print(traceback.format_exc())
         finally:
-            logger.info("cleaning up..")
+            cloudlog.info("cleaning up..")
             params.put_bool("FlowinitReady", False)
             manager_cleanup()
             
