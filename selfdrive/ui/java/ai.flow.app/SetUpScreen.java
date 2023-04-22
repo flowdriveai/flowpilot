@@ -1,13 +1,11 @@
 package ai.flow.app;
 
+import ai.flow.app.CalibrationScreens.CalibrationInfo;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.transformations.Camera;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
-import ai.flow.app.CalibrationScreens.CalibrationInfo;
-
-import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 public class SetUpScreen extends ScreenAdapter {
 
@@ -50,18 +48,25 @@ public class SetUpScreen extends ScreenAdapter {
             return;
         }
 
-        // no need to calibrate fcam in WideCameraOnly mode.
-        if (!params.exists(fcamIntrinsicParam) & !params.existsAndCompare("WideCameraOnly", true)){
-           appContext.launcher.startSensorD();
-           appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_ROAD, false));
-           return;
-        }
+        appContext.launcher.startSensorD();
 
-        if (!params.exists("WideCameraMatrix") & appContext.isF3 & !params.existsAndCompare("WideCameraOnly", true)){
-            appContext.launcher.startSensorD();
-            appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_WIDE, false));
-            return;
-        }
+         if (appContext.isF3){
+             if (!params.exists("CameraMatrix")){
+                 appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_ROAD, false));
+                 return;
+             }
+         }
+         else {
+             // calibrating fcam is not required in WideCameraOnly mode.
+             if (!params.existsAndCompare("WideCameraOnly", true) && !params.exists("CameraMatrix")){
+                 appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_ROAD, false));
+                 return;
+             }
+             if (!params.exists("WideCameraMatrix")){
+                 appContext.setScreen(new CalibrationInfo(appContext, Camera.CAMERA_TYPE_WIDE, false));
+                 return;
+             }
+         }
 
         appContext.launcher.startAllD();
         appContext.setScreen(new IntroScreen(appContext));
