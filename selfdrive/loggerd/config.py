@@ -13,6 +13,7 @@ if is_android():
   VIDEO_LOGS = os.path.join(external_android_storage(), "flowpilot", ".flowdrive", "media", "0", "videos")
 else:
   VIDEO_LOGS = os.path.join(os.path.dirname(ROOT), "videos")
+PROCESSED_VIDEO_LOGS = os.path.join(VIDEO_LOGS, "processed")
 os.makedirs(ROOT, exist_ok=True)
 os.makedirs(VIDEO_LOGS, exist_ok=True)
 

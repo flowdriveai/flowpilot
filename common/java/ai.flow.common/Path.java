@@ -31,6 +31,6 @@ public class Path {
     }
 
     public static String getVideoStorageDir(){
-        return getFlowdriveDir() + "/media/0/realdata/videos";
+        return getFlowdriveDir() + "/media/0/videos";
     }
 }

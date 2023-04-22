@@ -292,7 +292,7 @@ def uploader_fn(exit_event):
 
     success = uploader.upload(name, key, fn, sm['deviceState'].networkType.raw, sm['deviceState'].networkMetered)
     if success:
-      print("\033[92m" + f"Uploaded {key} !" + "\033[0m")
+      cloudlog.info(f"Uploaded {key}")
       backoff = 0.1
     elif allow_sleep:
       logger.warning(f"Failed to upload {key}, retrying with a backoff")
