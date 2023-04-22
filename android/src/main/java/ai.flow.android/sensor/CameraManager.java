@@ -31,6 +31,7 @@ import org.capnproto.PrimitiveList;
 import org.opencv.core.Core;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -64,6 +65,8 @@ public class CameraManager extends SensorInterface {
     CameraControl cameraControl;
     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss.SSS");
     ByteBuffer yuvBuffer;
+    String videoFileName, vidFilePath, videoLockPath;
+    File lockFile;
 
     @SuppressLint("RestrictedApi")
     public VideoCapture videoCapture = new VideoCapture.Builder()
@@ -186,7 +189,7 @@ public class CameraManager extends SensorInterface {
     @SuppressLint("RestrictedApi")
     public void startRecordCamera() {
         if (recording)
-            return ;
+            return;
         recording = true;
         @SuppressLint("SdCardPath") File movieDir = new File(Path.getVideoStorageDir());
 
@@ -194,8 +197,16 @@ public class CameraManager extends SensorInterface {
             movieDir.mkdirs();
         }
 
-        String videoFileName = df.format(new Date());
-        String vidFilePath = movieDir.getAbsolutePath() + "/" + videoFileName + ".mp4";
+        videoFileName = df.format(new Date());
+        vidFilePath = movieDir.getAbsolutePath() + "/" + videoFileName + ".mp4";
+        videoLockPath = movieDir.getAbsolutePath() + "/" + videoFileName + ".lock";
+
+        lockFile = new File(videoLockPath);
+        try {
+            lockFile.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         File vidFile = new File(vidFilePath);
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -209,11 +220,12 @@ public class CameraManager extends SensorInterface {
                     @Override
                     public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
                         System.out.println("[INFO] Video Saved: " + vidFile.getName());
+                        lockFile.delete();
                     }
                     @Override
                     public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
-                        System.err.println("[WARNING] Video Save Error: " + vidFile.getName());
-                        System.out.println(message);
+                        System.err.println("[WARNING] Video Save Error: " + vidFile.getName() + " " + message);
+                        lockFile.delete();
                     }
                 }
         );

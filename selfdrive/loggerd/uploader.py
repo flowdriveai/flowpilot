@@ -17,7 +17,7 @@ from common.params import Params
 from common.realtime import set_core_affinity
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
-from selfdrive.loggerd.video_process import segment_sync_videos
+from selfdrive.loggerd.video_process import segment_sync_videos, clear_video_locks
 from selfdrive.swaglog import cloudlog
 
 logger = logging.getLogger(__name__)
@@ -256,6 +256,7 @@ def uploader_fn(exit_event):
     logger.warning("failed to set core affinity")
 
   clear_locks(ROOT)
+  clear_video_locks()
 
   params = Params()
   dongle_id = params.get("DongleId", encoding='utf8')
@@ -271,6 +272,11 @@ def uploader_fn(exit_event):
   while not exit_event.is_set():
     sm.update(0)
     offroad = params.get_bool("IsOffroad")
+    
+    # Flowpilot stores a single long video. Need to make and sync segments
+    # with respective route segments.
+    if offroad:
+      segment_sync_videos()
    
     d = uploader.next_file_to_upload()
     if d is None:  # Nothing to upload
@@ -309,9 +315,6 @@ def main():
       format="%(asctime)s %(filename)s [%(levelname)s] %(message)s",
   )
 
-  # Flowpilot stores a single long video. Need to make and sync segments
-  # with respective route segments.
-  segment_sync_videos()
   uploader_fn(threading.Event())
 
 
