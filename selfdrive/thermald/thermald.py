@@ -68,6 +68,10 @@ def get_device_state():
     msg.deviceState.cpuTempC = [bms.current for bms in temps['battery']]
   else:
     msg.deviceState.cpuTempC = [0.0]*8 # TODO: find a better way to get temps that works across platforms.
+  
+  # desktops have bad temperature readings causing false positives.
+  if not is_android():
+    msg.deviceState.cpuTempC = [0.0]*8
 
   msg.deviceState.networkType = log.DeviceState.NetworkType.none
   msg.deviceState.networkStrength = log.DeviceState.NetworkStrength.unknown
@@ -182,7 +186,7 @@ def thermald_thread(end_event, hw_queue):
                                                params.get_bool("Passive")
     # if any CPU gets above 107 or the battery gets above 63, kill all processes
     # controls will warn with CPU above 95 or battery above 60
-    onroad_conditions["device_temp_good"] = thermal_status < ThermalStatus.danger if is_android() else True
+    onroad_conditions["device_temp_good"] = thermal_status < ThermalStatus.danger
     set_offroad_alert_if_changed("Offroad_TemperatureTooHigh", (not onroad_conditions["device_temp_good"]))
 
     # Handle offroad/onroad transition
