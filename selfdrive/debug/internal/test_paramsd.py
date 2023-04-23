@@ -17,11 +17,11 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel, create_dyn_state_
 from selfdrive.locationd.models.car_kf import CarKalman, ObservationKind, States
 from selfdrive.locationd.models.constants import GENERATED_DIR
 
-T_SIM = 3 * 60  # s
+T_SIM = 5 * 60  # s
 DT = 0.01
 
 
-CP = CarInterface.get_params(CAR.ACCORD)
+CP = CarInterface.get_params(CAR.CIVIC)
 VM = VehicleModel(CP)
 
 x, y = 0, 0  # m, m
@@ -33,11 +33,11 @@ state = np.array([[0.0], [0.0]])
 
 
 ts = np.arange(0, T_SIM, DT)
-speeds = 5 * np.ones_like(ts)
+speeds = 10 * np.sin(2 * np.pi * ts / 200.) + 25
 
 angle_offsets = math.radians(1.0) * np.ones_like(ts)
 angle_offsets[ts > 60] = 0
-steering_angles = cast(np.ndarray, np.radians(10 * np.cos(2 * np.pi * ts / 100.)))
+steering_angles = cast(np.ndarray, np.radians(5 * np.cos(2 * np.pi * ts / 100.)))
 
 
 xs = []
@@ -59,8 +59,6 @@ kf.filter.set_global("center_to_rear", CP.wheelbase - CP.centerToFront)
 kf.filter.set_global("stiffness_front", CP.tireStiffnessFront)
 kf.filter.set_global("stiffness_rear", CP.tireStiffnessRear)
 
-yaw_rate_std = 0.05
-
 for i, t in tqdm(list(enumerate(ts))):
   u = speeds[i]
   sa = steering_angles[i]
@@ -74,17 +72,13 @@ for i, t in tqdm(list(enumerate(ts))):
   y += (float(state[0]) * math.sin(psi) + u * math.sin(psi)) * DT
   psi += float(state[1]) * DT
   
-  kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_YAW_RATE, 
-                            [float(state[1])], 
-                            np.array([np.atleast_2d(yaw_rate_std**2)]))
-
+  kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_YAW_RATE, [float(state[1])])
   kf.predict_and_observe(t, ObservationKind.ROAD_FRAME_X_SPEED, [[u]])
   kf.predict_and_observe(t, ObservationKind.STEER_ANGLE, [sa])
   kf.predict_and_observe(t, ObservationKind.ANGLE_OFFSET_FAST, [0])
 
   speed_ys.append(float(state[0]))
   yaw_rates.append(float(state[1]))
-
   kf_states.append(kf.x.copy())
   kf_ps.append(kf.P.copy())
 
@@ -138,7 +132,7 @@ axes[3].set_ylim([0.8, 1.2])
 
 sns.lineplot(ts, np.degrees(angle_offsets), label='Angle offset [deg]', ax=axes[4])
 plot_with_bands(ts, States.ANGLE_OFFSET, 'Angle offset kf deg', axes[4], converter=np.degrees)
-#plot_with_bands(ts, States.ANGLE_OFFSET_FAST, 'Fast Angle offset kf deg', axes[4], converter=np.degrees, idx=2)
+plot_with_bands(ts, States.ANGLE_OFFSET_FAST, 'Fast Angle offset kf deg', axes[4], converter=np.degrees, idx=2)
 
 axes[4].set_ylim([-2, 2])
 

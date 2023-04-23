@@ -1,4 +1,4 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/hyundai/radar_interface.py
+#!/usr/bin/env python3
 import math
 
 from cereal import car
@@ -37,7 +37,7 @@ class RadarInterface(RadarInterfaceBase):
     self.trigger_msg = RADAR_START_ADDR + RADAR_MSG_COUNT - 1
     self.track_id = 0
 
-    self.radar_off_can = CP.radarOffCan
+    self.radar_off_can = CP.radarUnavailable
     self.rcp = get_radar_can_parser(CP)
 
   def update(self, can_strings):

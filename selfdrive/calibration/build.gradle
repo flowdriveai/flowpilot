@@ -18,6 +18,6 @@ sourceSets {
 }
 
 dependencies {
-    implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
+    implementation files("$rootProject.projectDir/third_party/opencv-nolibs-4.5.1-2.jar")
     implementation project(path: ':common')
 }

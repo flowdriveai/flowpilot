@@ -33,8 +33,8 @@ rm $DIR/acados_repo/lib/*.json
 rm -rf $DIR/include
 cp -r $DIR/acados_repo/include $DIR
 cp -r $DIR/acados_repo/lib $INSTALL_DIR
-rm -rf $DIR/../../pyextra/acados_template
-cp -r $DIR/acados_repo/interfaces/acados_template/acados_template $DIR/../../pyextra
+rm -rf $DIR/../../third_party/acados/acados_template
+cp -r $DIR/acados_repo/interfaces/acados_template/acados_template $DIR/../../third_party/acados
 #pip3 install -e $DIR/acados/interfaces/acados_template
 
 # build tera

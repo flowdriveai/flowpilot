@@ -1,7 +1,7 @@
 import sentry_sdk
 
-from selfdrive.swaglog import cloudlog
-from selfdrive.version import get_commit, get_origin, get_short_branch, is_dirty, is_official
+from system.swaglog import cloudlog
+from system.version import get_commit, get_origin, get_short_branch, is_dirty, is_official
 from common.system import is_android, is_android_rooted
 
 

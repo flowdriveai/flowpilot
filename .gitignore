@@ -60,10 +60,6 @@ a.out
 *.vcd
 *.qm
 
-# binaries
-selfdrive/boardd/boardd
-libs/capnpc-java/capnproto-java/
-
 # Ignore Gradle GUI config
 gradle-app.setting
 

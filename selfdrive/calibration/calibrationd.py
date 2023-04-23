@@ -8,7 +8,7 @@ from common.transformations.camera import get_view_frame_from_road_frame
 from common.transformations.orientation import rot_from_euler, euler_from_rot
 import numpy as np
 import os
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 
 
 class Calibration:

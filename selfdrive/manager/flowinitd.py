@@ -18,9 +18,9 @@ from selfdrive.manager.filelock import FileLock
 from selfdrive.manager.process import ensure_running
 from selfdrive.manager.process_config import managed_processes
 
-from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
+from system.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.sentry import sentry_init, capture_error
 
 os.chdir(BASEDIR)
@@ -89,7 +89,7 @@ def main():
             params.put_bool("RecordFront", True)
 
         if not params.get_bool("DisableRadar_Allow"):
-            params.delete("DisableRadar")
+            params.remove("DisableRadar")
         
         # android specififc
         if system.is_android():

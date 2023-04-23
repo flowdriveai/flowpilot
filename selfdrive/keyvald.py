@@ -36,7 +36,7 @@ class ParamsServer:
     def delete_thread(exit_event):
         while not exit_event.is_set():
             key = sock_del.recv()
-            params.delete(key)
+            params.remove(key)
             sock_del.send(b"1")
     
     @staticmethod 

@@ -1,11 +1,9 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/toyota/toyotacan.py
-def create_steer_command(packer, steer, steer_req, raw_cnt):
+def create_steer_command(packer, steer, steer_req):
   """Creates a CAN message for the Toyota Steer Command."""
 
   values = {
     "STEER_REQUEST": steer_req,
     "STEER_TORQUE_CMD": steer,
-    "COUNTER": raw_cnt,
     "SET_ME_1": 1,
   }
   return packer.make_can_msg("STEERING_LKA", 0, values)
@@ -68,13 +66,13 @@ def create_fcw_command(packer, fcw):
   return packer.make_can_msg("ACC_HUD", 0, values)
 
 
-def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_depart, right_lane_depart, enabled):
+def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_depart, right_lane_depart, enabled, stock_lkas_hud):
   values = {
     "TWO_BEEPS": chime,
     "LDA_ALERT": steer,
     "RIGHT_LINE": 3 if right_lane_depart else 1 if right_line else 2,
     "LEFT_LINE": 3 if left_lane_depart else 1 if left_line else 2,
-    "BARRIERS" : 1 if enabled else 0,
+    "BARRIERS": 1 if enabled else 0,
 
     # static signals
     "SET_ME_X02": 2,
@@ -98,4 +96,9 @@ def create_ui_command(packer, steer, chime, left_line, right_line, left_lane_dep
     "ADJUSTING_CAMERA": 0,
     "LDW_EXIST": 1,
   }
+
+  # lane sway functionality
+  # not all cars have LKAS_HUD — update with camera values if available
+  values.update(stock_lkas_hud)
+
   return packer.make_can_msg("LKAS_HUD", 0, values)

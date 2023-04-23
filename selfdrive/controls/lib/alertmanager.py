@@ -1,4 +1,3 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/controls/lib/alertmanager.py
 import copy
 import os
 import json
@@ -21,9 +20,9 @@ def set_offroad_alert(alert: str, show_alert: bool, extra_text: Optional[str] = 
     if extra_text is not None:
       a = copy.copy(OFFROAD_ALERTS[alert])
       a['text'] += extra_text
-    Params().put(alert, json.dumps(a).encode())
+    Params().put(alert, json.dumps(a))
   else:
-    Params().delete(alert)
+    Params().remove(alert)
 
 
 @dataclass

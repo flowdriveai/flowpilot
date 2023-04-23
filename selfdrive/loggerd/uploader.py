@@ -18,7 +18,7 @@ from common.realtime import set_core_affinity
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
 from selfdrive.loggerd.video_process import segment_sync_videos, clear_video_locks
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 
 logger = logging.getLogger(__name__)
 

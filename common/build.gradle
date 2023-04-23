@@ -19,8 +19,8 @@ sourceSets {
 
 dependencies {
     implementation 'org.deephacks.lmdbjni:lmdbjni-linux64:0.4.6'
-    implementation files("$rootProject.projectDir/libs/zmq.jar")
-    implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
+    implementation files("$rootProject.projectDir/third_party/zmq.jar")
+    implementation files("$rootProject.projectDir/third_party/opencv-nolibs-4.5.1-2.jar")
     implementation project(":messaging")
 
     implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
