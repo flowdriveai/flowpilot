@@ -211,6 +211,12 @@ SConscript([
   'system/clocksd/SConscript',
 ])
 
+# build submodules
+SConscript([
+  'opendbc/can/SConscript',
+  'panda/SConscript',
+])
+
 SConscript(['SConscript'])
 
 SConscript(['system/proclogd/SConscript'])
