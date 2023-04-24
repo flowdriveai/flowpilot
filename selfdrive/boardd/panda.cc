@@ -68,15 +68,6 @@ std::string Panda::hw_serial() {
 
 std::vector<std::string> Panda::list() {
   std::vector<std::string> serials = PandaUsbHandle::list();
-
-#ifndef __APPLE__
-  for (auto s : PandaSpiHandle::list()) {
-    if (std::find(serials.begin(), serials.end(), s) == serials.end()) {
-      serials.push_back(s);
-    }
-  }
-#endif
-
   return serials;
 }
 
