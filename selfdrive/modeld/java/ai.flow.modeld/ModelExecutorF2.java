@@ -22,7 +22,7 @@ import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 public class ModelExecutorF2 extends ModelExecutor implements Runnable{
 
-    public boolean stopped = false;
+    public boolean stopped = true;
     boolean exit = false;
     public Thread thread;
     public final String threadName = "modeld";
@@ -62,7 +62,8 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public long start, end, timestamp;
     public int lastFrameID = -1;
     public int firstFrameID = -1;
-    public int frameDrops = 0;
+    public int totalFrameDrops = 0;
+    public int frameDrops = 0; // per iteration
     public ModelRunner modelRunner;
     Definitions.FrameData.Reader frameData;
     Definitions.FrameBuffer.Reader msgFrameBuffer;
@@ -178,11 +179,12 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
             // skip 1st 10 reading to let it warm up.
             if (iterationNum > 10) {
                 timePerIt += end - start;
-                frameDrops += (frameData.getFrameId() - lastFrameID) - 1;
+                totalFrameDrops += (frameData.getFrameId() - lastFrameID) - 1;
             } else {
                 firstFrameID = lastFrameID;
             }
 
+            frameDrops = frameData.getFrameId() - lastFrameID - 1;
             lastFrameID = frameData.getFrameId();
             iterationNum++;
         }
@@ -198,8 +200,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
         ph.releaseAll();
     }
 
-    public void start() {
-        stopped = false;
+    public void init() {
         if (thread == null) {
             thread = new Thread(this, threadName);
             thread.setDaemon(false);
@@ -211,8 +212,8 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
         msgModelDataV2.fill(outs, timestamp, frameData.getFrameId(), -1, getFrameDropPercent(), getIterationRate(), -1);
         msgCameraOdometery.fill(outs, timestamp, frameData.getFrameId());
 
-        ph.publishBuffer("modelV2", msgModelDataV2.serialize(true));
-        ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize(true));
+        ph.publishBuffer("modelV2", msgModelDataV2.serialize(frameDrops < 1));
+        ph.publishBuffer("cameraOdometry", msgCameraOdometery.serialize(frameDrops < 1));
     };
 
     public long getIterationRate() {
@@ -220,7 +221,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     }
 
     public float getFrameDropPercent() {
-        return (float)100*frameDrops/(lastFrameID-firstFrameID);
+        return (float)100* totalFrameDrops /(lastFrameID-firstFrameID);
     }
 
     public boolean isRunning() {
@@ -235,6 +236,11 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
         exit = true;
     }
 
+    public void start(){
+        if (thread == null)
+            init();
+        stopped = false;
+    }
     public void stop() {
         stopped = true;
     }
