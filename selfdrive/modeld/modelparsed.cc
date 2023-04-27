@@ -25,13 +25,17 @@ int main(int argc, char **argv) {
 
   std::unique_ptr<Context> context(Context::create());
   std::unique_ptr<SubSocket> subscriber(SubSocket::create(context.get(), "modelRaw"));
+  std::unique_ptr<Poller> poller(Poller::create());
   assert(subscriber != NULL);
-  //TODO: use poller.
-  subscriber->setTimeout(100);
+  poller->registerSocket(subscriber.get());
 
   uint32_t last_frame_id = 0;
 
   while (!do_exit) {
+    if (poller->poll(100).size() < 1){
+      continue;
+    }
+
     std::unique_ptr<Message> msg(subscriber->receive());
     if (!msg) {
       if (errno == EINTR) {
