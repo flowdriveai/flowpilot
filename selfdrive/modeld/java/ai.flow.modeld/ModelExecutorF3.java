@@ -28,7 +28,7 @@ import static ai.flow.sensor.messages.MsgFrameBuffer.updateImageBuffer;
 
 public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
-    public boolean stopped = false;
+    public boolean stopped = true;
     boolean exit = false;
     public Thread thread;
     public final String threadName = "modeld";
@@ -79,8 +79,11 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public int lastWideFrameID = -1;
     public int firstWideFrameID = -1;
     public int firstFrameID = -1;
-    public int wideFrameDrops = 0;
+    public int totalWideFrameDrops = 0;
+    public int totalFrameDrops = 0;
     public int frameDrops = 0;
+    public int frameDropsWide = 0;
+
     int desire;
     public ModelRunner modelRunner;
     Definitions.FrameData.Reader frameData;
@@ -261,12 +264,15 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
             // skip 1st 10 reading to let it warm up.
             if (iterationNum > 10) {
                 timePerIt += end - start;
-                frameDrops += (frameData.getFrameId() - lastFrameID) - 1;
-                wideFrameDrops += (frameWideData.getFrameId() - lastWideFrameID) - 1;
+                totalFrameDrops += (frameData.getFrameId() - lastFrameID) - 1;
+                totalWideFrameDrops += (frameWideData.getFrameId() - lastWideFrameID) - 1;
             } else {
                 firstFrameID = lastFrameID;
                 firstWideFrameID = lastWideFrameID;
             }
+
+            frameDrops = (frameData.getFrameId() - lastFrameID) - 1;
+            frameDropsWide = (frameWideData.getFrameId() - lastWideFrameID) - 1;
 
             lastFrameID = frameData.getFrameId();
             lastWideFrameID = frameWideData.getFrameId();
@@ -286,8 +292,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
         ph.releaseAll();
     }
 
-    public void start() {
-        stopped = false;
+    public void init() {
         if (thread == null) {
             thread = new Thread(this, threadName);
             thread.setDaemon(false);
@@ -297,7 +302,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
     public void serializeAndPublish(){
         msgModelRaw.fill(netOutputs, timestamp, lastFrameID, -1, getFrameDropPercent(), getIterationRate());
-        ph.publishBuffer("modelRaw", msgModelRaw.serialize(true));
+        ph.publishBuffer("modelRaw", msgModelRaw.serialize((frameDropsWide < 1) && (frameDrops < 1)));
     }
 
     public long getIterationRate() {
@@ -305,7 +310,7 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     }
 
     public float getFrameDropPercent() {
-        return (float)100*frameDrops/(lastFrameID-firstFrameID);
+        return (float)100* totalFrameDrops /(lastFrameID-firstFrameID);
     }
 
     public boolean isRunning() {
@@ -322,5 +327,11 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
     public void stop() {
         stopped = true;
+    }
+
+    public void start(){
+        if (thread == null)
+            init();
+        stopped = false;
     }
 }

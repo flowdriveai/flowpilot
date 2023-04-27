@@ -35,12 +35,13 @@ public class MsgModelRaw extends MessageBase {
     public void fill(float[] outs, long timestamp, int frameId,
                      int frameAge, float frameDropPerc, float modelExecutionTime) {
 
+        modelRaw.setValid(true);
         modelRaw.setModelExecutionTime(modelExecutionTime);
         modelRaw.setFrameId(frameId);
         modelRaw.setTimestampEof(timestamp);
         modelRaw.setFrameDropPerc(frameDropPerc);
         modelRaw.setFrameAge(frameAge);
-            for (int i = 0; i < CommonModelF3.NET_OUTPUT_SIZE; i++)
+        for (int i = 0; i < CommonModelF3.NET_OUTPUT_SIZE; i++)
             rawPreds.set(i, outs[i]);
     }
 }

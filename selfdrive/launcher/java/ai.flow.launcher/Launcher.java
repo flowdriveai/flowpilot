@@ -24,8 +24,8 @@ public class Launcher {
         this.modeld = modelExecutor;
     }
 
-    public void startModelD() {
-        modeld.start();
+    public void initModelD() {
+        modeld.init();
     }
 
     public void startSensorD() {
@@ -35,22 +35,17 @@ public class Launcher {
         }
     }
 
-    public void startPythonDaemons(){
-        flowInitd.send(FlowInitd.SIGSTART);
-    }
-
     public void dispose() {
         for (String sensorName : sensors.keySet()) {
             sensors.get(sensorName).stop();
         }
-        modeld.stop();
+        modeld.dispose();
         flowInitd.send(FlowInitd.SIGSTOP);
     }
 
     public void startAllD() {
         startSensorD();
-        startModelD();
-        startPythonDaemons();
+        initModelD();
     }
 
     public void main(String[] args) {
