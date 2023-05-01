@@ -1,37 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="ai.flow.app">
+          xmlns:tools="http://schemas.android.com/tools"
+          package="ai.flow.app">
+
     <application
             android:allowBackup="true"
             android:icon="@drawable/ic_launcher"
             android:isGame="true"
             android:label="@string/app_name"
-            android:theme="@style/GdxTheme"
             android:requestLegacyExternalStorage="true"
-        >
+            android:theme="@style/GdxTheme"
+            android:extractNativeLibs="true">
         <activity
-                android:name="ai.flow.android.AndroidLauncher"
-                android:label="@string/app_name"
+                android:name="ai.flow.android.LoadingActivity"
+                android:theme="@style/Theme.AppCompat.Light"
                 android:screenOrientation="landscape"
-                android:keepScreenOn="true"
-                android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+                android:name="ai.flow.android.AndroidLauncher"
+                android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout"
+                android:exported="true"
+                android:keepScreenOn="true"
+                android:label="@string/app_name"
+                android:screenOrientation="landscape">
+        </activity>
     </application>
 
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
+    <queries>
+        <package android:name="com.termux" />
+    </queries>
+
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            tools:ignore="ScopedStorage"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND"/>
+
 </manifest>
