@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#000000">
+
+    <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/spinner"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/spinner"
+    />
+
+    <ImageView
+            android:id="@+id/logo"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_alignTop="@id/spinner"
+            android:layout_alignBottom="@id/spinner"
+            android:layout_alignLeft="@id/spinner"
+            android:layout_alignRight="@id/spinner"
+            android:layout_margin="50dp"
+            android:src="@drawable/logo_white"/>
+
+    <TextView
+            android:id="@+id/boot_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:layout_below="@+id/spinner"
+            android:layout_centerHorizontal="true"
+            android:textSize="20dp"
+            android:text="Booting Flowpilot"
+            android:textColor="#ffffff" />
+</RelativeLayout>

@@ -27,7 +27,6 @@ import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -35,6 +34,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
+import com.termux.shared.termux.TermuxConstants;
 import org.acra.ACRA;
 import org.acra.BuildConfig;
 import org.acra.ErrorReporter;
@@ -60,7 +60,8 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 			Manifest.permission.RECORD_AUDIO,
 			Manifest.permission.READ_PHONE_STATE,
 			Manifest.permission.WAKE_LOCK,
-			Manifest.permission.VIBRATE);
+			Manifest.permission.VIBRATE,
+			"com.termux.permission.RUN_COMMAND");
 
 	@SuppressLint("HardwareIds")
 	@Override
@@ -87,20 +88,6 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 			throw new RuntimeException(e);
 		}
 
-		HardwareManager androidHardwareManager = new AndroidHardwareManager(getWindow());
-		// keep app from dimming due to inactivity.
-		androidHardwareManager.enableScreenWakeLock(true);
-
-		// get wakelock so we can switch windows without getting killed.
-		PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-		PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ai.flow.app::wakelock");
-		wakeLock.acquire();
-
-		// tune system for max throughput. Does this really help ?
-		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-		//	getWindow().setSustainedPerformanceMode(true);
-		//}
-
 		// request permissions and wait till granted.
 		requestPermissions();
 		while (!checkPermissions()){
@@ -110,6 +97,29 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 				throw new RuntimeException(e);
 			}
 		}
+
+		// boot all the flowpilot daemons in non-java land.
+		bootTermux();
+
+		HardwareManager androidHardwareManager = new AndroidHardwareManager(getWindow());
+		// keep app from dimming due to inactivity.
+		androidHardwareManager.enableScreenWakeLock(true);
+
+		// get wakelock so we can switch windows without getting killed.
+		PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+		PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ai.flow.app::wakelock");
+
+		// acquiring wakelock causes crash on some devices.
+		try {
+			wakeLock.acquire();
+		} catch (Exception e){
+			System.err.println(e);
+		}
+
+		// tune system for max throughput. Does this really help ?
+		//if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+		//	getWindow().setSustainedPerformanceMode(true);
+		//}
 
 		// TODO, this is very hacky, find simpler way
 		params = ParamsInterface.getInstance();
@@ -292,7 +302,19 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 
 	@Override
 	public void exit() {
+	}
 
+	public void bootTermux(){
+		Intent intent = new Intent();
+		intent.setClassName(TermuxConstants.TERMUX_PACKAGE_NAME, TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE_NAME);
+		intent.setAction(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.ACTION_RUN_COMMAND);
+		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_COMMAND_PATH, "/data/data/com.termux/files/usr/bin/bash");
+		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_ARGUMENTS, new String[]{"boot_flowpilot.sh"});
+		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_WORKDIR, "/data/data/com.termux/files/home");
+		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_BACKGROUND, true);
+		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_SESSION_ACTION, "0");
+		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_COMMAND_LABEL, "boot flowpilot");
+		startService(intent);
 	}
 }
 
