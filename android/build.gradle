@@ -31,7 +31,7 @@ android {
 
 	defaultConfig {
 		applicationId 'ai.flow.android'
-		minSdkVersion 21
+		minSdkVersion 24
 		targetSdkVersion 30
 		versionCode 1
 
@@ -88,6 +88,8 @@ dependencies {
 	implementation project(path: ':definitions')
 	implementation project(path: ':messaging')
 	implementation project(":hardware")
+	implementation 'com.google.android.material:material:1.4.0'
+	implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 	coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 	implementation project(path: ':launcher')
 	implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
@@ -103,7 +105,8 @@ dependencies {
 	implementation "androidx.camera:camera-view:$camerax_version"
 	implementation "androidx.camera:camera-video:$camerax_version"
 	implementation "androidx.appcompat:appcompat:1.4.1"
-	implementation files("$rootProject.projectDir/third_party/opencv-nolibs-4.5.1-2.jar")
+	implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.17'
+	implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
 
 	implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
 			{
@@ -121,6 +124,11 @@ dependencies {
 	implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
 	implementation(name: 'snpe-release', ext:'aar')
 	implementation "org.capnproto:runtime:0.1.13"
+	implementation ('com.termux.termux-app:termux-shared:0.117'){
+		exclude ((HashMap) [group: 'com.google.code.findbugs', module: 'annotations'])
+		exclude ((HashMap) [group: 'com.google.code.findbugs', module: 'jsr305'])
+		exclude ((HashMap) [group: 'com.google.guava', module: 'guava'])
+	}
 
 	def acraVersion = "5.8.4"
 	implementation "ch.acra:acra-http:$acraVersion"
