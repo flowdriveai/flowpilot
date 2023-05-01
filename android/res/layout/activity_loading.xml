@@ -4,14 +4,13 @@
                 android:layout_height="match_parent"
                 android:background="#000000">
 
-    <pl.droidsonroids.gif.GifImageView
+    <ImageView
             android:id="@+id/spinner"
             android:layout_width="250dp"
             android:layout_height="250dp"
             android:layout_gravity="center"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
-            android:src="@drawable/spinner"
     />
 
     <ImageView
