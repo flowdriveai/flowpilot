@@ -105,7 +105,8 @@ dependencies {
 	implementation "androidx.camera:camera-view:$camerax_version"
 	implementation "androidx.camera:camera-video:$camerax_version"
 	implementation "androidx.appcompat:appcompat:1.4.1"
-	implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.17'
+	implementation 'com.github.bumptech.glide:glide:4.12.0'
+	annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
 	implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
 
 	implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
