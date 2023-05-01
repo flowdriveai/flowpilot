@@ -11,13 +11,9 @@ import ai.flow.hardware.HardwareManager;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.*;
 import ai.flow.sensor.SensorInterface;
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Process;
 import android.os.*;
 import android.provider.Settings;
@@ -28,8 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -47,21 +41,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static android.os.Build.VERSION.SDK_INT;
 
-/** Launches the Android application. */
+/** Launches the main android flowpilot application. */
 public class AndroidLauncher extends FragmentActivity implements AndroidFragmentApplication.Callbacks {
 	public static Map<String, SensorInterface> sensors;
 	public static Context appContext;
 	public static ParamsInterface params;
-	List<String> requiredPermissions = Arrays.asList(Manifest.permission.CAMERA,
-			Manifest.permission.WRITE_EXTERNAL_STORAGE,
-			Manifest.permission.READ_EXTERNAL_STORAGE,
-			Manifest.permission.RECORD_AUDIO,
-			Manifest.permission.READ_PHONE_STATE,
-			Manifest.permission.WAKE_LOCK,
-			Manifest.permission.VIBRATE,
-			"com.termux.permission.RUN_COMMAND");
 
 	@SuppressLint("HardwareIds")
 	@Override
@@ -88,18 +73,6 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 			throw new RuntimeException(e);
 		}
 
-		// request permissions and wait till granted.
-		requestPermissions();
-		while (!checkPermissions()){
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		// boot all the flowpilot daemons in non-java land.
-		bootTermux();
 
 		HardwareManager androidHardwareManager = new AndroidHardwareManager(getWindow());
 		// keep app from dimming due to inactivity.
@@ -121,36 +94,8 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		//	getWindow().setSustainedPerformanceMode(true);
 		//}
 
-		// TODO, this is very hacky, find simpler way
 		params = ParamsInterface.getInstance();
-		boolean f3, done = false;
-		int keyvaldFailCount = 1;
-		while (!done){
-			try {
-				if (!params.initialized()){
-					if (keyvaldFailCount <= 20 & keyvaldFailCount % 20 == 0)
-						Toast.makeText(appContext, "Waiting for flowpilot services to start", Toast.LENGTH_LONG).show();
-					else if (keyvaldFailCount > 20 & (keyvaldFailCount-20) % 50 == 0)
-						Toast.makeText(appContext, "Waiting for flowpilot services to start. Did you start 'launch_flowpilot.sh' ?", Toast.LENGTH_LONG).show();
-					try {
-						Thread.sleep(200);
-					} catch (InterruptedException ex) {
-						throw new RuntimeException(ex);
-					}
-					params.dispose();
-					params = ParamsInterface.getInstance();
-					keyvaldFailCount++;
-				}
-				else{
-					done = true;
-					params.dispose();
-					params = ParamsInterface.getInstance();
-				}
-			} catch (Exception e){
-			}
-		}
-
-		f3 = params.existsAndCompare("F3", true);
+		boolean f3 = params.existsAndCompare("F3", true);
 
 		TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		String dongleID = "";
@@ -260,61 +205,8 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		return false;
 	}
 
-	private boolean checkPermissions() {
-		for (String permission: requiredPermissions){
-			if (ContextCompat.checkSelfPermission(appContext, permission) != PackageManager.PERMISSION_GRANTED) {
-				return false;
-			}
-		}
-
-		// External storage access permissions for android 12 and above.
-		if (SDK_INT >= Build.VERSION_CODES.R)
-			return Environment.isExternalStorageManager();
-		return true;
-	}
-
-	private void requestPermissions() {
-		List<String> requestPermissions = new ArrayList<>();
-		for (String permission: requiredPermissions){
-			if (ContextCompat.checkSelfPermission(appContext, permission) != PackageManager.PERMISSION_GRANTED)
-				requestPermissions.add(permission);
-		}
-		if (!requestPermissions.isEmpty())
-			ActivityCompat.requestPermissions(this, requestPermissions.toArray(new String[0]), 1);
-
-		// External storage access permissions for android 12 and above.
-		if (SDK_INT >= Build.VERSION_CODES.R) {
-			if (Environment.isExternalStorageManager())
-				return;
-			try {
-				Toast.makeText(appContext, "grant external storage access to flowpilot.", Toast.LENGTH_LONG).show();
-				Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-				intent.addCategory("android.intent.category.DEFAULT");
-				intent.setData(Uri.parse(String.format("package:%s",getApplicationContext().getPackageName())));
-				startActivityForResult(intent, 6969);
-			} catch (Exception e) {
-				Intent intent = new Intent();
-				intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-				startActivityForResult(intent, 6969);
-			}
-		}
-	}
-
 	@Override
 	public void exit() {
-	}
-
-	public void bootTermux(){
-		Intent intent = new Intent();
-		intent.setClassName(TermuxConstants.TERMUX_PACKAGE_NAME, TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE_NAME);
-		intent.setAction(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.ACTION_RUN_COMMAND);
-		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_COMMAND_PATH, "/data/data/com.termux/files/usr/bin/bash");
-		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_ARGUMENTS, new String[]{"boot_flowpilot.sh"});
-		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_WORKDIR, "/data/data/com.termux/files/home");
-		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_BACKGROUND, true);
-		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_SESSION_ACTION, "0");
-		intent.putExtra(TermuxConstants.TERMUX_APP.RUN_COMMAND_SERVICE.EXTRA_COMMAND_LABEL, "boot flowpilot");
-		startService(intent);
 	}
 }
 
