@@ -97,6 +97,9 @@ public class LoadingActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(getApplicationContext(), AndroidLauncher.class);
                 startActivity(intent);
+
+                // destroy current activity
+                finish();
             }
         }).start();
     }
@@ -164,5 +167,10 @@ public class LoadingActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        return;
     }
 }

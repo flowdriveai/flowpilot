@@ -15,10 +15,12 @@
                 android:name="ai.flow.android.LoadingActivity"
                 android:theme="@style/Theme.AppCompat.Light"
                 android:screenOrientation="landscape"
-                android:exported="true">
+                android:exported="true"
+                android:noHistory = "true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/>
             </intent-filter>
         </activity>
         <activity
