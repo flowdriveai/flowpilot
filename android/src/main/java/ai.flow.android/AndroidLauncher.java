@@ -95,6 +95,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		//}
 
 		params = ParamsInterface.getInstance();
+		boolean f3 = params.existsAndCompare("F3", true);
 
 		TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
 		String dongleID = "";
