@@ -53,6 +53,9 @@ base_setup() {
 	# setup startup commands
 	add_to_file 'sshd' ~/.bashrc
 	add_to_file 'termux-wake-lock' ~/.bashrc
+
+	# allow external apps to call termux
+	sed -i '/allow-external-apps/s/^#*//g' $HOME/.termux/termux.properties
 }
 
 setup_nonroot_env() {
@@ -67,6 +70,9 @@ setup_nonroot_env() {
     ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu $HOME/flowpilot_env
     cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
     chmod +x $HOME/flowpilot_env/bin/install-flowpilot-android
+
+	echo -e "sshd \ntermux-wake-lock \nproot-distro login ubuntu -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
+	chmod +x $HOME/boot_flowpilot
 
   	success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
 }
@@ -122,6 +128,9 @@ setup_root_env() {
 	    fi
 	" >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
 	chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
+
+	echo -e "sshd \ntermux-wake-lock \nsudo login-flowpilot-root \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
+	chmod +x $HOME/boot_flowpilot
 
 	success "Flowpilot root environment installed. login with 'sudo login-flowpilot-root'"
 }
