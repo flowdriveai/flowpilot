@@ -93,7 +93,7 @@ class Controls:
       # Fake: pandaStates, peripheralState, driverMonitoringState
       # See liveLocationKalman, liveParameters
       self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
-                                     'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
+                                     'driverMonitoringState', 'driverState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
                                      'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
                                       ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan', 'liveParameters',
                                                                             'liveLocationKalman'])
