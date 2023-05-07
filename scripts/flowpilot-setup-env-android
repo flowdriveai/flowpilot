@@ -71,7 +71,7 @@ setup_nonroot_env() {
     cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
     chmod +x $HOME/flowpilot_env/bin/install-flowpilot-android
 
-	echo -e "sshd \ntermux-wake-lock \nproot-distro login ubuntu -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
+	echo -e "sshd \ntermux-wake-lock \nproot-distro login ubuntu --no-kill-on-exit -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
 	chmod +x $HOME/boot_flowpilot
 
   	success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
