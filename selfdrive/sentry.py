@@ -20,6 +20,7 @@ def sentry_init() -> None:
         traces_sample_rate=1.0,
         environment=env,
     )
+    sentry_sdk.utils.MAX_STRING_LENGTH = 8192
 
     set_tag("dirty", is_dirty())
     set_tag("origin", get_origin())
