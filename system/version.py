@@ -7,7 +7,8 @@ from functools import lru_cache
 from common.basedir import BASEDIR
 from system.swaglog import cloudlog
 
-TESTED_BRANCHES = ['release']
+RELEASE_BRANCHES = ['release', 'master']
+TESTED_BRANCHES = ['release', 'master']
 
 training_version: bytes = b"0.0.1"
 terms_version: bytes = b"1"
@@ -89,6 +90,9 @@ def is_official() -> bool:
 def is_tested_branch() -> bool:
   return get_short_branch() in TESTED_BRANCHES
 
+@cache
+def is_release_branch() -> bool:
+  return get_short_branch() in RELEASE_BRANCHES
 
 @cache
 def is_dirty() -> bool:

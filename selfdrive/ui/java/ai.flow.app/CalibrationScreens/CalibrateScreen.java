@@ -130,7 +130,7 @@ public class CalibrateScreen extends ScreenAdapter {
     public void updateCamera(){
         // handles receiving, rendering and converting to rgb of images.
         msgFrameBuffer = sh.recv(frameBufferTopic).getRoadCameraBuffer();
-        msgFrameData = sh.recv(frameDataTopic).getFrameData();
+        msgFrameData = sh.recv(frameDataTopic).getRoadCameraState();
         currFrameID = msgFrameData.getFrameId();
         imgBuffer = updateImageBuffer(msgFrameBuffer, imgBuffer);
 
