@@ -7,7 +7,7 @@ import subprocess
 from typing import List, NoReturn
 from functools import cmp_to_key
 
-from panda import Panda, PandaDFU
+from panda import Panda, PandaDFU, FW_PATH
 from common.basedir import BASEDIR
 from common.params import Params
 from system.hardware import HARDWARE
@@ -18,7 +18,8 @@ from common.system import is_android, is_android_rooted
 
 def get_expected_signature(panda: Panda) -> bytes:
   try:
-    return Panda.get_signature_from_firmware(panda.get_mcu_type().config.app_path)
+    fn = os.path.join(FW_PATH, panda.get_mcu_type().config.app_fn)
+    return Panda.get_signature_from_firmware(fn)
   except Exception:
     cloudlog.exception("Error computing expected signature")
     return b""
@@ -28,7 +29,7 @@ def flash_panda(panda_serial: str) -> Panda:
   panda = Panda(panda_serial)
 
   fw_signature = get_expected_signature(panda)
-  internal_panda = panda.is_internal() and not panda.bootstub
+  internal_panda = panda.is_internal()
 
   panda_version = "bootstub" if panda.bootstub else panda.get_version()
   panda_signature = b"" if panda.bootstub else panda.get_signature()
@@ -41,7 +42,7 @@ def flash_panda(panda_serial: str) -> Panda:
 
   if panda.bootstub:
     bootstub_version = panda.get_version()
-    cloudlog.info(f"Flashed firmware not booting, flashing development bootloader. Bootstub version: {bootstub_version}")
+    cloudlog.info(f"Flashed firmware not booting, flashing development bootloader. {bootstub_version=}, {internal_panda=}")
     if internal_panda:
       HARDWARE.recover_internal_panda()
     panda.recover(reset=(not internal_panda))
@@ -122,15 +123,17 @@ def main() -> NoReturn:
       params.remove("PandaSignatures")
 
       # Flash all Pandas in DFU mode
-      for p in PandaDFU.list():
-        cloudlog.info(f"Panda in DFU mode found, flashing recovery {p}")
-        PandaDFU(p).recover()
-      time.sleep(1)
+      dfu_serials = PandaDFU.list()
+      if len(dfu_serials) > 0:
+        for serial in dfu_serials:
+          cloudlog.info(f"Panda in DFU mode found, flashing recovery {serial}")
+          PandaDFU(serial).recover()
+        time.sleep(1)
 
       panda_serials = Panda.list()
       if len(panda_serials) == 0:
         if first_run:
-          cloudlog.info("Resetting internal panda")
+          cloudlog.info("No pandas found, resetting internal panda")
           HARDWARE.reset_internal_panda()
           time.sleep(2)  # wait to come back up
         continue
