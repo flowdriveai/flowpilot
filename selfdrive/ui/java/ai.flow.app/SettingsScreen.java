@@ -183,6 +183,7 @@ public class SettingsScreen extends ScreenAdapter {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 params.putBool("ResetExtrinsicCalibration", true);
+                params.deleteKey("LiveTorqueParameters");
             }
         });
 
