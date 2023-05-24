@@ -57,6 +57,8 @@ sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1
 cd ~/ && [ ! -d 'flowpilot' ] && git clone https://github.com/flowdriveai/flowpilot.git || true
 cd ~/flowpilot && git submodule update --init
 
+echo "set -g mouse on" >> .tmux.conf # enable mouse scrolling in tmux
+
 ./get_dependencies.sh
 scons
 
