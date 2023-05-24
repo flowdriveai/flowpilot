@@ -28,6 +28,7 @@ procs = [
   ManagerProcess("radard", "radard"),
   ManagerProcess("calibrationd", "calibrationd"),
   ManagerProcess("modelparsed", "./selfdrive/modeld/modelparsed", enabled=is_f3()),
+  ManagerProcess("clocksd", "./system/clocksd/clocksd"),
   ManagerProcess("proclogd", "./system/proclogd/proclogd"),
   ManagerProcess("logmessaged", "logmessaged", offroad=True),
   ManagerProcess("thermald_", "thermald_", offroad=True),
