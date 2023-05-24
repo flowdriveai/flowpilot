@@ -11,6 +11,8 @@ import carla  # pylint: disable=import-error
 import numpy as np
 
 import cereal.messaging as messaging
+from common.transformations.camera import eon_f_frame_size, tici_f_frame_size
+from common.transformations.camera import eon_fcam_intrinsics, tici_fcam_intrinsics, tici_ecam_intrinsics
 from cereal import log
 from common.basedir import BASEDIR
 from common.numpy_fast import clip
@@ -19,19 +21,16 @@ from common.realtime import DT_DMON, Ratekeeper
 from selfdrive.car.honda.values import CruiseButtons
 from tools.sim.lib.can import can_function
 
-W, H = 1164, 874
 REPEAT_COUNTER = 5
 PRINT_DECIMATION = 100
 STEER_RATIO = 15.
-K = [831, 0,  582,
-      0, 831, 437,
-      0,  0,   1 ]
 
-pm = messaging.PubMaster(['roadCameraState', 'sensorEvents', 'can', "gpsLocationExternal"])
+pm = messaging.PubMaster(['roadCameraState', 'roadCameraBuffer', 'wideRoadCameraState', 
+                          'wideRoadCameraBuffer', 'sensorEvents', 'can', "gpsLocationExternal"])
 sm = messaging.SubMaster(['carControl', 'controlsState'])
 
 def parse_args(add_args=None):
-  parser = argparse.ArgumentParser(description='Bridge between CARLA and openpilot.')
+  parser = argparse.ArgumentParser(description='Bridge between CARLA and flowpilot.')
   parser.add_argument('--joystick', action='store_true')
   parser.add_argument('--high_quality', action='store_true')
   parser.add_argument('--town', type=str, default='Town04_Opt')
@@ -65,24 +64,45 @@ def steer_rate_limit(old, new):
 class Camerad:
   def __init__(self):
     self.frame_road_id = 0
+    self.frame_wide_id = 0
+    self.frame_road_size = None
+    self.frame_wide_size = None
+    self.wide_intrinsics = None
+    self.road_intrinsics = None
 
   def cam_callback_road(self, image):
-    self._cam_callback(image, self.frame_road_id, 'roadCameraState')
+    self._cam_callback(image, self.frame_road_id, self.frame_road_size, self.road_intrinsics,
+                      'roadCameraState', 'roadCameraBuffer')
     self.frame_road_id += 1
+  
+  def cam_callback_wide_road(self, image):
+    self._cam_callback(image, self.frame_wide_id, self.frame_wide_size, self.wide_intrinsics,
+                      'wideRoadCameraState', 'wideRoadCameraBuffer')
+    self.frame_wide_id += 1
 
-  def _cam_callback(self, image, frame_id, topic):
+  def _cam_callback(self, image, frame_id, fram_size, intrinsics, state_topic, buffer_topic):
+    W, H = fram_size
     img = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
     img = np.reshape(img, (H, W, 4))
     img = img[:, :, [0, 1, 2]].copy()
 
-    dat = messaging.new_message(topic)
+    dat = messaging.new_message(state_topic)
     msg = {
       "frameId": frame_id,
-      "intrinsics": K,
-      "image": img.tobytes()
+      "intrinsics": intrinsics
     }
-    setattr(dat, topic, msg)
-    pm.send(topic, dat)
+    setattr(dat, state_topic, msg)
+    pm.send(state_topic, dat)
+
+    dat = messaging.new_message(buffer_topic)
+    msg = {
+      "frameHeight": H,
+      "frameWidth": W,
+      "image": img.tobytes(),
+      "encoding": log.FrameBuffer.Encoding.rgb
+    }
+    setattr(dat, buffer_topic, msg)
+    pm.send(buffer_topic, dat)
 
 def imu_callback(imu, vehicle_state):
   vehicle_state.bearing_deg = math.degrees(imu.compass)
@@ -141,7 +161,7 @@ def gps_callback(gps, vehicle_state):
   ]
 
   dat.gpsLocationExternal = {
-    "timestamp": int(time.time() * 1000),
+    "unixTimestampMillis": int(time.time() * 1000),
     "flags": 1,  # valid fix
     "accuracy": 1.0,
     "verticalAccuracy": 1.0,
@@ -199,7 +219,8 @@ class CarlaBridge:
     msg = messaging.new_message('liveCalibration')
     msg.liveCalibration.validBlocks = 20
     msg.liveCalibration.rpyCalib = [0.0, 0.0, 0.0]
-    Params().put("CalibrationParams", msg.to_bytes())
+    self.params = Params()
+    self.params.put("CalibrationParams", msg.to_bytes())
 
     self._args = arguments
     self._carla_objects = []
@@ -282,7 +303,8 @@ class CarlaBridge:
 
     transform = carla.Transform(carla.Location(x=0.8, z=1.13))
 
-    def create_camera(fov, callback):
+    def create_camera(fov, frame_size, callback):
+      W, H = frame_size
       blueprint = blueprint_library.find('sensor.camera.rgb')
       blueprint.set_attribute('image_size_x', str(W))
       blueprint.set_attribute('image_size_y', str(H))
@@ -295,8 +317,21 @@ class CarlaBridge:
 
     self._camerad = Camerad()
 
-    road_camera = create_camera(fov=70, callback=self._camerad.cam_callback_road)  
-    self._carla_objects.append(road_camera)
+    if self.params.get_bool("F3"):
+      wide_road_camera = create_camera(120, tici_f_frame_size, callback=self._camerad.cam_callback_wide_road)
+      self._camerad.frame_wide_size = tici_f_frame_size
+      self._camerad.wide_intrinsics = tici_ecam_intrinsics.flatten().tolist()
+      self._carla_objects.append(wide_road_camera)
+      if not self.params.get_bool("WideCameraOnly"):
+        road_camera = create_camera(40, tici_f_frame_size, callback=self._camerad.cam_callback_road)  
+        self._camerad.frame_road_size = tici_f_frame_size
+        self._camerad.road_intrinsics = tici_fcam_intrinsics.flatten().tolist()
+        self._carla_objects.append(road_camera)
+    else:
+      road_camera = create_camera(70, eon_f_frame_size, callback=self._camerad.cam_callback_road)
+      self._camerad.frame_road_size = eon_f_frame_size
+      self._camerad.road_intrinsics = eon_fcam_intrinsics.flatten().tolist()
+      self._carla_objects.append(road_camera)
 
     vehicle_state = VehicleState()
 
