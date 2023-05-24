@@ -24,6 +24,7 @@ then
     echo "tmux could not be found, installing.."
     sudo apt-get update
     sudo apt-get install tmux
+    echo "set -g mouse on" >> .tmux.conf # enable mouse scrolling in tmux
 fi
 
 
