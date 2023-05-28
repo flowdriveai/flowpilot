@@ -39,6 +39,11 @@ procs = [
   ManagerProcess("loggerd", "./selfdrive/loggerd/loggerd", enabled=True, onroad=False, callback=logging),
   ManagerProcess("uploader", "uploader", enabled=is_android(), offroad=True),
   ManagerProcess("deleter", "deleter", enabled=True, offroad=True),
+  ManagerProcess("ubloxd", "./selfdrive/locationd/ubloxd", onroad=False),
+  ManagerProcess("laikad", "laikad"),
+  ManagerProcess("paramsd", "paramsd"),
+  ManagerProcess("torqued", "torqued"),
+
 ]
 
 platform = "android" if is_android() else "desktop" 

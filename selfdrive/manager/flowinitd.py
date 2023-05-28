@@ -83,6 +83,7 @@ def main():
                         ("HasAcceptedTerms", "0"),
                         ("FlowpilotEnabledToggle", "0"),
                         ("WideCameraOnly", "1"),
+                        ("UbloxAvailable", 1)
                          ]
 
         if params.get_bool("RecordFrontLock"):

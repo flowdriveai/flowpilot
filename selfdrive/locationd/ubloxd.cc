@@ -11,7 +11,6 @@ ExitHandler do_exit;
 using namespace ublox;
 
 int main() {
-  LOGW("starting ubloxd");
   AlignedBuffer aligned_buf;
   UbloxMsgParser parser;
 

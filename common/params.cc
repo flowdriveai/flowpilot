@@ -69,6 +69,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"IsMetric", PERSISTENT},
     {"F3", PERSISTENT},
     {"WideCameraID", PERSISTENT},
+    {"UbloxAvailable", PERSISTENT},
+    {"LaikadEphemerisV3", PERSISTENT | DONT_LOG},
     {"EndToEndToggle", PERSISTENT},
     {"RecordRoad", CLEAR_ON_MANAGER_START},  
     {"EnableWideCamera", PERSISTENT},  
