@@ -43,7 +43,7 @@ procs = [
   ManagerProcess("laikad", "laikad"),
   ManagerProcess("paramsd", "paramsd"),
   ManagerProcess("torqued", "torqued"),
-
+  ManagerProcess("locationd", "./selfdrive/locationd/locationd"),
 ]
 
 platform = "android" if is_android() else "desktop" 
