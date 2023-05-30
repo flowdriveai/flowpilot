@@ -1,6 +1,6 @@
 package ai.flow.android.sensor;
 
-import ai.flow.sensor.MsgSensorEvent;
+import ai.flow.sensor.messages.MsgSensorEvent;
 import ai.flow.sensor.SensorInterface;
 import android.content.Context;
 import android.hardware.Sensor;
@@ -8,6 +8,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import messaging.ZMQPubHandler;
 import org.capnproto.PrimitiveList;
+
+import java.util.Arrays;
 
 public class SensorManager extends SensorInterface implements Runnable{
 
@@ -18,21 +20,21 @@ public class SensorManager extends SensorInterface implements Runnable{
     public int frequency;
     public Thread thread;
     public int delay; // in milliseconds;
-    public MsgSensorEvent msgSensorEvents = new MsgSensorEvent();
+    public MsgSensorEvent msgAcceleration = new MsgSensorEvent(MsgSensorEvent.TypeAccelerometer);
+    public MsgSensorEvent msgGyroscope = new MsgSensorEvent(MsgSensorEvent.TypeGyroscope);
     public android.hardware.SensorManager sensorManager;
 
     public Sensor sensorAccelerometer;
     public SensorEventListener listenerAccelerometer;
-    PrimitiveList.Float.Builder accVec3 = msgSensorEvents.sensorEvent.get(0).getAcceleration().getV();
+    PrimitiveList.Float.Builder accVec3 = msgAcceleration.sensorEvent.getAcceleration().getV();
 
     public Sensor sensorGyroscope;
     public SensorEventListener listenerGyroscope;
-    PrimitiveList.Float.Builder gyroVec3 = msgSensorEvents.sensorEvent.get(1).getGyro().getV();
+    PrimitiveList.Float.Builder gyroVec3 = msgGyroscope.sensorEvent.getAcceleration().getV();
 
-    public SensorManager(Context context, String topic, int frequency) {
-        this.topic = topic;
+    public SensorManager(Context context, int frequency) {
         ph = new ZMQPubHandler();
-        ph.createPublisher(topic);
+        ph.createPublishers(Arrays.asList("accelerometer", "gyroscope"));
         this.frequency = frequency;
         this.delay = (int) (1.0f / frequency * 1000);
 
@@ -82,7 +84,8 @@ public class SensorManager extends SensorInterface implements Runnable{
         running = true;
 
         while (running){
-            ph.publishBuffer(topic, msgSensorEvents.serialize(true));
+            ph.publishBuffer("accelerometer", msgAcceleration.serialize(true));
+            ph.publishBuffer("gyroscope", msgGyroscope.serialize(true));
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
