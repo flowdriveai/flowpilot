@@ -67,6 +67,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"WideCameraID", PERSISTENT},
     {"EndToEndToggle", PERSISTENT},
     {"RecordRoad", CLEAR_ON_MANAGER_START},  
+    {"LastGPSPosition", PERSISTENT},
     {"EnableWideCamera", PERSISTENT},  
     {"JoystickDebugMode", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},   
     {"Offroad_BadNvme", CLEAR_ON_MANAGER_START},
