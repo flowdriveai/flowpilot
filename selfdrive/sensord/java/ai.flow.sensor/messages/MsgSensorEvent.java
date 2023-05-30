@@ -1,33 +1,29 @@
-package ai.flow.sensor;
+package ai.flow.sensor.messages;
 
 import ai.flow.definitions.Definitions;
 import ai.flow.definitions.MessageBase;
-import org.capnproto.StructList;
-
-import java.nio.ByteBuffer;
 
 public class MsgSensorEvent extends MessageBase {
-    public StructList.Builder<Definitions.SensorEventData.Builder> sensorEvent;
+    public Definitions.SensorEventData.Builder sensorEvent;
+    public static int TypeAccelerometer = 0;
+    public static int TypeGyroscope = 1;
 
-    public MsgSensorEvent(ByteBuffer rawMessageBuffer) {
-        super(rawMessageBuffer);
-        initFields();
-        bytesSerializedForm = computeSerializedMsgBytes();
-        initSerializedBuffer();
-    }
-
-    public MsgSensorEvent() {
+    public MsgSensorEvent(int sensorType) {
         super();
-        initFields();
+        initFields(sensorType);
         bytesSerializedForm = computeSerializedMsgBytes();
         initSerializedBuffer();
     }
 
-    private void initFields(){
+    private void initFields(int type){
         event = messageBuilder.initRoot(Definitions.Event.factory);
-        sensorEvent = event.initSensorEvents(2);
-
-        sensorEvent.get(0).initAcceleration().initV(3);
-        sensorEvent.get(1).initGyro().initV(3);
+        if (type == TypeAccelerometer) {
+            sensorEvent = event.initAccelerometer();
+            sensorEvent.initAcceleration().initV(3);
+        }
+        else if (type == TypeGyroscope) {
+            sensorEvent = event.initGyroscope();
+            sensorEvent.initGyro().initV(3);
+        }
     }
 }

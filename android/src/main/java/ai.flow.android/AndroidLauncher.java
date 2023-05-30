@@ -109,7 +109,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 
 		AndroidApplicationConfiguration configuration = new AndroidApplicationConfiguration();
 		CameraManager cameraManager = new CameraManager(getApplication().getApplicationContext(), 20);
-		SensorManager sensorManager = new SensorManager(appContext, "sensorEvents", 50);
+		SensorManager sensorManager = new SensorManager(appContext, 100);
 		sensors = new HashMap<String, SensorInterface>() {{
 			put("roadCamera", cameraManager);
 			put("motionSensors", sensorManager);
