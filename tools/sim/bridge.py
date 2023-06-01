@@ -26,7 +26,8 @@ PRINT_DECIMATION = 100
 STEER_RATIO = 15.
 
 pm = messaging.PubMaster(['roadCameraState', 'roadCameraBuffer', 'wideRoadCameraState', 
-                          'wideRoadCameraBuffer', 'sensorEvents', 'can', "gpsLocationExternal"])
+                          'wideRoadCameraBuffer', 'sensorEvents', 'can', 'gpsLocationExternal', 
+                          'accelerometer', 'gyroscope'])
 sm = messaging.SubMaster(['carControl', 'controlsState'])
 
 def parse_args(add_args=None):
@@ -345,6 +346,7 @@ class CarlaBridge:
 
     # reenable IMU
     imu_bp = blueprint_library.find('sensor.other.imu')
+    imu_bp.set_attribute('sensor_tick', '0.01')
     imu = world.spawn_actor(imu_bp, transform, attach_to=vehicle)
     imu.listen(lambda imu: imu_callback(imu, vehicle_state))
 
