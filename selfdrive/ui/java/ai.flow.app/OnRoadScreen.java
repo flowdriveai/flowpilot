@@ -447,7 +447,7 @@ public class OnRoadScreen extends ScreenAdapter {
 
     public void updateCamera() {
         msgframeBuffer = sh.recv(cameraBufferTopic).getRoadCameraBuffer();
-        msgframeData = sh.recv(cameraTopic).getFrameData();
+        msgframeData = sh.recv(cameraTopic).getRoadCameraState();
         imgBuffer = updateImageBuffer(msgframeBuffer, imgBuffer);
 
         updateCameraMatrix(msgframeData);
