@@ -95,7 +95,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     }
 
     public void updateCameraState(){
-        frameData = sh.recv("roadCameraState").getFrameData();
+        frameData = sh.recv("roadCameraState").getRoadCameraState();
         msgFrameBuffer = sh.recv("roadCameraBuffer").getRoadCameraBuffer();
         imgBuffer = updateImageBuffer(msgFrameBuffer, imgBuffer);
     }

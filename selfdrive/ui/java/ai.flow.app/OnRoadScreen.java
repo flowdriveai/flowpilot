@@ -470,11 +470,14 @@ public class OnRoadScreen extends ScreenAdapter {
     }
 
     public void updateCamera() {
-        if (isF3)
-            msgframeBuffer = sh.recv(cameraBufferTopic).getWideRoadCameraBuffer();
-        else
-            msgframeBuffer = sh.recv(cameraBufferTopic).getRoadCameraBuffer();
-        msgframeData = sh.recv(cameraTopic).getFrameData();
+        if (isF3){
+            msgFrameBuffer = sh.recv(frameBufferTopic).getRoadCameraBuffer();
+            msgFrameData = sh.recv(frameDataTopic).getRoadCameraState();
+        }
+        else{
+            msgFrameBuffer = sh.recv(frameBufferTopic).getWideRoadCameraBuffer();
+            msgFrameData = sh.recv(frameDataTopic).getWideRoadCameraState();
+        }
         imgBuffer = updateImageBuffer(msgframeBuffer, imgBuffer);
 
         updateCameraMatrix(msgframeData);

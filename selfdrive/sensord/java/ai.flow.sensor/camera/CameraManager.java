@@ -36,7 +36,7 @@ public class CameraManager extends SensorInterface implements Runnable {
     public long deltaTime;
     public int defaultFrameWidth;
     public int defaultFrameHeight;
-    public MsgFrameData msgFrameData = new MsgFrameData();
+    public MsgFrameData msgFrameData = new MsgFrameData(CAMERA_TYPE_ROAD);
     public MsgFrameBuffer msgFrameBuffer;
     public Mat frame, frameProcessed, frameCrop, framePadded;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;

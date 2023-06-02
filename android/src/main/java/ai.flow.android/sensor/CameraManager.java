@@ -54,7 +54,7 @@ public class CameraManager extends SensorInterface {
     public boolean running = false;
     public int W = Camera.frameSize[0];
     public int H = Camera.frameSize[1];
-    public MsgFrameData msgFrameData = new MsgFrameData();
+    public MsgFrameData msgFrameData = new MsgFrameData(CAMERA_TYPE_ROAD);
     public MsgFrameBuffer msgFrameBuffer;
     public PrimitiveList.Float.Builder K = msgFrameData.intrinsics;
     public int frequency;
