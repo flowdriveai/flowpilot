@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutionException;
 
 import static ai.flow.android.sensor.Utils.fillYUVBuffer;
 import static ai.flow.common.BufferUtils.byteToFloat;
+import static ai.flow.common.transformations.Camera.CAMERA_TYPE_ROAD;
 import static ai.flow.common.transformations.Camera.fcamIntrinsicParam;
 
 public class CameraManager extends SensorInterface {
@@ -120,7 +121,7 @@ public class CameraManager extends SensorInterface {
         if (cameraType == Camera.CAMERA_TYPE_WIDE){
             this.frameDataTopic = "wideRoadCameraState";
             this.frameBufferTopic = "wideRoadCameraBuffer";
-        } else if (cameraType == Camera.CAMERA_TYPE_ROAD) {
+        } else if (cameraType == CAMERA_TYPE_ROAD) {
             this.frameDataTopic = "roadCameraState";
             this.frameBufferTopic = "roadCameraBuffer";
         }

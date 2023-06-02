@@ -122,9 +122,9 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     }
 
     public void updateCameraState(){
-        frameWideData = sh.recv("wideRoadCameraState").getFrameData();
+        frameWideData = sh.recv("wideRoadCameraState").getWideRoadCameraState();
         msgFrameWideBuffer = sh.recv("wideRoadCameraBuffer").getWideRoadCameraBuffer();
-        frameData = wideCameraOnly ? frameWideData : sh.recv("roadCameraState").getFrameData();
+        frameData = wideCameraOnly ? frameWideData : sh.recv("roadCameraState").getRoadCameraState();
         msgFrameBuffer = wideCameraOnly ? msgFrameWideBuffer : sh.recv("roadCameraBuffer").getRoadCameraBuffer();
         imgBuffer = updateImageBuffer(msgFrameBuffer, imgBuffer);
         wideImgBuffer = updateImageBuffer(msgFrameWideBuffer, wideImgBuffer);

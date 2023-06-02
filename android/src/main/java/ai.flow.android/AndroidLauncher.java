@@ -6,6 +6,7 @@ import ai.flow.android.vision.SNPEModelRunner;
 import ai.flow.app.FlowUI;
 import ai.flow.common.ParamsInterface;
 import ai.flow.common.Path;
+import ai.flow.common.transformations.Camera;
 import ai.flow.hardware.HardwareManager;
 import ai.flow.launcher.Launcher;
 import ai.flow.modeld.*;
@@ -13,8 +14,10 @@ import ai.flow.sensor.SensorInterface;
 import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Process;
-import android.os.*;
 import android.provider.Settings;
 import android.system.ErrnoException;
 import android.system.Os;
@@ -37,7 +40,8 @@ import org.acra.data.StringFormat;
 import org.acra.sender.HttpSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /** Launches the main android flowpilot application. */
@@ -112,6 +116,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		SensorManager sensorManager = new SensorManager(appContext, 100);
 		sensors = new HashMap<String, SensorInterface>() {{
 			put("roadCamera", cameraManager);
+			put("wideRoadCamera", cameraManager); // use same camera until we move away from wide camera-only mode.
 			put("motionSensors", sensorManager);
 		}};
 

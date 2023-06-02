@@ -29,20 +29,6 @@ public class SetUpScreen extends ScreenAdapter {
             return;
         }
 
-        if (RequestSink.isConnectedToInternet()) {
-            RequestSink.fetchUserInfo();
-        }
-
-        if (!RequestSink.isPlanStillValid()) {
-            appContext.setScreen(new PlanInvalidScreen(appContext));
-            return;
-        }
-
-        if (!RequestSink.isDeviceAllowed()) {
-            appContext.setScreen(new DeviceNotAllowedScreen(appContext));
-            return;
-        }
-
         if (!params.existsAndCompare("CompletedTrainingVersion", true)){
             appContext.setScreen(new TrainingScreen(appContext));
             return;
