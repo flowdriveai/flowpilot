@@ -82,16 +82,17 @@ class Controls:
     
     self.sm = sm
     if self.sm is None:
-      ignore = ['driverCameraState', 'managerState', 'liveLocationKalman', 
-              'liveParameters', 'radarState', 'testJoystick', 'driverMonitoringState'] if SIMULATION else None
+      ignore = ['driverCameraState', 'testJoystick', 'driverMonitoringState', 'radarState'] if SIMULATION else None
+
+      if NOSENSOR:
+        ignore += ['liveParameters', 'liveTorqueParameters', 'liveLocationKalman']
 
       if self.params.get_bool('WideCameraOnly'):
         ignore += ['roadCameraState']
       self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
                                      'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters', 'testJoystick'] + self.camera_packets,
-                                      ignore_alive=ignore, ignore_avg_freq=['radarState', 'liveTorqueParameters', 'testJoystick', 'longitudinalPlan', 'liveParameters',
-                                                                            'liveLocationKalman'])
+                                      ignore_alive=ignore, ignore_avg_freq=['radarState', 'testJoystick', 'longitudinalPlan'])
 
     if CI is None:
       # wait for one pandaState and one CAN packet
@@ -370,14 +371,14 @@ class Controls:
     else:
       self.logged_comm_issue = None
 
-    if not self.sm['liveParameters'].valid:
+    if not self.sm['liveParameters'].valid and not NOSENSOR:
       self.events.add(EventName.vehicleModelInvalid)
     if not self.sm['lateralPlan'].mpcSolutionValid:
       self.events.add(EventName.plannerError)
     if not (self.sm['liveParameters'].sensorValid or self.sm['liveLocationKalman'].sensorsOK) and not NOSENSOR:
       if self.sm.frame > 5 / DT_CTRL:  # Give locationd some time to receive all the inputs
         self.events.add(EventName.sensorDataInvalid)
-    if not self.sm['liveLocationKalman'].posenetOK:
+    if not self.sm['liveLocationKalman'].posenetOK and not NOSENSOR:
       self.events.add(EventName.posenetInvalid)
     if not self.sm['liveLocationKalman'].deviceStable:
       self.events.add(EventName.deviceFalling)
@@ -405,7 +406,7 @@ class Controls:
 
       if self.sm['modelV2'].frameDropPerc > 20:
         self.events.add(EventName.modeldLagging)
-      if self.sm['liveLocationKalman'].excessiveResets:
+      if self.sm['liveLocationKalman'].excessiveResets and not NOSENSOR:
         self.events.add(EventName.localizerMalfunction)
 
   def data_sample(self):
@@ -546,10 +547,11 @@ class Controls:
     lp = self.sm['liveParameters']
     x = max(lp.stiffnessFactor, 0.1)
     sr = max(lp.steerRatio, 0.1)
-    #self.VM.update_params(x, sr) # TODO: Enable when ready
+    if not NOSENSOR:
+      self.VM.update_params(x, sr)
 
     # Update Torque Params
-    if self.CP.lateralTuning.which() == 'torque':
+    if self.CP.lateralTuning.which() == 'torque' and not NOSENSOR:
       torque_params = self.sm['liveTorqueParameters']
       if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)

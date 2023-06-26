@@ -4,6 +4,7 @@ from common.numpy_fast import interp
 from system.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc
 from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import N as LAT_MPC_N
+from selfdrive.controls.lib.lane_planner import LanePlanner
 from selfdrive.controls.lib.drive_helpers import CONTROL_N, MIN_SPEED, get_speed_error
 from selfdrive.controls.lib.desire_helper import DesireHelper
 import cereal.messaging as messaging
@@ -25,15 +26,16 @@ STEERING_RATE_COST = 700.0
 
 
 class LateralPlanner:
-  def __init__(self, CP):
+  def __init__(self, CP, use_lanelines=False):
     self.DH = DesireHelper()
+    self.LP = LanePlanner()
 
     # Vehicle model parameters used to calculate lateral movement of car
     self.factor1 = CP.wheelbase - CP.centerToFront
     self.factor2 = (CP.centerToFront * CP.mass) / (CP.wheelbase * CP.tireStiffnessRear)
     self.last_cloudlog_t = 0
     self.solution_invalid_cnt = 0
-
+    self.use_lanelines = use_lanelines
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
     self.velocity_xyz = np.zeros((TRAJECTORY_SIZE, 3))
     self.plan_yaw = np.zeros((TRAJECTORY_SIZE,))
@@ -76,6 +78,9 @@ class LateralPlanner:
       self.r_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeRight]
     lane_change_prob = self.l_lane_change_prob + self.r_lane_change_prob
     self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob)
+
+    if self.use_lanelines:
+      self.path_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
 
     self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
                              LATERAL_ACCEL_COST, LATERAL_JERK_COST,
