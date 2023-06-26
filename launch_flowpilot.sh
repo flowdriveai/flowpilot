@@ -5,6 +5,7 @@ export WIDE_ROAD_CAMERA_SOURCE="selfdrive/assets/fcam.avi" # no affect on androi
 export ROAD_CAMERA_SOURCE="selfdrive/assets/tmp" # no affect on android
 export USE_GPU="0" # no affect on android, gpu always used on android
 export PASSIVE="0"
+export NOSENSOR="1"
 #export MSGQ="1"
 #export USE_PARAMS_NATIVE="1"
 export ZMQ_MESSAGING_PROTOCOL="TCP" # TCP, INTER_PROCESS, SHARED_MEMORY
