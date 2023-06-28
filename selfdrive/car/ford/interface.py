@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from cereal import car
-from panda import Panda
 from common.conversions import Conversions as CV
 from selfdrive.car import STD_CARGO_KG, get_safety_config
 from selfdrive.car.ford.values import CAR, Ecu
@@ -12,24 +11,17 @@ GearShifter = car.CarState.GearShifter
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def _get_params(ret, candidate, fingerprint, car_fw, experimental_long, docs):
+  def _get_params(ret, candidate, fingerprint, car_fw, experimental_long):
     ret.carName = "ford"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.ford)]
 
-    # These cars are dashcam only for lack of test coverage.
-    # Once a user confirms each car works and a test route is
-    # added to selfdrive/car/tests/routes.py, we can remove it from this list.
-    ret.dashcamOnly = candidate in {CAR.FOCUS_MK4}
+    # These cars are dashcam only until the port is finished
+    ret.dashcamOnly = True
 
     ret.radarUnavailable = True
     ret.steerControlType = car.CarParams.SteerControlType.angle
     ret.steerActuatorDelay = 0.2
     ret.steerLimitTimer = 1.0
-
-    ret.experimentalLongitudinalAvailable = True
-    if experimental_long:
-      ret.safetyConfigs[0].safetyParam |= Panda.FLAG_FORD_LONG_CONTROL
-      ret.openpilotLongitudinalControl = True
 
     if candidate == CAR.BRONCO_SPORT_MK1:
       ret.wheelbase = 2.67
@@ -61,7 +53,7 @@ class CarInterface(CarInterfaceBase):
 
     # Auto Transmission: 0x732 ECU or Gear_Shift_by_Wire_FD1
     found_ecus = [fw.ecu for fw in car_fw]
-    if Ecu.shiftByWire in found_ecus or 0x5A in fingerprint[0] or docs:
+    if Ecu.shiftByWire in found_ecus or 0x5A in fingerprint[0]:
       ret.transmissionType = TransmissionType.automatic
     else:
       ret.transmissionType = TransmissionType.manual
@@ -82,14 +74,9 @@ class CarInterface(CarInterfaceBase):
     ret = self.CS.update(self.cp, self.cp_cam)
 
     events = self.create_common_events(ret, extra_gears=[GearShifter.manumatic])
-    if not self.CS.vehicle_sensors_valid:
-      events.add(car.CarEvent.EventName.vehicleSensorsInvalid)
-    if self.CS.hybrid_platform:
-      events.add(car.CarEvent.EventName.startupNoControl)
-
     ret.events = events.to_msg()
 
     return ret
 
-  def apply(self, c, now_nanos):
-    return self.CC.update(c, self.CS, now_nanos)
+  def apply(self, c):
+    return self.CC.update(c, self.CS)
