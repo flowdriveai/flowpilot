@@ -107,7 +107,7 @@ dependencies {
 	implementation "androidx.appcompat:appcompat:1.4.1"
 	implementation 'com.github.bumptech.glide:glide:4.12.0'
 	annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
-	implementation files("$rootProject.projectDir/libs/opencv-nolibs-4.5.1-2.jar")
+	implementation files("$rootProject.projectDir/third_party/opencv-nolibs-4.5.1-2.jar")
 
 	implementation ("org.nd4j:nd4j-native-platform:$rootProject.nd4j_version")
 			{
