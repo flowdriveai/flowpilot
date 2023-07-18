@@ -16,13 +16,16 @@ setup(name="flowpilot",
                                         "plannerd=selfdrive.controls.plannerd:main",
                                         "radard=selfdrive.controls.radard:main",
                                         "calibrationd=selfdrive.calibration.calibrationd:main",
-                                        "logmessaged=selfdrive.logmessaged:main",
+                                        "logmessaged=system.logmessaged:main",
                                         "keyvald=selfdrive.keyvald:main",
                                         "pandad=selfdrive.boardd.pandad:run",
                                         "uploader=selfdrive.loggerd.uploader:main",
                                         "deleter=selfdrive.loggerd.deleter:main",
                                         "statsd=selfdrive.statsd:main",
                                         "thermald_=selfdrive.thermald.thermald:main", # thermald name is reserverd
+                                        "laikad=selfdrive.locationd.laikad:main",
+                                        "torqued=selfdrive.locationd.torqued:main",
+                                        "paramsd=selfdrive.locationd.paramsd:main",
                                         "flowinit=selfdrive.manager.flowinitd:main"]}
      )
 

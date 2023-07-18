@@ -66,7 +66,7 @@ cdef class Params:
 
     return val if encoding is None else val.decode(encoding)
 
-  def get_bool(self, key):
+  def get_bool(self, key, block=False):
     cdef string k = self.check_key(key)
     cdef bool r
     with nogil:
@@ -90,7 +90,7 @@ cdef class Params:
     with nogil:
       self.p.putBool(k, val)
 
-  def delete(self, key):
+  def remove(self, key):
     cdef string k = self.check_key(key)
     with nogil:
       self.p.remove(k)

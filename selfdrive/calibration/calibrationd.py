@@ -8,13 +8,7 @@ from common.transformations.camera import get_view_frame_from_road_frame
 from common.transformations.orientation import rot_from_euler, euler_from_rot
 import numpy as np
 import os
-from selfdrive.swaglog import cloudlog
-
-
-class Calibration:
-    UNCALIBRATED = 0
-    CALIBRATED = 1
-    INVALID = 2
+from system.swaglog import cloudlog
 
 
 MIN_SPEED_FILTER = 15 * CV.MPH_TO_MS
@@ -103,15 +97,15 @@ class Calibrator:
             self.calib_spread = np.zeros(3)
 
         if self.valid_blocks < INPUTS_NEEDED:
-            self.cal_status = Calibration.UNCALIBRATED
+            self.cal_status = log.LiveCalibrationData.Status.uncalibrated
         elif self.rpy_valid(self.rpy):
-            self.cal_status = Calibration.CALIBRATED
+            self.cal_status = log.LiveCalibrationData.Status.calibrated
         else:
-            self.cal_status = Calibration.INVALID
+            self.cal_status = log.LiveCalibrationData.Status.invalid
 
         # If spread is too high, assume mounting was changed and reset to last block.
         # Make the transition smooth. Abrupt transitions are not good for feedback loop through supercombo model.
-        if max(self.calib_spread) > MAX_ALLOWED_SPREAD and self.cal_status == Calibration.CALIBRATED:
+        if max(self.calib_spread) > MAX_ALLOWED_SPREAD and self.cal_status == log.LiveCalibrationData.Status.calibrated:
             self.reset(self.rpys[self.block_idx - 1], valid_blocks=INPUTS_NEEDED, smooth_from=self.rpy)
 
         write_this_cycle = (self.idx == 0) and (self.block_idx % (INPUTS_WANTED // 5) == 5)
@@ -204,6 +198,7 @@ def calibrationd_thread(sm=None, pm=None):
 
     while True:
         sm.update()
+
         if sm.updated['cameraOdometry'] and sm.valid['cameraOdometry']:
             calibrator.handle_v_ego(sm['carState'].vEgo)
             new_rpy = calibrator.handle_cam_odom(sm['cameraOdometry'].trans,

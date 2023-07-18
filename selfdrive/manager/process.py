@@ -3,7 +3,7 @@ import subprocess
 import psutil
 from typing import Optional, List, ValuesView
 
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from cereal import log, car
 
 LOGPATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "logfiles")

@@ -1,4 +1,4 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/tests/test_fingerprints.py
+#!/usr/bin/env python3
 import os
 import sys
 from typing import Dict, List
@@ -37,12 +37,12 @@ def check_fingerprint_consistency(f1, f2):
   is_f1_in_f2 = True
   for k in f1:
     if (k not in f2 or f1[k] != f2[k]) and k < max_msg:
-       is_f1_in_f2 = False
+      is_f1_in_f2 = False
 
   is_f2_in_f1 = True
   for k in f2:
     if (k not in f1 or f2[k] != f1[k]) and k < max_msg:
-       is_f2_in_f1 = False
+      is_f2_in_f1 = False
 
   return not is_f1_in_f2 and not is_f2_in_f1
 
@@ -94,4 +94,4 @@ if __name__ == "__main__":
     print("TEST FAILED")
     sys.exit(1)
   else:
-    print("TEST SUCESSFUL")
+    print("TEST SUCCESSFUL")

@@ -1,6 +1,6 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/tesla/teslacan.py
 import copy
 import crcmod
+
 from common.conversions import Conversions as CV
 from selfdrive.car.tesla.values import CANBUS, CarControllerParams
 
@@ -51,7 +51,7 @@ class TeslaCAN:
       "DAS_jerkMax": CarControllerParams.JERK_LIMIT_MAX,
       "DAS_accelMin": min_accel,
       "DAS_accelMax": max_accel,
-      "DAS_controlCounter": (cnt % 8),
+      "DAS_controlCounter": cnt,
       "DAS_controlChecksum": 0,
     }
 

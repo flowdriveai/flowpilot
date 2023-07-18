@@ -19,7 +19,7 @@ from selfdrive.controls.lib.alertmanager import set_offroad_alert
 from system.hardware import HARDWARE
 from selfdrive.loggerd.config import get_available_percent
 from selfdrive.statsd import statlog
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 
 ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType
