@@ -4,23 +4,23 @@ from common.realtime import sec_since_boot, DT_MDL
 from common.numpy_fast import interp
 from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import LateralMpc
-from selfdrive.controls.lib.drive_helpers import CONTROL_N, MPC_COST_LAT, LAT_MPC_N, CAR_ROTATION_RADIUS
-from selfdrive.controls.lib.lane_planner import LanePlanner, TRAJECTORY_SIZE
+from selfdrive.controls.lib.lateral_mpc_lib.lat_mpc import N as LAT_MPC_N
+from selfdrive.controls.lib.lane_planner import LanePlanner
+from selfdrive.controls.lib.drive_helpers import CONTROL_N, MIN_SPEED, get_speed_error
 from selfdrive.controls.lib.desire_helper import DesireHelper
 from cereal import log
 import cereal.messaging as messaging
 
 
 class LateralPlanner:
-  def __init__(self, CP, use_lanelines=True, wide_camera=False):
-    self.use_lanelines = use_lanelines
-    self.LP = LanePlanner(wide_camera)
+  def __init__(self, CP, use_lanelines=False):
     self.DH = DesireHelper()
+    self.LP = LanePlanner()
 
     self.last_cloudlog_t = 0
     self.steer_rate_cost = CP.steerRateCost
     self.solution_invalid_cnt = 0
-
+    self.use_lanelines = use_lanelines
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
     self.path_xyz_stds = np.ones((TRAJECTORY_SIZE, 3))
     self.plan_yaw = np.zeros((TRAJECTORY_SIZE,))
@@ -49,26 +49,23 @@ class LateralPlanner:
       self.path_xyz_stds = np.column_stack([md.position.xStd, md.position.yStd, md.position.zStd])
 
     # Lane change logic
-    lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
-    self.DH.update(sm['carState'], sm['controlsState'].active, lane_change_prob)
+    desire_state = md.meta.desireState
+    if len(desire_state):
+      self.l_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeLeft]
+      self.r_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeRight]
+    lane_change_prob = self.l_lane_change_prob + self.r_lane_change_prob
+    self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob)
 
-    # Turn off lanes during lane change
-    if self.DH.desire == log.LateralPlan.Desire.laneChangeRight or self.DH.desire == log.LateralPlan.Desire.laneChangeLeft:
-      self.LP.lll_prob *= self.DH.lane_change_ll_prob
-      self.LP.rll_prob *= self.DH.lane_change_ll_prob
-
-    # Calculate final driving path and set MPC costs
     if self.use_lanelines:
-      d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
-      self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, self.steer_rate_cost)
-    else:
-      d_path_xyz = self.path_xyz
-      # Heading cost is useful at low speed, otherwise end of plan can be off-heading
-      heading_cost = interp(v_ego, [5.0, 10.0], [MPC_COST_LAT.HEADING, 0.15])
-      self.lat_mpc.set_weights(MPC_COST_LAT.PATH, heading_cost, self.steer_rate_cost)
+      self.path_xyz = self.LP.get_d_path(self.v_ego, self.t_idxs, self.path_xyz)
 
-    y_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(d_path_xyz, axis=1), d_path_xyz[:, 1])
-    heading_pts = np.interp(v_ego * self.t_idxs[:LAT_MPC_N + 1], np.linalg.norm(self.path_xyz, axis=1), self.plan_yaw)
+    self.lat_mpc.set_weights(PATH_COST, LATERAL_MOTION_COST,
+                             LATERAL_ACCEL_COST, LATERAL_JERK_COST,
+                             STEERING_RATE_COST)
+
+    y_pts = self.path_xyz[:LAT_MPC_N+1, 1]
+    heading_pts = self.plan_yaw[:LAT_MPC_N+1]
+    yaw_rate_pts = self.plan_yaw_rate[:LAT_MPC_N+1]
     self.y_pts = y_pts
 
     assert len(y_pts) == LAT_MPC_N + 1

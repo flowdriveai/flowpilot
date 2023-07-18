@@ -87,6 +87,52 @@ def panda_state_function(exit_event: threading.Event):
     pm.send('pandaStates', dat)
     time.sleep(0.5)
 
+def gps_callback(exit_event):
+  pm = messaging.PubMaster(['gpsLocationExternal'])
+  while not exit_event.is_set():
+    dat = messaging.new_message('gpsLocationExternal')
+    velNED = [0, 0, 0]
+    dat.gpsLocationExternal = {
+      "unixTimestampMillis": int(time.time() * 1000),
+      "flags": 1,  # valid fix
+      "accuracy": 1.0,
+      "verticalAccuracy": 1.0,
+      "speedAccuracy": 0.1,
+      "bearingAccuracyDeg": 0.1,
+      "vNED": velNED,
+      "bearingDeg": 0,
+      "latitude": 20,
+      "longitude": 30,
+      "altitude": 1000,
+      "speed": 20,
+      "source": log.GpsLocationData.SensorSource.ublox,
+    }
+
+    pm.send('gpsLocationExternal', dat)
+    time.sleep(0.1)
+
+def imu_callback(exit_event):
+  # send 5x since 'sensor_tick' doesn't seem to work. limited by the world tick?
+  pm = messaging.PubMaster(['accelerometer', 'gyroscope'])
+  while not exit_event.is_set():
+    dat = messaging.new_message('accelerometer')
+    dat.accelerometer.sensor = 4
+    dat.accelerometer.type = 0x10
+    dat.accelerometer.timestamp = dat.logMonoTime  # TODO: use the IMU timestamp
+    dat.accelerometer.init('acceleration')
+    dat.accelerometer.acceleration.v = [0, 0, 0]
+    pm.send('accelerometer', dat)
+
+    # copied these numbers from locationd
+    dat = messaging.new_message('gyroscope')
+    dat.gyroscope.sensor = 5
+    dat.gyroscope.type = 0x10
+    dat.gyroscope.timestamp = dat.logMonoTime  # TODO: use the IMU timestamp
+    dat.gyroscope.init('gyroUncalibrated')
+    dat.gyroscope.gyroUncalibrated.v = [0, 0, 0]
+    pm.send('gyroscope', dat)
+    time.sleep(0.01)
+
 def peripheral_state_function(exit_event: threading.Event):
   pm = messaging.PubMaster(['peripheralState'])
   while not exit_event.is_set():
@@ -129,6 +175,8 @@ if __name__ == "__main__":
     threads.append(threading.Thread(target=peripheral_state_function, args=(exit_event,)))
     threads.append(threading.Thread(target=fake_driver_monitoring, args=(exit_event,)))
     threads.append(threading.Thread(target=can_function_runner, args=(exit_event,)))
+    threads.append(threading.Thread(target=imu_callback, args=(exit_event,)))
+    threads.append(threading.Thread(target=gps_callback, args=(exit_event,)))
 
     for t in threads:
       t.start()
