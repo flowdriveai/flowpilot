@@ -17,10 +17,10 @@ from common.params import Params
 from common.timeout import Timeout
 from selfdrive.loggerd.config import ROOT
 from selfdrive.manager.process_config import managed_processes
-from system.version import get_version
+# from system.version import get_version
 from tools.lib.logreader import LogReader
-from cereal.visionipc import VisionIpcServer, VisionStreamType
-from common.transformations.camera import tici_f_frame_size, tici_d_frame_size, tici_e_frame_size
+# from cereal.visionipc import VisionIpcServer, VisionStreamType
+# from common.transformations.camera import tici_f_frame_size, tici_d_frame_size, tici_e_frame_size
 
 SentinelType = log.Sentinel.SentinelType
 
