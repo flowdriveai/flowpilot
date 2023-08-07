@@ -175,8 +175,8 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		String ACRA_URI = null, ACRA_AUTH_LOGIN = null, ACRA_AUTH_PASSWORD = null;
 		try {
 			ACRA_URI = (String)ai.flow.app.BuildConfig.class.getField("ACRA_URI").get(null);
-			ACRA_AUTH_LOGIN = "WtAeQBmcVOxQHSkI";
-			ACRA_AUTH_PASSWORD = "BIyQABlcLi7S2NjU";
+			ACRA_AUTH_LOGIN = (String)ai.flow.app.BuildConfig.class.getField("ACRA_AUTH_LOGIN").get(null);
+			ACRA_AUTH_PASSWORD = (String)ai.flow.app.BuildConfig.class.getField("ACRA_AUTH_PASSWORD").get(null);
 		} catch (Exception e) {}
 
 		if (ACRA_URI == null || ACRA_AUTH_LOGIN == null || ACRA_AUTH_PASSWORD == null)
