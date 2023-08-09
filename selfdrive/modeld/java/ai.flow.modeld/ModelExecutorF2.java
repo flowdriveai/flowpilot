@@ -131,7 +131,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
         // TODO:Clean this shit.
         ImagePrepare imagePrepare;
         boolean rgb;
-        if (!getUseGPU()){
+        if (getUseGPU()){
             rgb = msgFrameBuffer.getEncoding() == Definitions.FrameBuffer.Encoding.RGB;
             imagePrepare = new ImagePrepareGPU(FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1], rgb, msgFrameBuffer.getYWidth(), msgFrameBuffer.getYHeight(),
                     msgFrameBuffer.getYPixelStride(), msgFrameBuffer.getUvWidth(), msgFrameBuffer.getUvHeight(), msgFrameBuffer.getUvPixelStride(),
