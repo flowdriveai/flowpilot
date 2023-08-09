@@ -69,9 +69,7 @@ class Controls:
                                      'carControl', 'carEvents', 'carParams'])
 
     if self.params.get_bool("F3", block=True):
-      self.camera_packets = ["wideRoadCameraState"]
-      if not self.params.get_bool("WideCameraOnly", block=True):
-        self.camera_packets += ["roadCameraState"]
+      self.camera_packets = ["wideRoadCameraState", "roadCameraState"]
     else:
       self.camera_packets = ["roadCameraState"]
 
@@ -338,7 +336,7 @@ class Controls:
           self.events.add(EventName.cameraFrameRate)
     if not REPLAY and self.rk.lagging:
       self.events.add(EventName.controlsdLagging)
-    if len(self.sm['radarState'].radarErrors) or (not self.rk.lagging and not self.sm.all_checks(['radarState'])):
+    if len(self.sm['radarState'].radarErrors):
       self.events.add(EventName.radarFault)
     if not self.sm.valid['pandaStates']:
       self.events.add(EventName.usbError)

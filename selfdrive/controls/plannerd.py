@@ -17,7 +17,9 @@ def plannerd_thread(sm=None, pm=None):
   cloudlog.info("plannerd got CarParams: %s", CP.carName)
 
   longitudinal_planner = LongitudinalPlanner(CP)
-  lateral_planner = LateralPlanner(CP)
+
+  use_lanelines = not params.get_bool('EndToEndToggle')
+  lateral_planner = LateralPlanner(CP, use_lanelines=use_lanelines)
 
   if sm is None:
     sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2'],

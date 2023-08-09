@@ -23,7 +23,7 @@ from tools.sim.lib.can import can_function
 
 REPEAT_COUNTER = 5
 PRINT_DECIMATION = 100
-STEER_RATIO = 45.
+STEER_RATIO = 15.
 
 pm = messaging.PubMaster(['roadCameraState', 'roadCameraBuffer', 'wideRoadCameraState', 
                           'wideRoadCameraBuffer', 'sensorEvents', 'can', 'gpsLocationExternal', 

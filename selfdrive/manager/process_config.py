@@ -15,12 +15,6 @@ def logging(started, params, CP: car.CarParams) -> bool:
 
 def is_f3():
   return Params().get_bool("F3")
-    
-  # ai.flow.app:
-  #   command: "am start --user 0 -n ai.flow.android/ai.flow.android.AndroidLauncher"
-  #   nowait: true
-  #   nomonitor: true
-  #   platforms: ["android"]
 
 procs = [
   ManagerProcess("controlsd", "controlsd"),
@@ -40,10 +34,10 @@ procs = [
   ManagerProcess("uploader", "uploader", enabled=is_android(), offroad=True),
   ManagerProcess("deleter", "deleter", enabled=True, offroad=True),
   ManagerProcess("ubloxd", "./selfdrive/locationd/ubloxd", onroad=False),
-  ManagerProcess("laikad", "laikad"),
-  ManagerProcess("paramsd", "paramsd"),
-  ManagerProcess("torqued", "torqued"),
-  ManagerProcess("locationd", "./selfdrive/locationd/locationd"),
+  ManagerProcess("laikad", "laikad", enabled=False),
+  ManagerProcess("paramsd", "paramsd", enabled=False),
+  ManagerProcess("torqued", "torqued", enabled=False),
+  ManagerProcess("locationd", "./selfdrive/locationd/locationd", enabled=False),
 ]
 
 platform = "android" if is_android() else "desktop" 
