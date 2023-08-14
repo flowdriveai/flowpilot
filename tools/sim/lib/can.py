@@ -21,15 +21,6 @@ def get_car_can_parser():
   checks = [
     (0xe4, 100),
     (0x1fa, 50),
-    ("STEER_TORQUE", 0xe4),
-    ("STEER_TORQUE_REQUEST", 0xe4),
-    ("COMPUTER_BRAKE", 0x1fa),
-    ("COMPUTER_BRAKE_REQUEST", 0x1fa),
-    ("GAS_COMMAND", 0x200),
-  ]
-  checks = [
-    (0xe4, 100),
-    (0x1fa, 50),
     (0x200, 50),
   ]
   return CANParser(dbc_f, signals, checks, 0)
