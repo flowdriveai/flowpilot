@@ -34,3 +34,4 @@ certifi==2022.12.7
 hatanaka==2.8.0
 boto3==1.26.113
 inputs==0.5
+hypothesis==6.82.4
