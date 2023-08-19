@@ -32,9 +32,6 @@ int main(int argc, char **argv) {
   uint32_t last_frame_id = 0;
 
   while (!do_exit) {
-    if (poller->poll(100).size() < 1){
-      continue;
-    }
 
     std::unique_ptr<Message> msg(subscriber->receive());
     if (!msg) {
