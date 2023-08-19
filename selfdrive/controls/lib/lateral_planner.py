@@ -61,6 +61,7 @@ class LateralPlanner:
 
     # Parse model predictions
     md = sm['modelV2']
+    self.LP.parse_model(md)
     if len(md.position.x) == TRAJECTORY_SIZE and len(md.orientation.x) == TRAJECTORY_SIZE:
       self.path_xyz = np.column_stack([md.position.x, md.position.y, md.position.z])
       self.t_idxs = np.array(md.position.t)
