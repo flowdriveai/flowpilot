@@ -13,6 +13,7 @@ from common.realtime import DT_CTRL
 from selfdrive.car.fingerprints import all_known_cars
 from selfdrive.car.car_helpers import FRAME_FINGERPRINT, interfaces
 from selfdrive.car.gm.values import CAR as GM
+from selfdrive.test.fetch_ci_data import CI_DATA_DIR
 from selfdrive.car.honda.values import CAR as HONDA, HONDA_BOSCH
 from selfdrive.car.hyundai.values import CAR as HYUNDAI
 from selfdrive.car.tests.routes import non_tested_cars, routes, CarTestRoute
@@ -65,6 +66,7 @@ class TestCarModelBase(unittest.TestCase):
   car_model = None
   test_route = None
   ci = True
+  local_ci = True
 
   @unittest.skipIf(SKIP_ENV_VAR in os.environ, f"Long running test skipped. Unset {SKIP_ENV_VAR} to run")
   @classmethod
@@ -92,7 +94,11 @@ class TestCarModelBase(unittest.TestCase):
           route_name = RouteName(cls.test_route.route)
           lr = LogReader(f"cd:/{route_name.dongle_id}/{route_name.time_str}/{seg}/rlog.bz2")
         elif cls.ci:
-          lr = LogReader(get_url(cls.test_route.route, seg))
+          if cls.local_ci:
+            route_name = RouteName(cls.test_route.route)
+            lr = LogReader(os.path.join(CI_DATA_DIR, f"{cls.car_model}/{route_name.dongle_id}|{route_name.time_str}-{seg}/rlog.bz2"))
+          else:
+            lr = LogReader(get_url(cls.test_route.route, seg))
         else:
           lr = LogReader(Route(cls.test_route.route).log_paths()[seg])
       except Exception:

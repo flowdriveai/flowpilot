@@ -75,6 +75,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"LiveTorqueParameters", PERSISTENT | DONT_LOG},
     {"LaikadEphemerisV3", PERSISTENT | DONT_LOG},
     {"EndToEndToggle", PERSISTENT},
+    {"WheeledBody", PERSISTENT},
     {"RecordRoad", CLEAR_ON_MANAGER_START},  
     {"LastGPSPosition", PERSISTENT},
     {"EnableWideCamera", PERSISTENT},  
