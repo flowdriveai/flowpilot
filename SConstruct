@@ -31,7 +31,7 @@ AddOption('--ubsan',
 SHARED = False
 
 lenv = {
-  "PATH": os.environ['PATH'] + ":" + Dir(f"#libs/capnpc-java/{arch}/bin").abspath,
+  "PATH": os.environ['PATH'] + ":" + Dir(f"#third_party/capnpc-java/{arch}/bin").abspath,
   "LD_LIBRARY_PATH": [Dir(f"#third_party/acados/{arch}/lib").abspath],
   "PYTHONPATH": Dir("#").abspath + ":" + Dir("#third_party/acados").abspath,
 
