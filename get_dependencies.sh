@@ -12,7 +12,7 @@ if ! command -v capnpc-java --version &> /dev/null  # TODO: Running through scon
 then
     SCRIPT=$(realpath "$0")
     DIR=$(dirname "$SCRIPT")
-    sh $DIR/libs/capnpc-java/build.sh
+    sh $DIR/third_party/capnpc-java/build.sh
 fi
 
 # pycapnp without wheel build can fail on some systems, in this case, its built from scratch later in the process.
