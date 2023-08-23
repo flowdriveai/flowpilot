@@ -10,12 +10,10 @@
 #include <eigen3/Eigen/Dense>
 
 
-constexpr float FCW_THRESHOLD_5MS2_HIGH = 0.15;
-constexpr float FCW_THRESHOLD_5MS2_LOW = 0.05;
-constexpr float FCW_THRESHOLD_3MS2 = 0.7;
 
 std::array<float, 5> prev_brake_5ms2_probs = {0,0,0,0,0};
 std::array<float, 3> prev_brake_3ms2_probs = {0,0,0};
+std::array<float, DISENGAGE_LEN * DISENGAGE_LEN> disengage_buffer = {};
 
 
 void fill_lead(cereal::ModelDataV2::LeadDataV3::Builder lead, const ModelOutputLeads &leads, int t_idx, float prob_t) {
@@ -95,6 +93,44 @@ void fill_meta(cereal::ModelDataV2::MetaData::Builder meta, const ModelOutputMet
   meta.setDesirePrediction(to_kj_array_ptr(desire_pred_softmax));
   meta.setDesireState(to_kj_array_ptr(desire_state_softmax));
   meta.setHardBrakePredicted(above_fcw_threshold);
+}
+
+void fill_confidence(cereal::ModelDataV2::Builder &framed) {
+  if (framed.getFrameId() % (2*MODEL_FREQ) == 0) {
+    // update every 2s to match predictions interval
+    auto dbps = framed.getMeta().getDisengagePredictions().getBrakeDisengageProbs();
+    auto dgps = framed.getMeta().getDisengagePredictions().getGasDisengageProbs();
+    auto dsps = framed.getMeta().getDisengagePredictions().getSteerOverrideProbs();
+
+    float any_dp[DISENGAGE_LEN];
+    float dp_ind[DISENGAGE_LEN];
+
+    for (int i = 0; i < DISENGAGE_LEN; i++) {
+      any_dp[i] = 1 - ((1-dbps[i])*(1-dgps[i])*(1-dsps[i])); // any disengage prob
+    }
+
+    dp_ind[0] = any_dp[0];
+    for (int i = 0; i < DISENGAGE_LEN-1; i++) {
+      dp_ind[i+1] = (any_dp[i+1] - any_dp[i]) / (1 - any_dp[i]); // independent disengage prob for each 2s slice
+    }
+
+    // rolling buf for 2, 4, 6, 8, 10s
+    std::memmove(&disengage_buffer[0], &disengage_buffer[DISENGAGE_LEN], sizeof(float) * DISENGAGE_LEN * (DISENGAGE_LEN-1));
+    std::memcpy(&disengage_buffer[DISENGAGE_LEN * (DISENGAGE_LEN-1)], &dp_ind[0], sizeof(float) * DISENGAGE_LEN);
+  }
+
+  float score = 0;
+  for (int i = 0; i < DISENGAGE_LEN; i++) {
+    score += disengage_buffer[i*DISENGAGE_LEN+DISENGAGE_LEN-1-i] / DISENGAGE_LEN;
+  }
+
+  if (score < RYG_GREEN) {
+    framed.setConfidence(cereal::ModelDataV2::ConfidenceClass::GREEN);
+  } else if (score < RYG_YELLOW) {
+    framed.setConfidence(cereal::ModelDataV2::ConfidenceClass::YELLOW);
+  } else {
+    framed.setConfidence(cereal::ModelDataV2::ConfidenceClass::RED);
+  }
 }
 
 template<size_t size>
@@ -241,6 +277,9 @@ void fill_model(cereal::ModelDataV2::Builder &framed, const ModelOutput &net_out
   // meta
   fill_meta(framed.initMeta(), net_outputs.meta);
 
+  // confidence
+  fill_confidence(framed);
+
   // leads
   auto leads = framed.initLeadsV3(LEAD_MHP_SELECTION);
   std::array<float, LEAD_MHP_SELECTION> t_offsets = {0.0, 2.0, 4.0};
@@ -272,6 +311,7 @@ void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_frame_id
   framed.setFrameAge(frame_age);
   framed.setFrameDropPerc(frame_drop * 100);
   framed.setTimestampEof(timestamp_eof);
+  //framed.setLocationMonoTime(timestamp_llk);
   framed.setModelExecutionTime(model_execution_time);
   if (send_raw_pred) {
     framed.setRawPredictions(kj::ArrayPtr<const float>(raw_pred, NET_OUTPUT_SIZE).asBytes());
@@ -290,15 +330,18 @@ void posenet_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_droppe
   const auto &v_std = net_outputs.pose.velocity_std;
   const auto &r_std = net_outputs.pose.rotation_std;
   const auto &t_std = net_outputs.wide_from_device_euler.std;
+  const auto &road_transform_trans_mean = net_outputs.road_transform.position_mean;
+  const auto &road_transform_trans_std = net_outputs.road_transform.position_std;
 
   auto posenetd = msg.initEvent(valid && (vipc_dropped_frames < 1)).initCameraOdometry();
   posenetd.setTrans({v_mean.x, v_mean.y, v_mean.z});
   posenetd.setRot({r_mean.x, r_mean.y, r_mean.z});
   posenetd.setWideFromDeviceEuler({t_mean.x, t_mean.y, t_mean.z});
+  posenetd.setRoadTransformTrans({road_transform_trans_mean.x, road_transform_trans_mean.y, road_transform_trans_mean.z});
   posenetd.setTransStd({exp(v_std.x), exp(v_std.y), exp(v_std.z)});
   posenetd.setRotStd({exp(r_std.x), exp(r_std.y), exp(r_std.z)});
   posenetd.setWideFromDeviceEulerStd({exp(t_std.x), exp(t_std.y), exp(t_std.z)});
-
+  posenetd.setRoadTransformTransStd({exp(road_transform_trans_std.x), exp(road_transform_trans_std.y), exp(road_transform_trans_std.z)});
 
   posenetd.setTimestampEof(timestamp_eof);
   posenetd.setFrameId(vipc_frame_id);
@@ -342,15 +385,18 @@ uint32_t parse_posenet(uint32_t vipc_frame_id, uint32_t vipc_dropped_frames,
   const auto &v_std = net_outputs.pose.velocity_std;
   const auto &r_std = net_outputs.pose.rotation_std;
   const auto &t_std = net_outputs.wide_from_device_euler.std;
+  const auto &road_transform_trans_mean = net_outputs.road_transform.position_mean;
+  const auto &road_transform_trans_std = net_outputs.road_transform.position_std;
 
   auto posenetd = msg.initEvent(valid && (vipc_dropped_frames < 1)).initCameraOdometry();
   posenetd.setTrans({v_mean.x, v_mean.y, v_mean.z});
   posenetd.setRot({r_mean.x, r_mean.y, r_mean.z});
   posenetd.setWideFromDeviceEuler({t_mean.x, t_mean.y, t_mean.z});
+  posenetd.setRoadTransformTrans({road_transform_trans_mean.x, road_transform_trans_mean.y, road_transform_trans_mean.z});
   posenetd.setTransStd({exp(v_std.x), exp(v_std.y), exp(v_std.z)});
   posenetd.setRotStd({exp(r_std.x), exp(r_std.y), exp(r_std.z)});
   posenetd.setWideFromDeviceEulerStd({exp(t_std.x), exp(t_std.y), exp(t_std.z)});
-
+  posenetd.setRoadTransformTransStd({exp(road_transform_trans_std.x), exp(road_transform_trans_std.y), exp(road_transform_trans_std.z)});
 
   posenetd.setTimestampEof(timestamp_eof);
   posenetd.setFrameId(vipc_frame_id);

@@ -35,6 +35,10 @@ constexpr int LEAD_MHP_SELECTION = 3;
 // Padding to get output shape as multiple of 4
 constexpr int PAD_SIZE = 2;
 
+constexpr float FCW_THRESHOLD_5MS2_HIGH = 0.15;
+constexpr float FCW_THRESHOLD_5MS2_LOW = 0.05;
+constexpr float FCW_THRESHOLD_3MS2 = 0.7;
+
 struct ModelOutputXYZ {
   float x;
   float y;
@@ -174,6 +178,14 @@ struct ModelOutputTemporalPose {
 };
 static_assert(sizeof(ModelOutputTemporalPose) == sizeof(ModelOutputXYZ)*4);
 
+struct ModelOutputRoadTransform {
+  ModelOutputXYZ position_mean;
+  ModelOutputXYZ rotation_mean;
+  ModelOutputXYZ position_std;
+  ModelOutputXYZ rotation_std;
+};
+static_assert(sizeof(ModelOutputRoadTransform) == sizeof(ModelOutputXYZ)*4);
+
 struct ModelOutputDisengageProb {
   float gas_disengage;
   float brake_disengage;
@@ -233,6 +245,7 @@ struct ModelOutput {
   const ModelOutputPose pose;
   const ModelOutputWideFromDeviceEuler wide_from_device_euler;
   const ModelOutputTemporalPose temporal_pose;
+  const ModelOutputRoadTransform road_transform;
 };
 
 constexpr int OUTPUT_SIZE = sizeof(ModelOutput) / sizeof(float);
@@ -243,6 +256,32 @@ constexpr int OUTPUT_SIZE = sizeof(ModelOutput) / sizeof(float);
   constexpr int TEMPORAL_SIZE = 0;
 #endif
 constexpr int NET_OUTPUT_SIZE = OUTPUT_SIZE + FEATURE_LEN + PAD_SIZE;
+
+// TODO: convert remaining arrays to std::array and update model runners
+struct ModelState {
+  std::array<float, HISTORY_BUFFER_LEN * FEATURE_LEN> feature_buffer = {};
+  std::array<float, NET_OUTPUT_SIZE> output = {};
+#ifdef DESIRE
+  float prev_desire[DESIRE_LEN] = {};
+  float pulse_desire[DESIRE_LEN*(HISTORY_BUFFER_LEN+1)] = {};
+#endif
+#ifdef TRAFFIC_CONVENTION
+  float traffic_convention[TRAFFIC_CONVENTION_LEN] = {};
+#endif
+#ifdef DRIVING_STYLE
+  float driving_style[DRIVING_STYLE_LEN] = {};
+#endif
+#ifdef NAV
+  float nav_features[NAV_FEATURE_LEN] = {};
+  float nav_instructions[NAV_INSTRUCTION_LEN] = {};
+#endif
+};
+
+struct PublishState {
+  std::array<float, DISENGAGE_LEN * DISENGAGE_LEN> disengage_buffer = {};
+  std::array<float, 5> prev_brake_5ms2_probs = {};
+  std::array<float, 3> prev_brake_3ms2_probs = {};
+};
 
 void model_publish(PubMaster &pm, uint32_t vipc_frame_id, uint32_t vipc_frame_id_extra, uint32_t frame_id, float frame_drop,
                    const float* raw_pred, uint64_t timestamp_eof,
