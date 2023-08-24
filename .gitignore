@@ -38,6 +38,7 @@ a.out
 .hypothesis
 .dep_update
 .pip_update
+launch_flowpilot.sh
 
 *.dylib
 *.DSYM
