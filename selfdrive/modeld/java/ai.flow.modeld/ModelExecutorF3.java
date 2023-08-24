@@ -39,16 +39,19 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
     public static int[] imgTensorShape = {1, 12, 128, 256};
     public static final int[] desireTensorShape = {1, CommonModelF3.HISTORY_BUFFER_LEN+1, CommonModelF3.DESIRE_LEN};
     public static final int[] trafficTensorShape = {1, CommonModelF3.TRAFFIC_CONVENTION_LEN};
-    public static final int[] stateTensorShape = {1, CommonModelF3.HISTORY_BUFFER_LEN, CommonModelF3.FEATURE_LEN};
-    public static final int[] featureTensorShape = {1, 8, CommonModelF3.FEATURE_LEN};
+    public static final int[] navFeaturesShape = {1, 256};
+    public static final int[] navInstructionsShape = {1, 150};
+    public static final int[] featureTensorShape = {1, CommonModelF3.HISTORY_BUFFER_LEN, CommonModelF3.FEATURE_LEN};
     public static final int[] outputTensorShape = {1, CommonModelF3.NET_OUTPUT_SIZE};
 
     public static final Map<String, int[]> inputShapeMap = new HashMap<>();
     public static final Map<String, int[]> outputShapeMap = new HashMap<>();
     public final INDArray desireNDArr = Nd4j.zeros(desireTensorShape);
     public final INDArray trafficNDArr = Nd4j.zeros(trafficTensorShape);
+    public final INDArray navFeaturesNDArr = Nd4j.zeros(navFeaturesShape);
+    public final INDArray navInstructionsNDArr = Nd4j.zeros(navInstructionsShape);
+
     public final INDArray featuresNDArr = Nd4j.zeros(featureTensorShape);
-    public final INDArray stateNDArr = Nd4j.zeros(stateTensorShape);
     public final float[] netOutputs = new float[(int)numElements(outputTensorShape)];
     public final INDArray augmentRot = Nd4j.zeros(3);
     public final INDArray augmentTrans = Nd4j.zeros(3);
@@ -59,12 +62,10 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
     public final ParamsInterface params = ParamsInterface.getInstance();
 
-    public final INDArrayIndex[] stateFeatureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN-1)};
-    public final INDArrayIndex[] stateFeatureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN)};
-    public final INDArrayIndex[] desireFeatureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN)};
-    public final INDArrayIndex[] desireFeatureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN+1)};
-
-    public final INDArrayIndex[] gatherFeatureSlices = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.indices(94, 89, 84, 79, 74, 69, 64, 59)};
+    public final INDArrayIndex[] featureRotateSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN-1), NDArrayIndex.all()};
+    public final INDArrayIndex[] featureRotateSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN), NDArrayIndex.all()};
+    public final INDArrayIndex[] desireFeatureSlice0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(0, CommonModelF3.HISTORY_BUFFER_LEN), NDArrayIndex.all()};
+    public final INDArrayIndex[] desireFeatureSlice1 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.interval(1, CommonModelF3.HISTORY_BUFFER_LEN+1), NDArrayIndex.all()};
     public final INDArrayIndex[] gatherFeatureSlices0 = new INDArrayIndex[]{NDArrayIndex.point(0), NDArrayIndex.all()};
     public static final int[] FULL_FRAME_SIZE = Camera.frameSize;
     public static INDArray fcam_intrinsics = Camera.fcam_intrinsics.dup(); // telephoto
@@ -147,14 +148,18 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
 
         inputShapeMap.put("input_imgs", imgTensorShape);
         inputShapeMap.put("big_input_imgs", imgTensorShape);
-        inputShapeMap.put("features_buffer", featureTensorShape);
         inputShapeMap.put("desire", desireTensorShape);
         inputShapeMap.put("traffic_convention", trafficTensorShape);
+        inputShapeMap.put("nav_features", navFeaturesShape);
+        inputShapeMap.put("nav_instructions", navInstructionsShape);
+        inputShapeMap.put("features_buffer", featureTensorShape);
         outputShapeMap.put("outputs", outputTensorShape);
 
-        inputMap.put("features_buffer", featuresNDArr);
         inputMap.put("desire", desireNDArr);
         inputMap.put("traffic_convention", trafficNDArr);
+        inputMap.put("nav_features", navFeaturesNDArr);
+        inputMap.put("nav_instructions", navInstructionsNDArr);
+        inputMap.put("features_buffer", featuresNDArr);
         outputMap.put("outputs", netOutputs);
 
         modelRunner.init(inputShapeMap, outputShapeMap);
@@ -250,10 +255,9 @@ public class ModelExecutorF3 extends ModelExecutor implements Runnable{
             inputMap.put("big_input_imgs", netInputWideBuffer);
             modelRunner.run(inputMap, outputMap);
 
-            stateNDArr.put(stateFeatureSlice0, stateNDArr.get(stateFeatureSlice1));
+            featuresNDArr.put(featureRotateSlice0, featuresNDArr.get(featureRotateSlice1));
             for (int i = 0; i < CommonModelF3.FEATURE_LEN; i++)
-                stateNDArr.putScalar(0, CommonModelF3.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModelF3.OUTPUT_SIZE + i]);
-            featuresNDArr.put(gatherFeatureSlices0, stateNDArr.get(gatherFeatureSlices));
+                featuresNDArr.putScalar(0, CommonModelF3.HISTORY_BUFFER_LEN - 1, i, netOutputs[CommonModelF3.OUTPUT_SIZE + i]);
 
             // publish outputs
             timestamp = System.currentTimeMillis();
