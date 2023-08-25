@@ -1,12 +1,15 @@
+import os
 from setuptools import setup, find_packages
 import subprocess
 
+RETROS = os.path.isfile('/data/data/com.termux/files/retros_setup_complete')
 
-def install_local(dep_path):
-    subprocess.check_call(["pip", "install", "-e", dep_path])
-    
-def get_requirements():
-   subprocess.check_call(["pip", "install", "-r", "requirements.txt"])
+if not RETROS:
+    def install_local(dep_path):
+        subprocess.check_call(["pip", "install", "-e", dep_path])
+
+    def get_requirements():
+        subprocess.check_call(["pip", "install", "-r", "requirements.txt"])
 
 setup(name="flowpilot",
       version="0.1.0",
