@@ -1,5 +1,7 @@
 Import('env')
 
+env.Library('json11', ['json11/json11.cpp'])
+env.Append(CPPPATH=[Dir('json11')])
 env.Library('kaitai', ['kaitai/kaitaistream.cpp'], CPPDEFINES=['KS_STR_ENCODING_NONE'])
 
 SConscript(['cluster/SConscript'])

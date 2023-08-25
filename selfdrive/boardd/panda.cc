@@ -27,6 +27,7 @@ Panda::Panda(std::string serial, uint32_t bus_offset) : bus_offset(bus_offset) {
   return;
 }
 
+#ifndef RETROS
 Panda::Panda(int fd, uint32_t bus_offset) : bus_offset(bus_offset) {
   
   handle = std::make_unique<PandaUsbHandle>(fd);
@@ -44,6 +45,7 @@ Panda::Panda(int fd, uint32_t bus_offset) : bus_offset(bus_offset) {
 
   return;
 }
+#endif
 
 bool Panda::connected() {
   return handle->connected;

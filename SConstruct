@@ -4,6 +4,7 @@ import sysconfig
 import numpy as np
 
 arch = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()
+RETROS = os.path.isfile('/data/data/com.termux/files/retros_setup_complete')
 
 python_path = sysconfig.get_paths()['include']
 cpppath = [
@@ -118,6 +119,10 @@ env = Environment(
   tools=["default", "cython"]
 )
 
+# RETROS
+if RETROS:
+  env["CCFLAGS"] += ["-Wno-error=unqualified-std-cast-call", "-DRETROS"]
+
 # Cython build enviroment
 py_include = sysconfig.get_paths()['include']
 envCython = env.Clone()
@@ -136,7 +141,7 @@ else:
 Export('envCython')
 
 QCOM_REPLAY = False
-Export('env', 'arch', 'QCOM_REPLAY', 'SHARED')
+Export('env', 'arch', 'QCOM_REPLAY', 'SHARED', 'RETROS')
 
 SConscript(['common/SConscript'])
 Import('_common')
@@ -217,7 +222,8 @@ SConscript([
   'panda/SConscript',
 ])
 
-SConscript(['SConscript'])
+if not RETROS:
+  SConscript(['SConscript'])
 
 SConscript(['system/proclogd/SConscript'])
 
