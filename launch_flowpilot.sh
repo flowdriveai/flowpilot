@@ -1,5 +1,5 @@
 set -e
-source ./.env
+. ./.env
 
 export WIDE_ROAD_CAMERA_SOURCE="selfdrive/assets/fcam.avi" # no affect on android
 export ROAD_CAMERA_SOURCE="selfdrive/assets/tmp" # no affect on android
@@ -17,25 +17,27 @@ export SIMULATION="1"
 
 ## android specific ##
 export USE_SNPE="0" # only works for snapdragon devices.
+export DISPLAY=:1
 
 
-if ! command -v tmux &> /dev/null
-then
-    echo "tmux could not be found, installing.."
-    sudo apt-get update
-    sudo apt-get install tmux
-    echo "set -g mouse on" >> .tmux.conf # enable mouse scrolling in tmux
-fi
+# if ! command -v tmux &> /dev/null
+# then
+#     echo "tmux could not be found, installing.."
+#     sudo apt-get update
+#     sudo apt-get install tmux
+#     echo "set -g mouse on" >> .tmux.conf # enable mouse scrolling in tmux
+# fi
 
 
-if pgrep -x "flowinit" > /dev/null
-    then
-        echo "another instance of flowinit is already running"
-        exit
-    else
-        # start a tmux pane
-        tmux new-session -d -s "flowpilot" "scons && flowinit"
-        tmux attach -t flowpilot
-fi
+# if pgrep -x "flowinit" > /dev/null
+#     then
+#         echo "another instance of flowinit is already running"
+#         exit
+#     else
+#         # start a tmux pane
+#         tmux new-session -d -s "flowpilot" "scons && flowinit"
+#         tmux attach -t flowpilot
+# fi
 
-while true; do sleep 1; done
+# while true; do sleep 1; done
+scons && flowinit
