@@ -8,6 +8,10 @@ import ai.flow.modeld.messages.MsgModelDataV2;
 import messaging.ZMQPubHandler;
 import messaging.ZMQSubHandler;
 import org.capnproto.PrimitiveList;
+import org.nd4j.linalg.api.memory.MemoryWorkspace;
+import org.nd4j.linalg.api.memory.conf.WorkspaceConfiguration;
+import org.nd4j.linalg.api.memory.enums.AllocationPolicy;
+import org.nd4j.linalg.api.memory.enums.LearningPolicy;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Core;
@@ -32,7 +36,7 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public long timePerIt = 0;
     public long iterationNum = 1;
 
-    public static final int[] imgTensorShape = {1, 12, 128, 256};
+    public static int[] imgTensorShape = {1, 12, 128, 256};
     public static final int[] desireTensorShape = {1, 8};
     public static final int[] trafficTensorShape = {1, 2};
     public static final int[] stateTensorShape = {1, 512};
@@ -73,6 +77,11 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public MsgModelDataV2 msgModelDataV2 = new MsgModelDataV2();
     ByteBuffer imgBuffer;
     int desire;
+    boolean snpe;
+    final WorkspaceConfiguration wsConfig = WorkspaceConfiguration.builder()
+            .policyAllocation(AllocationPolicy.STRICT)
+            .policyLearning(LearningPolicy.FIRST_LOOP)
+            .build();
 
 
     public ModelExecutorF2(ModelRunner modelRunner){
@@ -103,6 +112,10 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
     public void run(){
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+        snpe = params.getBool("UseSNPE");
+        if (snpe)
+            imgTensorShape = new int[]{1, 128, 256, 12}; // SNPE only supports NHWC input.
 
         INDArray netInputBuffer;
 
@@ -185,6 +198,13 @@ public class ModelExecutorF2 extends ModelExecutor implements Runnable{
             }
 
             netInputBuffer = imagePrepare.prepare(imgBuffer, wrapMatrix);
+
+            if (snpe){
+                try (MemoryWorkspace ws = Nd4j.getWorkspaceManager().getAndActivateWorkspace(wsConfig, "ModelD")) {
+                    // NCHW to NHWC
+                    netInputBuffer = netInputBuffer.permute(0, 2, 3, 1).dup();
+                }
+            }
 
             inputMap.put("input_imgs", netInputBuffer);
             modelRunner.run(inputMap, outputMap);
