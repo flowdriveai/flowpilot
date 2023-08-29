@@ -30,7 +30,7 @@ public class SensorManager extends SensorInterface implements Runnable{
 
     public Sensor sensorGyroscope;
     public SensorEventListener listenerGyroscope;
-    PrimitiveList.Float.Builder gyroVec3 = msgGyroscope.sensorEvent.getAcceleration().getV();
+    PrimitiveList.Float.Builder gyroVec3 = msgGyroscope.sensorEvent.getGyro().getV();
 
     public SensorManager(Context context, int frequency) {
         ph = new ZMQPubHandler();
