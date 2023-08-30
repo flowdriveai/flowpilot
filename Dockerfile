@@ -11,15 +11,12 @@ RUN apt-get update && \
         locales \
         git \
         nano \
-        rsync \
         clang \
         libzmq3-dev \
-        cmake \
         libjson11-1 \
         libjson11-1-dev \
         liblmdb-dev \
         libusb-1.0-0-dev \
-        dfu-util \
         gcc-arm-none-eabi \
         libcurl4-openssl-dev \
         libssl-dev \
@@ -40,21 +37,16 @@ RUN apt-get update && \
         automake \
         libtool \
         g++ \
+        tmux \
         scons
 
 RUN yes | sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt upgrade libstdc++6 -y
-# RUN apt install libstdc++6 -y
 
 RUN apt remove locales -y
 RUN wget http://launchpadlibrarian.net/560614488/libc6_2.34-0ubuntu3_amd64.deb
 RUN dpkg -i libc6_2.34-0ubuntu3_amd64.deb
 RUN rm -rf libc6_2.34-0ubuntu3_amd64.deb
-
-# RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
-# ENV LANG en_US.UTF-8
-# ENV LANGUAGE en_US:en
-# ENV LC_ALL en_US.UTF-8
 
 RUN mkdir -p /Android/Sdk/cmdline-tools/latest
 RUN wget -q --show-progress --no-clobber --tries=5 https://dl.google.com/android/repository/commandlinetools-linux-8092744_latest.zip
