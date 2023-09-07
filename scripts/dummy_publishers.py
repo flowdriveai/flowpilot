@@ -2,11 +2,11 @@ import cereal.messaging as messaging
 from cereal import log
 import threading
 from opendbc.can.packer import CANPacker
-from selfdrive.boardd.boardd import can_list_to_can_capnp
-from selfdrive.car import crc8_pedal
 from common.realtime import DT_DMON
 from selfdrive.car.honda.values import CruiseButtons
 from tools.sim.lib.can import can_function
+from common.system import is_android
+
 import time
 
 packer = CANPacker("honda_civic_touring_2016_can_generated")
@@ -125,8 +125,9 @@ if __name__ == "__main__":
     threads.append(threading.Thread(target=peripheral_state_function, args=(exit_event,)))
     threads.append(threading.Thread(target=fake_driver_monitoring, args=(exit_event,)))
     threads.append(threading.Thread(target=can_function_runner, args=(exit_event,)))
-    threads.append(threading.Thread(target=imu_callback, args=(exit_event,)))
     threads.append(threading.Thread(target=gps_callback, args=(exit_event,)))
+    if is_android():
+      threads.append(threading.Thread(target=imu_callback, args=(exit_event,)))
 
     for t in threads:
       t.start()
