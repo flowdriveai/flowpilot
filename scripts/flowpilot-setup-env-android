@@ -41,7 +41,7 @@ base_setup() {
 	pkg install -y proot-distro termux-api net-tools openssh wget
 
 	# download latest apks
-	FLOWPILOT_APK_URL=$(curl -s https://api.github.com/repos/flowdriveai/flowpilot/releases/latest | grep browser_download_url | cut -d '"' -f 4)
+	FLOWPILOT_APK_URL=$(curl -s https://api.github.com/repos/flowdriveai/flowpilot/releases/pre-release | grep browser_download_url | cut -d '"' -f 4)
 	wget -q --show-progress --no-clobber --tries=5 $FLOWPILOT_APK_URL -P /sdcard/flowpilot/Downloads
 
 	TERMUX_API_APK_URL='https://f-droid.org/repo/com.termux.api_51.apk'
