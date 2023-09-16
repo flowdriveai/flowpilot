@@ -186,7 +186,7 @@ kj::Array<capnp::word> UbloxMsgParser::gen_rxm_sfrbx(ubx_t::rxm_sfrbx_t *msg) {
         gps_t subframe(&stream);
         gps_t::subframe_1_t* subframe_1 = static_cast<gps_t::subframe_1_t*>(subframe.body());
 
-        eph.setGpsWeek(subframe_1->week_no());
+        //eph.setGpsWeek(subframe_1->week_no());
         eph.setTgd(subframe_1->t_gd() * pow(2, -31));
         eph.setToc(subframe_1->t_oc() * pow(2, 4));
         eph.setAf2(subframe_1->af_2() * pow(2, -55));
