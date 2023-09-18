@@ -39,13 +39,13 @@ void loggerd_thread() {
   // subscribe to all socks
   for (const auto& it : services) {
     if (!it.second.should_log) continue;
-    LOGD("logging %s (on port %d)", it.second.name, it.second.port);
+    LOGD("logging %s (on port %d)", it.second.name.c_str(), it.second.port);
 
-    SubSocket * sock = SubSocket::create(ctx.get(), it.second.name);
+    SubSocket * sock = SubSocket::create(ctx.get(), it.second.name.c_str());
     assert(sock != NULL);
     poller->registerSocket(sock);
     qlog_states[sock] = {
-      .name = it.second.name,
+      .name = it.second.name.c_str(),
       .counter = 0,
       .freq = it.second.decimation,
     };
