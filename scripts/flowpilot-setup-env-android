@@ -2,6 +2,10 @@
 
 set -e
 
+PROOT_DISTRO_NAME="ubuntu-jammy-fd"
+PROOT_DISTRO_URL="https://github.com/flowdriveai/flowpilot/releases/download/ubuntu-rootfs-pin-0/ubuntu-22.04-aarch64-pd-v4.7.0.tar.xz"
+PROOT_DISTRO_CHECKSUM="87d95660b8d8d2a25fd11927dd81eac95c4266f04069349ce8efa88d0ac3a6c0"
+
 # White
 msg() {
     echo -e "$@"
@@ -23,11 +27,31 @@ fail() {
 }
 
 proot_exec() {
-    proot-distro login ubuntu -- eval "$1"
+    proot-distro login $PROOT_DISTRO_NAME -- eval "$1"
 }
 
 add_to_file() {
     grep -qF -- "$1" "$2" || echo "$1" >> "$2"
+}
+
+patch_proot_distro() {
+    # Add self-built ubuntu 22.04 aarch64 rootfs
+    cat > $PREFIX/etc/proot-distro/$PROOT_DISTRO_NAME <<- EOF
+    # This is a default distribution plug-in.
+    # Do not modify this file as your changes will be overwritten on next update.
+    # If you want customize installation, please make a copy.
+    DISTRO_NAME="Ubuntu"
+    DISTRO_COMMENT="Standard release (jammy). Not available for x86 32-bit (i686) CPUs."
+
+    TARBALL_URL['aarch64']="$PROOT_DISTRO_URL"
+    TARBALL_SHA256['aarch64']="$PROOT_DISTRO_CHECKSUM"
+
+    distro_setup() {
+	    # Configure en_US.UTF-8 locale.
+	    sed -i -E 's/#[[:space:]]?(en_US.UTF-8[[:space:]]+UTF-8)/\1/g' ./etc/locale.gen
+	    run_proot_cmd DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    }
+    EOF
 }
 
 base_setup() {
@@ -56,22 +80,25 @@ base_setup() {
 
     # allow external apps to call termux
     sed -i '/allow-external-apps/s/^#*//g' $HOME/.termux/termux.properties
+
+    # Patch current proot-distro distributions
+    patch_proot_distro
 }
 
 setup_nonroot_env() {
     info "Preparing to install flowpilot non-root env ..."
 
-    proot-distro install ubuntu || info "ubuntu already installed.. skipping"
+    proot-distro install $PROOT_DISTRO_NAME || info "ubuntu already installed.. skipping"
 
     rm -f /data/data/com.termux/files/usr/bin/login-flowpilot
-    echo proot-distro login ubuntu >> /data/data/com.termux/files/usr/bin/login-flowpilot
+    echo proot-distro login $PROOT_DISTRO_NAME >> /data/data/com.termux/files/usr/bin/login-flowpilot
     chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot
 
-    ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu $HOME/flowpilot_env
+    ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/$PROOT_DISTRO_NAME $HOME/flowpilot_env
     cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
     chmod +x $HOME/flowpilot_env/bin/install-flowpilot-android
 
-    echo -e "sshd \ntermux-wake-lock \nproot-distro login ubuntu --no-kill-on-exit -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
+    echo -e "sshd \ntermux-wake-lock \nproot-distro login $PROOT_DISTRO_NAME --no-kill-on-exit -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
     chmod +x $HOME/boot_flowpilot
 
     success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
@@ -80,8 +107,8 @@ setup_nonroot_env() {
 setup_root_env() {
     info "Preparing to install flowpilot root env ..."
     pkg install tsu
-    ROOTFS_TAR="ubuntu-focal-core-cloudimg-arm64-root-2020.12.10.tar.gz"
-    wget -q --show-progress --no-clobber --tries=5 https://github.com/termux/proot-distro/releases/download/v1.2-ubuntu-focal-rootfs/$ROOTFS_TAR -P /sdcard/flowpilot/Downloads/
+    ROOTFS_TAR="ubuntu-22.04-aarch64-pd-v4.7.0.tar.xz"
+    wget -q --show-progress --no-clobber --tries=5 https://github.com/flowdriveai/flowpilot/releases/download/ubuntu-rootfs-pin-0/$ROOTFS_TAR -P /sdcard/flowpilot/Downloads/
 
     CHROOT=$HOME/flowpilot_env_root
     mkdir -p $CHROOT
