@@ -2,6 +2,10 @@
 
 set -e
 
+PROOT_DISTRO_NAME="ubuntu-jammy-fd"
+PROOT_DISTRO_URL="https://github.com/flowdriveai/flowpilot/releases/download/ubuntu-rootfs-pin-0/ubuntu-22.04-aarch64-pd-v4.7.0.tar.xz"
+PROOT_DISTRO_CHECKSUM="87d95660b8d8d2a25fd11927dd81eac95c4266f04069349ce8efa88d0ac3a6c0"
+
 # White
 msg() {
     echo -e "$@"
@@ -23,116 +27,139 @@ fail() {
 }
 
 proot_exec() {
-    proot-distro login ubuntu -- eval "$1"
+    proot-distro login $PROOT_DISTRO_NAME -- eval "$1"
 }
 
 add_to_file() {
     grep -qF -- "$1" "$2" || echo "$1" >> "$2"
 }
 
+patch_proot_distro() {
+    # Add self-built ubuntu 22.04 aarch64 rootfs
+    cat > $PREFIX/etc/proot-distro/$PROOT_DISTRO_NAME <<- EOF
+    # This is a default distribution plug-in.
+    # Do not modify this file as your changes will be overwritten on next update.
+    # If you want customize installation, please make a copy.
+    DISTRO_NAME="Ubuntu"
+    DISTRO_COMMENT="Standard release (jammy). Not available for x86 32-bit (i686) CPUs."
+
+    TARBALL_URL['aarch64']="$PROOT_DISTRO_URL"
+    TARBALL_SHA256['aarch64']="$PROOT_DISTRO_CHECKSUM"
+
+    distro_setup() {
+	    # Configure en_US.UTF-8 locale.
+	    sed -i -E 's/#[[:space:]]?(en_US.UTF-8[[:space:]]+UTF-8)/\1/g' ./etc/locale.gen
+	    run_proot_cmd DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    }
+    EOF
+}
+
 base_setup() {
     # let termux work in background
     termux-wake-lock
 
-	# get access to external storage
-	yes | termux-setup-storage
+    # get access to external storage
+    yes | termux-setup-storage
 
-	# install base packages
-	pkg install -y proot-distro termux-api net-tools openssh wget
+    # install base packages
+    pkg install -y proot-distro termux-api net-tools openssh wget
 
-	# download latest apks
-	FLOWPILOT_APK_URL=$(curl -s https://api.github.com/repos/flowdriveai/flowpilot/releases/latest | grep browser_download_url | cut -d '"' -f 4)
-	wget -q --show-progress --no-clobber --tries=5 $FLOWPILOT_APK_URL -P /sdcard/flowpilot/Downloads
+    # download latest apks
+    FLOWPILOT_APK_URL=$(curl -s https://api.github.com/repos/flowdriveai/flowpilot/releases/latest | grep browser_download_url | cut -d '"' -f 4)
+    wget -q --show-progress --no-clobber --tries=5 $FLOWPILOT_APK_URL -P /sdcard/flowpilot/Downloads
 
-	TERMUX_API_APK_URL='https://f-droid.org/repo/com.termux.api_51.apk'
-	wget -q --show-progress --no-clobber --tries=5 $TERMUX_API_APK_URL -P /sdcard/flowpilot/Downloads
+    TERMUX_API_APK_URL='https://f-droid.org/repo/com.termux.api_51.apk'
+    wget -q --show-progress --no-clobber --tries=5 $TERMUX_API_APK_URL -P /sdcard/flowpilot/Downloads
 
-	INSTALL_SCRIPT_URL='https://raw.githubusercontent.com/flowdriveai/flowpilot/master/scripts/install-flowpilot-android'
-	wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -O /sdcard/flowpilot/Downloads/install-flowpilot-android
+    INSTALL_SCRIPT_URL='https://raw.githubusercontent.com/flowdriveai/flowpilot/master/scripts/install-flowpilot-android'
+    wget -q --show-progress --tries=5 $INSTALL_SCRIPT_URL -O /sdcard/flowpilot/Downloads/install-flowpilot-android
 
-	# setup startup commands
-	add_to_file 'sshd' ~/.bashrc
-	add_to_file 'termux-wake-lock' ~/.bashrc
+    # setup startup commands
+    add_to_file 'sshd' ~/.bashrc
+    add_to_file 'termux-wake-lock' ~/.bashrc
 
-	# allow external apps to call termux
-	sed -i '/allow-external-apps/s/^#*//g' $HOME/.termux/termux.properties
+    # allow external apps to call termux
+    sed -i '/allow-external-apps/s/^#*//g' $HOME/.termux/termux.properties
+
+    # Patch current proot-distro distributions
+    patch_proot_distro
 }
 
 setup_nonroot_env() {
-	info "Preparing to install flowpilot non-root env ..."
+    info "Preparing to install flowpilot non-root env ..."
 
-	proot-distro install ubuntu || info "ubuntu already installed.. skipping"
+    proot-distro install $PROOT_DISTRO_NAME || info "ubuntu already installed.. skipping"
 
     rm -f /data/data/com.termux/files/usr/bin/login-flowpilot
-	echo proot-distro login ubuntu >> /data/data/com.termux/files/usr/bin/login-flowpilot
+    echo proot-distro login $PROOT_DISTRO_NAME >> /data/data/com.termux/files/usr/bin/login-flowpilot
     chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot
 
-    ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu $HOME/flowpilot_env
+    ln -rsf $PREFIX/var/lib/proot-distro/installed-rootfs/$PROOT_DISTRO_NAME $HOME/flowpilot_env
     cp /sdcard/flowpilot/Downloads/install-flowpilot-android $HOME/flowpilot_env/bin
     chmod +x $HOME/flowpilot_env/bin/install-flowpilot-android
 
-	echo -e "sshd \ntermux-wake-lock \nproot-distro login ubuntu --no-kill-on-exit -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
-	chmod +x $HOME/boot_flowpilot
+    echo -e "sshd \ntermux-wake-lock \nproot-distro login $PROOT_DISTRO_NAME --no-kill-on-exit -- eval \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
+    chmod +x $HOME/boot_flowpilot
 
-  	success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
+    success "Flowpilot non-root environment installed! login with 'login-flowpilot'"
 }
 
 setup_root_env() {
-	info "Preparing to install flowpilot root env ..."
-        pkg install tsu
-        ROOTFS_TAR="ubuntu-focal-core-cloudimg-arm64-root-2020.12.10.tar.gz"
-        wget -q --show-progress --no-clobber --tries=5 https://github.com/termux/proot-distro/releases/download/v1.2-ubuntu-focal-rootfs/$ROOTFS_TAR -P /sdcard/flowpilot/Downloads/
+    info "Preparing to install flowpilot root env ..."
+    pkg install tsu
+    ROOTFS_TAR="ubuntu-22.04-aarch64-pd-v4.7.0.tar.xz"
+    wget -q --show-progress --no-clobber --tries=5 https://github.com/flowdriveai/flowpilot/releases/download/ubuntu-rootfs-pin-0/$ROOTFS_TAR -P /sdcard/flowpilot/Downloads/
 
-        CHROOT=$HOME/flowpilot_env_root
-        mkdir -p $CHROOT
-        sudo tar xfp /sdcard/flowpilot/Downloads/$ROOTFS_TAR -C $CHROOT
-        sudo cp /sdcard/flowpilot/Downloads/install-flowpilot-android $CHROOT/bin
-        sudo chmod +x $CHROOT/bin/install-flowpilot-android
+    CHROOT=$HOME/flowpilot_env_root
+    mkdir -p $CHROOT
+    sudo tar xfp /sdcard/flowpilot/Downloads/$ROOTFS_TAR -C $CHROOT
+    sudo cp /sdcard/flowpilot/Downloads/install-flowpilot-android $CHROOT/bin
+    sudo chmod +x $CHROOT/bin/install-flowpilot-android
 
-        rm -f /data/data/com.termux/files/usr/bin/login-flowpilot-root
-        # Copy from https://github.com/MFDGaming/ubuntu-in-termux/blob/7daf992c9804403c4dfbab2bd23be6d81fa916db/ubuntu.sh#L65-L103
-        echo "#!/data/data/com.termux/files/usr/bin/bash
-	
-	    # prepare mount external storage
-	    mkdir -p $CHROOT/sdcard
+    rm -f /data/data/com.termux/files/usr/bin/login-flowpilot-root
+    # Copy from https://github.com/MFDGaming/ubuntu-in-termux/blob/7daf992c9804403c4dfbab2bd23be6d81fa916db/ubuntu.sh#L65-L103
+    echo "#!/data/data/com.termux/files/usr/bin/bash
+    
+	# prepare mount external storage
+	mkdir -p $CHROOT/sdcard
 
-	    # fix /data mount options
-	    mount -o remount,dev,suid /data
+	# fix /data mount options
+	mount -o remount,dev,suid /data
 
-	    ## unset LD_PRELOAD in case termux-exec is installed
-	    unset LD_PRELOAD
-	    command=\"proot\"
-	    command+=\" --link2symlink\"
-	    command+=\" -0\"
-	    command+=\" -r $CHROOT\"
-	    command+=\" -b /dev\"
-	    command+=\" -b /proc\"
-	    command+=\" -b /sys\"
-	    command+=\" -b $CHROOT/tmp:/dev/shm\"
-	    command+=\" -b /data/data/com.termux\"
-	    command+=\" -b /:/host-rootfs\"
-	    command+=\" -b /sdcard\"
-	    command+=\" -b /mnt\"
-	    command+=\" -w /root\"
-	    command+=\" /usr/bin/env -i\"
-	    command+=\" HOME=/root\"
-	    command+=\" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games\"
-	    command+=\" TERM=\$TERM\"
-	    command+=\" LANG=C.UTF-8\"
-	    command+=\" /bin/bash --login\"
-	    com=\"\$@\"
-	    if [ -z \"\$1\" ];then
-		exec \$command
-	    else
-		\$command -c \"\$com\"
-	    fi
-	" >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
-	chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
+	## unset LD_PRELOAD in case termux-exec is installed
+	unset LD_PRELOAD
+	command=\"proot\"
+	command+=\" --link2symlink\"
+	command+=\" -0\"
+	command+=\" -r $CHROOT\"
+	command+=\" -b /dev\"
+	command+=\" -b /proc\"
+	command+=\" -b /sys\"
+	command+=\" -b $CHROOT/tmp:/dev/shm\"
+	command+=\" -b /data/data/com.termux\"
+	command+=\" -b /:/host-rootfs\"
+	command+=\" -b /sdcard\"
+	command+=\" -b /mnt\"
+	command+=\" -w /root\"
+	command+=\" /usr/bin/env -i\"
+	command+=\" HOME=/root\"
+	command+=\" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games\"
+	command+=\" TERM=\$TERM\"
+	command+=\" LANG=C.UTF-8\"
+	command+=\" /bin/bash --login\"
+	com=\"\$@\"
+	if [ -z \"\$1\" ];then
+	    exec \$command
+	else
+	    \$command -c \"\$com\"
+	fi
+    " >> /data/data/com.termux/files/usr/bin/login-flowpilot-root
+    chmod +x /data/data/com.termux/files/usr/bin/login-flowpilot-root
 
-	echo -e "sshd \ntermux-wake-lock \nsudo login-flowpilot-root \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
-	chmod +x $HOME/boot_flowpilot
+    echo -e "sshd \ntermux-wake-lock \nsudo login-flowpilot-root \"cd flowpilot && ANDROID_DATA='' PIP_ROOT_USER_ACTION=ignore ./launch_flowpilot.sh\"" > $HOME/boot_flowpilot
+    chmod +x $HOME/boot_flowpilot
 
-	success "Flowpilot root environment installed. login with 'sudo login-flowpilot-root'"
+    success "Flowpilot root environment installed. login with 'sudo login-flowpilot-root'"
 }
 
 if [[ $1 = '--root' ]]; then
