@@ -46,12 +46,12 @@ patch_proot_distro() {
     DISTRO_COMMENT="Standard release (jammy). Not available for x86 32-bit (i686) CPUs."
 
     TARBALL_URL['aarch64']="$PROOT_DISTRO_URL"
-    TARBALL_tar -C ./rootfs -xf FILENAME['aarch64']="$PROOT_DISTRO_CHECKSUM"
+    TARBALL_SHA256['aarch64']="$PROOT_DISTRO_CHECKSUM"
 
     distro_setup() {
-    # Configure en_US.UTF-8 locale.
-    sed -i -E 's/#[[:space:]]?(en_US.UTF-8[[:space:]]+UTF-8)/\1/g' ./etc/locale.gen
-    run_proot_cmd DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+        # Configure en_US.UTF-8 locale.
+        sed -i -E 's/#[[:space:]]?(en_US.UTF-8[[:space:]]+UTF-8)/\1/g' ./etc/locale.gen
+        run_proot_cmd DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
     }
 EOF
 }
