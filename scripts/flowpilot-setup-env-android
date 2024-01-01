@@ -115,6 +115,7 @@ setup_root_env() {
     CHROOT=$HOME/flowpilot_env_root
     mkdir -p $CHROOT
     sudo tar xfp /sdcard/flowpilot/Downloads/$ROOTFS_TAR -C $CHROOT
+    mkdir -p $CHROOT/bin
     sudo cp /sdcard/flowpilot/Downloads/install-flowpilot-android $CHROOT/bin
     sudo chmod +x $CHROOT/bin/install-flowpilot-android
 
