@@ -88,7 +88,7 @@ public class LoadingActivity extends AppCompatActivity {
                 }
 
                 // boot all the flowpilot daemons in non-java land.
-                bootTermux();
+                // bootTermux();
 
                 ParamsInterface params = ParamsInterface.getInstance();
                 params.getBool("F3");
@@ -99,6 +99,7 @@ public class LoadingActivity extends AppCompatActivity {
                 startActivity(intent);
 
                 // destroy current activity
+                finish();
                 finish();
             }
         }).start();

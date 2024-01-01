@@ -200,7 +200,7 @@ Panda *connect(std::string serial="", uint32_t index=0) {
   sync_time(panda.get(), SyncTimeDir::FROM_PANDA);
   return panda.release();
 }
-
+#ifndef RETROS
 Panda *connect(int fd, uint32_t index=0) {
   std::unique_ptr<Panda> panda;
   try {
@@ -218,7 +218,7 @@ Panda *connect(int fd, uint32_t index=0) {
   sync_time(panda.get(), SyncTimeDir::FROM_PANDA);
   return panda.release();
 }
-
+#endif
 void can_send_thread(std::vector<Panda *> pandas, bool fake_send) {
   util::set_thread_name("boardd_can_send");
 
@@ -693,7 +693,7 @@ void boardd_main_thread(std::vector<std::string> serials) {
     delete panda;
   }
 }
-
+#ifndef RETROS
 void boardd_main_thread(const int fd) {
   PubMaster pm({"pandaStates", "peripheralState"});
   LOGW("attempting to connect");
@@ -733,3 +733,4 @@ void boardd_main_thread(const int fd) {
     delete panda;
   }
 }
+#endif

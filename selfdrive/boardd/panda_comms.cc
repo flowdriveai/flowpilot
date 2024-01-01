@@ -79,6 +79,7 @@ fail:
   throw std::runtime_error("Error connecting to panda");
 }
 
+#ifndef RETROS
 PandaUsbHandle::PandaUsbHandle(int fd) : PandaCommsHandle(fd) {
   // init libusb
   libusb_device *device = NULL;
@@ -118,6 +119,7 @@ fail:
   cleanup();
   throw std::runtime_error("Error connecting to panda");
 }
+#endif
 
 PandaUsbHandle::~PandaUsbHandle() {
   std::lock_guard lk(hw_lock);

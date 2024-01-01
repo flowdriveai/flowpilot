@@ -46,8 +46,9 @@ class Panda {
 public:
   std::unique_ptr<PandaCommsHandle> handle;
   Panda(std::string serial="", uint32_t bus_offset=0);
+#ifndef RETROS
   Panda(int fd, uint32_t bus_offset=0);
-
+#endif
   cereal::PandaState::PandaType hw_type = cereal::PandaState::PandaType::UNKNOWN;
   bool has_rtc = false;
   const uint32_t bus_offset;

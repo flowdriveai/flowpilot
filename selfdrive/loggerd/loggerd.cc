@@ -38,16 +38,16 @@ void loggerd_thread() {
   std::unique_ptr<Poller> poller(Poller::create());
   // subscribe to all socks
   for (const auto& it : services) {
-    if (!it.should_log) continue;
-    LOGD("logging %s (on port %d)", it.name, it.port);
+    if (!it.second.should_log) continue;
+    LOGD("logging %s (on port %d)", it.second.name.c_str(), it.second.port);
 
-    SubSocket * sock = SubSocket::create(ctx.get(), it.name);
+    SubSocket * sock = SubSocket::create(ctx.get(), it.second.name.c_str());
     assert(sock != NULL);
     poller->registerSocket(sock);
     qlog_states[sock] = {
-      .name = it.name,
+      .name = it.second.name.c_str(),
       .counter = 0,
-      .freq = it.decimation,
+      .freq = it.second.decimation,
     };
   }
 

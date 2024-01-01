@@ -55,7 +55,7 @@ public class SetUpScreen extends ScreenAdapter {
          }
 
         appContext.launcher.startAllD();
-        appContext.setScreen(new IntroScreen(appContext));
+        //appContext.setScreen(new IntroScreen(appContext));
     }
 
     @Override

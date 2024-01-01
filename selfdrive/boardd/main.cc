@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
       break;
     }
   }
-  
+#ifndef RETROS  
   if (int_fd){
     int fd;
     assert((argc > 1) && (sscanf(argv[1], "%d", &fd) == 1));
@@ -29,5 +29,8 @@ int main(int argc, char *argv[]) {
   else{
     boardd_main_thread(usb_devs);
   }
+#else
+  boardd_main_thread(usb_devs);
+#endif
   return 0;
 }
