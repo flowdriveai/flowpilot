@@ -4,7 +4,8 @@ set -e
 
 PROOT_DISTRO_NAME="ubuntu-jammy-fd"
 PROOT_DISTRO_URL="https://github.com/flowdriveai/flowpilot/releases/download/ubuntu-rootfs-pin-0/ubuntu-22.04-aarch64-pd-v4.7.0.tar.xz"
-PROOT_DISTRO_CHECKSUM="87d95660b8d8d2a25fd11927dd81eac95c4266f04069349ce8efa88d0ac3a6c0"
+PROOT_DISTRO_CHECKSUM="f705f2bb3bce63ee3bbd35caa3a55842564b6b7e1212b91373c4d999ffd1ff76"
+
 
 # White
 msg() {
@@ -36,22 +37,23 @@ add_to_file() {
 
 patch_proot_distro() {
     # Add self-built ubuntu 22.04 aarch64 rootfs
-    cat > $PREFIX/etc/proot-distro/$PROOT_DISTRO_NAME <<- EOF
+    cat > $PREFIX/etc/proot-distro/$PROOT_DISTRO_NAME.sh <<- EOF
     # This is a default distribution plug-in.
-    # Do not modify this file as your changes will be overwritten on next update.
-    # If you want customize installation, please make a copy.
+    # Do not modify this file as your changes will be overwritten on the next update.
+    # If you want to customize installation, please make a copy.
+
     DISTRO_NAME="Ubuntu"
     DISTRO_COMMENT="Standard release (jammy). Not available for x86 32-bit (i686) CPUs."
 
     TARBALL_URL['aarch64']="$PROOT_DISTRO_URL"
-    TARBALL_SHA256['aarch64']="$PROOT_DISTRO_CHECKSUM"
+    TARBALL_tar -C ./rootfs -xf FILENAME['aarch64']="$PROOT_DISTRO_CHECKSUM"
 
     distro_setup() {
-	    # Configure en_US.UTF-8 locale.
-	    sed -i -E 's/#[[:space:]]?(en_US.UTF-8[[:space:]]+UTF-8)/\1/g' ./etc/locale.gen
-	    run_proot_cmd DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    # Configure en_US.UTF-8 locale.
+    sed -i -E 's/#[[:space:]]?(en_US.UTF-8[[:space:]]+UTF-8)/\1/g' ./etc/locale.gen
+    run_proot_cmd DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
     }
-    EOF
+EOF
 }
 
 base_setup() {
@@ -171,4 +173,3 @@ elif [[ ! $1 ]]; then
 else
     fail "invalid arguements provided"
 fi
-
