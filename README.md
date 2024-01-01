@@ -2,7 +2,7 @@
 
 # What is Flowpilot?
 
-Flowpilot is an open source driver assistance system built on top of openpilot, that can run on most windows/linux and android powered machines. It performs the functions of Adaptive Cruise Control (ACC), Automated Lane Centering (ALC), Forward Collision Warning (FCW), Lane Departure Warning (LDW) and Driver Monitoring (DM) for a growing variety of supported car makes, models, and model years maintened by the community.
+Flowpilot is an open source driver assistance system built on top of openpilot, that can run on most windows/linux and android powered machines. It performs the functions of Adaptive Cruise Control (ACC), Automated Lane Centering (ALC), Forward Collision Warning (FCW), Lane Departure Warning (LDW) and Driver Monitoring (DM) for a growing variety of supported car makes, models, and model years maintained by the community.
 
 <table>
   <tr>
