@@ -14,8 +14,7 @@ Flowpilot is an open source driver assistance system built on top of openpilot, 
 </table>
 
 # FlowdriveGPT
-
-If you're not familiar with the technical terms mentioned above, visit FlowdriveGPT at [FlowdriveGPT GitHub](https://github.com/flowdriveai/flowpilot) for simplified explanations,FlowdriveGPT is a retrieval interface for FlowDrive's wiki, docs, and repo.
+FlowdriveGPT is a retrieval interface for FlowDrive's wiki, docs, and repo. visit [FlowdriveGPT](https://chat.openai.com/g/g-fpDPDfgSE-flowdrivegpt)at [FlowdriveGPT GitHub](https://github.com/flowdriveai/flowpilot) for simplified explanations
 
 # Running on a Car
 
