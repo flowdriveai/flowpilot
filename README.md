@@ -13,10 +13,6 @@ Flowpilot is an open source driver assistance system built on top of openpilot, 
   </tr>
 </table>
 
-# FlowdriveGPT
-FlowdriveGPT is a retrieval interface for FlowDrive's wiki, docs, and repo. checkout [FlowdriveGPT](https://chat.openai.com/g/g-fpDPDfgSE-flowdrivegpt) for simplified explanations.
-![11](https://github.com/Ayush-Kumar101/flowpilot/assets/85908925/0b85069b-89f6-43e2-9d6c-d4b74eaa28fd)
-
 # Running on a Car
 
 For running flowpilot on your car, you need: 
@@ -42,6 +38,10 @@ It is recommended to develop on a virtual car / simulation before jumping onto t
 Flowpilot's core community lives on the official flowdrive [discord server](https://discord.com/invite/APJaQR9nhz). Check the pinned messages or search history through messages to see if your issues or question has been discussed earlier. You may also join [more awesome](https://linktr.ee/flowdrive) openpilot discord communities. 
 
 We also push frequent updates on our [twitter handle](https://twitter.com/flowdrive_ai).
+
+# FlowdriveGPT
+FlowdriveGPT is a retrieval interface for FlowDrive's wiki, docs, and repo. checkout [FlowdriveGPT](https://chat.openai.com/g/g-fpDPDfgSE-flowdrivegpt) for simplified explanations.
+![11](https://github.com/Ayush-Kumar101/flowpilot/assets/85908925/0b85069b-89f6-43e2-9d6c-d4b74eaa28fd)
 
 # User Data 
 
