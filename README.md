@@ -13,6 +13,9 @@ Flowpilot is an open source driver assistance system built on top of openpilot, 
   </tr>
 </table>
 
+# Updates:
+The main developers have less time to maintain the project now. So expect less support. Most of the stuff should be out there on discord and the wiki. Though, there are some few forks of flowpilot that are more actively maintained, for example, [PhrOOt's](https://github.com/phr00t/flowpilot/wiki/FlowPilot:-FAQ) fork. Although please note that PhrOOt's fork supports only LG G8 devices for now. 
+
 # Running on a Car
 
 For running flowpilot on your car, you need: 
