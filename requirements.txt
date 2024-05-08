@@ -21,7 +21,7 @@ flake8==3.7.9
 crcmod==1.7
 pre-commit==2.13.0
 pylint==2.5.2
-Jinja2==3.0.3
+Jinja2==3.1.4
 psutil==5.8.0
 pyzmq==22.2.1
 smbus2==0.4.2
