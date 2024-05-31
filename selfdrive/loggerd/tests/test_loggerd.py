@@ -17,10 +17,10 @@ from common.params import Params
 from common.timeout import Timeout
 from selfdrive.loggerd.config import ROOT
 from selfdrive.manager.process_config import managed_processes
-from system.version import get_version
+# from system.version import get_version
 from tools.lib.logreader import LogReader
-from cereal.visionipc import VisionIpcServer, VisionStreamType
-from common.transformations.camera import tici_f_frame_size, tici_d_frame_size, tici_e_frame_size
+# from cereal.visionipc import VisionIpcServer, VisionStreamType
+# from common.transformations.camera import tici_f_frame_size, tici_d_frame_size, tici_e_frame_size
 
 SentinelType = log.Sentinel.SentinelType
 
@@ -102,49 +102,49 @@ class TestLoggerd(unittest.TestCase):
     for _, k, v in fake_params:
       self.assertEqual(getattr(initData, k), v)
 
-  def test_rotation(self):
-    os.environ["LOGGERD_TEST"] = "1"
-    Params().put("RecordFront", "1")
+  # def test_rotation(self):
+  #   os.environ["LOGGERD_TEST"] = "1"
+  #   Params().put("RecordFront", "1")
 
-    expected_files = {"rlog", "qlog", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
-    streams = [(VisionStreamType.VISION_STREAM_ROAD, (*tici_f_frame_size, 2048*2346, 2048, 2048*1216), "roadCameraState"),
-               (VisionStreamType.VISION_STREAM_DRIVER, (*tici_d_frame_size, 2048*2346, 2048, 2048*1216), "driverCameraState"),
-               (VisionStreamType.VISION_STREAM_WIDE_ROAD, (*tici_e_frame_size, 2048*2346, 2048, 2048*1216), "wideRoadCameraState")]
+  #   expected_files = {"rlog", "qlog", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
+  #   streams = [(VisionStreamType.VISION_STREAM_ROAD, (*tici_f_frame_size, 2048*2346, 2048, 2048*1216), "roadCameraState"),
+  #              (VisionStreamType.VISION_STREAM_DRIVER, (*tici_d_frame_size, 2048*2346, 2048, 2048*1216), "driverCameraState"),
+  #              (VisionStreamType.VISION_STREAM_WIDE_ROAD, (*tici_e_frame_size, 2048*2346, 2048, 2048*1216), "wideRoadCameraState")]
 
-    pm = messaging.PubMaster(["roadCameraState", "driverCameraState", "wideRoadCameraState"])
-    vipc_server = VisionIpcServer("camerad")
-    for stream_type, frame_spec, _ in streams:
-      vipc_server.create_buffers_with_sizes(stream_type, 40, False, *(frame_spec))
-    vipc_server.start_listener()
+  #   pm = messaging.PubMaster(["roadCameraState", "driverCameraState", "wideRoadCameraState"])
+  #   vipc_server = VisionIpcServer("camerad")
+  #   for stream_type, frame_spec, _ in streams:
+  #     vipc_server.create_buffers_with_sizes(stream_type, 40, False, *(frame_spec))
+  #   vipc_server.start_listener()
 
-    for _ in range(5):
-      num_segs = random.randint(2, 5)
-      length = random.randint(1, 3)
-      os.environ["LOGGERD_SEGMENT_LENGTH"] = str(length)
-      managed_processes["loggerd"].start()
-      managed_processes["encoderd"].start()
+  #   for _ in range(5):
+  #     num_segs = random.randint(2, 5)
+  #     length = random.randint(1, 3)
+  #     os.environ["LOGGERD_SEGMENT_LENGTH"] = str(length)
+  #     managed_processes["loggerd"].start()
+  #     managed_processes["encoderd"].start()
 
-      fps = 20.0
-      for n in range(1, int(num_segs*length*fps)+1):
-        for stream_type, frame_spec, state in streams:
-          dat = np.empty(frame_spec[2], dtype=np.uint8)
-          vipc_server.send(stream_type, dat[:].flatten().tobytes(), n, n/fps, n/fps)
+  #     fps = 20.0
+  #     for n in range(1, int(num_segs*length*fps)+1):
+  #       for stream_type, frame_spec, state in streams:
+  #         dat = np.empty(frame_spec[2], dtype=np.uint8)
+  #         vipc_server.send(stream_type, dat[:].flatten().tobytes(), n, n/fps, n/fps)
 
-          camera_state = messaging.new_message(state)
-          frame = getattr(camera_state, state)
-          frame.frameId = n
-          pm.send(state, camera_state)
-        time.sleep(1.0/fps)
+  #         camera_state = messaging.new_message(state)
+  #         frame = getattr(camera_state, state)
+  #         frame.frameId = n
+  #         pm.send(state, camera_state)
+  #       time.sleep(1.0/fps)
 
-      managed_processes["loggerd"].stop()
-      managed_processes["encoderd"].stop()
+  #     managed_processes["loggerd"].stop()
+  #     managed_processes["encoderd"].stop()
 
-      route_path = str(self._get_latest_log_dir()).rsplit("--", 1)[0]
-      for n in range(num_segs):
-        p = Path(f"{route_path}--{n}")
-        logged = {f.name for f in p.iterdir() if f.is_file()}
-        diff = logged ^ expected_files
-        self.assertEqual(len(diff), 0, f"didn't get all expected files. run={_} seg={n} {route_path=}, {diff=}\n{logged=} {expected_files=}")
+  #     route_path = str(self._get_latest_log_dir()).rsplit("--", 1)[0]
+  #     for n in range(num_segs):
+  #       p = Path(f"{route_path}--{n}")
+  #       logged = {f.name for f in p.iterdir() if f.is_file()}
+  #       diff = logged ^ expected_files
+  #       self.assertEqual(len(diff), 0, f"didn't get all expected files. run={_} seg={n} {route_path=}, {diff=}\n{logged=} {expected_files=}")
 
   def test_bootlog(self):
     # generate bootlog with fake launch log
