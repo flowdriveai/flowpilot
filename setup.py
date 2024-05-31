@@ -26,3 +26,5 @@ setup(name="flowpilot",
                                         "flowinit=selfdrive.manager.flowinitd:main"]}
      )
 
+from common.params import Params
+Params().put("UserToken", "000000")
