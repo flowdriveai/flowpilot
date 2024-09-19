@@ -163,7 +163,7 @@ public class CameraManager extends SensorInterface {
                     msgFrameBuffer.frameBuffer.setVOffset(W * H +1);
                 else
                     msgFrameBuffer.frameBuffer.setVOffset(W * H + W * H /4);
-                msgFrameBuffer.frameBuffer.setStride(yPlane.getRowStride());
+                msgFrameBuffer.frameBuffer.setStride(W);
 
                 msgFrameData.frameData.setFrameId(frameID);
 
