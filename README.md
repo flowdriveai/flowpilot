@@ -42,6 +42,10 @@ Flowpilot's core community lives on the official flowdrive [discord server](http
 
 We also push frequent updates on our [twitter handle](https://twitter.com/flowdrive_ai).
 
+# FlowdriveGPT
+FlowdriveGPT is a retrieval interface for FlowDrive's wiki, docs, and repo. checkout [FlowdriveGPT](https://chat.openai.com/g/g-fpDPDfgSE-flowdrivegpt) for simplified explanations.
+![11](https://github.com/Ayush-Kumar101/flowpilot/assets/85908925/0b85069b-89f6-43e2-9d6c-d4b74eaa28fd)
+
 # User Data 
 
 Flowpilot will require your email address for setting up you flowdrive account. Flowpilot logs the road-facing cameras, CAN, GPS, IMU, magnetometer, thermal sensors, crashes, and operating system logs. The driver-facing camera is only logged if you explicitly opt-in in settings. The microphone is not recorded.
