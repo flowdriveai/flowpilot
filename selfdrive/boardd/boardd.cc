@@ -277,6 +277,10 @@ void can_recv_thread(std::vector<Panda *> pandas) {
   uint64_t next_frame_time = nanos_since_boot() + dt;
   std::vector<can_frame> raw_can_data;
 
+  // Track consecutive missed cycles for adaptive recovery
+  int consecutive_missed = 0;
+  const int MAX_CONSECUTIVE_MISSED = 5;
+
   while (!do_exit && check_all_connected(pandas)) {
     bool comms_healthy = true;
     raw_can_data.clear();
@@ -300,10 +304,22 @@ void can_recv_thread(std::vector<Panda *> pandas) {
     int64_t remaining = next_frame_time - cur_time;
     if (remaining > 0) {
           std::this_thread::sleep_for(std::chrono::nanoseconds(remaining));
+          consecutive_missed = 0;
     } else {
       if (ignition) {
-        if ((int)-1*remaining/dt > 1){
-            LOGW("missed cycles (%d) %lld", (int)-1*remaining/dt, remaining);
+        int missed = (int)(-1 * remaining / dt);
+        if (missed > 1) {
+          consecutive_missed++;
+          LOGW("missed cycles (%d) %lld [consecutive: %d]", missed, remaining, consecutive_missed);
+        }
+        // When too many consecutive cycles are missed (common on Android USB host
+        // with slow ROMs), skip ahead to prevent cascading timing failure.
+        // Without this, the loop keeps trying to catch up and never recovers.
+        if (consecutive_missed >= MAX_CONSECUTIVE_MISSED) {
+          LOGW("too many consecutive missed cycles (%d), resetting timing", consecutive_missed);
+          next_frame_time = cur_time;
+          consecutive_missed = 0;
+          continue;
         }
       }
       next_frame_time = cur_time;
