@@ -39,6 +39,9 @@ stability or USB bulk transfer latency:
 - `selfdrive/boardd/panda.cc`:
   - `Panda::usb_bulk_read` uses libusb endpoint `0x81` for CAN receive.
   - `Panda::usb_bulk_write` sends CAN to endpoint `3` with a short timeout.
+  - `Panda::can_receive` now uses the same short bounded transfer budget for
+    CAN receive so a slow Android USB host does not block the 100 Hz receive
+    loop indefinitely.
   - `Panda::can_receive` warns when a full receive buffer is returned.
 - `android/AndroidManifest.xml` should declare USB host capability so Android
   tooling, ROM integrators, and package managers know this build expects host
@@ -197,8 +200,10 @@ timeouts.
 Only change boardd after the Android host path is stable. Retries can hide the
 symptom while making CAN latency worse.
 
-Useful low-risk instrumentation:
+Useful low-risk code changes and instrumentation:
 
+- Keep Panda CAN receive bulk reads on a short bounded timeout, matching the
+  send path's drop-and-continue behavior for a full USB buffer.
 - Log the duration of each Panda `can_receive` call.
 - Count libusb timeout, overflow, and no-device errors separately.
 - Include USB serial and hardware type in repeated USB warnings.
