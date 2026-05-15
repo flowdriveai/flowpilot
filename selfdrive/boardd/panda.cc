@@ -13,6 +13,10 @@
 #include "common/swaglog.h"
 #include "common/util.h"
 
+namespace {
+constexpr unsigned int CAN_RECV_TIMEOUT_MS = 5U;
+}
+
 static int init_usb_ctx(libusb_context **context) {
   assert(context != nullptr);
 
@@ -473,7 +477,7 @@ void Panda::can_send(capnp::List<cereal::CanData>::Reader can_data_list) {
 
 bool Panda::can_receive(std::vector<can_frame>& out_vec) {
   uint8_t data[RECV_SIZE];
-  int recv = usb_bulk_read(0x81, (uint8_t*)data, RECV_SIZE);
+  int recv = usb_bulk_read(0x81, (uint8_t*)data, RECV_SIZE, CAN_RECV_TIMEOUT_MS);
   if (!comms_healthy) {
     return false;
   }

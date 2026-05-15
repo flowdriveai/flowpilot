@@ -26,6 +26,11 @@ For running flowpilot on your car, you need:
  - One of the [200+ supported cars](https://github.com/commaai/openpilot/blob/master/docs/CARS.md). The community supports Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run flowpilot.
  
  For a more detailed overview, see the [wiring and hardware wiki](https://github.com/flowdriveai/flowpilot/wiki/Connecting-to-Car).
+
+Android phones or ROMs that show Panda USB cut-outs, slow USB access, or
+`boardd` missed-cycle warnings can use the
+[Android USB host missed-cycles guide](docs/android_usb_host_missed_cycles.md)
+and `scripts/android_usb_host_missed_cycles_triage.sh` to collect diagnostics.
  
 # Installation:
 See the [installation wiki](https://github.com/flowdriveai/flowpilot/wiki/Installation).
