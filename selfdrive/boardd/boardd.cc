@@ -273,16 +273,18 @@ void can_recv_thread(std::vector<Panda *> pandas) {
   PubMaster pm({"can"});
 
   // run at 100hz
-  const uint64_t dt = 10000000ULL;
-  uint64_t next_frame_time = nanos_since_boot() + dt;
+  const int64_t dt = 10000000LL;
+  int64_t next_frame_time = static_cast<int64_t>(nanos_since_boot()) + dt;
   std::vector<can_frame> raw_can_data;
 
   while (!do_exit && check_all_connected(pandas)) {
     bool comms_healthy = true;
     raw_can_data.clear();
+    const int64_t receive_start_time = static_cast<int64_t>(nanos_since_boot());
     for (const auto& panda : pandas) {
       comms_healthy &= panda->can_receive(raw_can_data);
     }
+    const int64_t receive_time = static_cast<int64_t>(nanos_since_boot()) - receive_start_time;
 
     MessageBuilder msg;
     auto evt = msg.initEvent();
@@ -296,14 +298,17 @@ void can_recv_thread(std::vector<Panda *> pandas) {
     }
     pm.send("can", msg);
 
-    uint64_t cur_time = nanos_since_boot();
+    int64_t cur_time = static_cast<int64_t>(nanos_since_boot());
     int64_t remaining = next_frame_time - cur_time;
     if (remaining > 0) {
-          std::this_thread::sleep_for(std::chrono::nanoseconds(remaining));
+      std::this_thread::sleep_for(std::chrono::nanoseconds(remaining));
     } else {
       if (ignition) {
-        if ((int)-1*remaining/dt > 1){
-            LOGW("missed cycles (%d) %lld", (int)-1*remaining/dt, remaining);
+        const int64_t missed_cycles = (-remaining) / dt;
+        if (missed_cycles > 1) {
+          LOGW("missed cycles (%lld) %lld recv=%lld", (long long)missed_cycles, (long long)remaining, (long long)receive_time);
+        } else if (receive_time > dt) {
+          LOGW_100("CAN receive over 100Hz budget: recv=%lld remaining=%lld", (long long)receive_time, (long long)remaining);
         }
       }
       next_frame_time = cur_time;
