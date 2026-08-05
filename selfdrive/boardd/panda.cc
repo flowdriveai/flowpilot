@@ -473,7 +473,7 @@ void Panda::can_send(capnp::List<cereal::CanData>::Reader can_data_list) {
 
 bool Panda::can_receive(std::vector<can_frame>& out_vec) {
   uint8_t data[RECV_SIZE];
-  int recv = usb_bulk_read(0x81, (uint8_t*)data, RECV_SIZE);
+  int recv = usb_bulk_read(0x81, (uint8_t*)data, RECV_SIZE, 5);
   if (!comms_healthy) {
     return false;
   }

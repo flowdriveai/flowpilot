@@ -51,3 +51,12 @@ You understand that use of this software or its related services will generate c
 # Disclaimer 
 
 THIS IS ALPHA QUALITY SOFTWARE FOR RESEARCH PURPOSES ONLY. THIS IS NOT A PRODUCT. YOU ARE RESPONSIBLE FOR COMPLYING WITH LOCAL LAWS AND REGULATIONS. NO WARRANTY EXPRESSED OR IMPLIED.
+
+## Building on Linux
+
+To install dependencies and build Flowpilot on Linux:
+
+```bash
+./scripts/setup_linux.sh
+scons -j$(nproc)
+```

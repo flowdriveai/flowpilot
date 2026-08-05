@@ -213,7 +213,7 @@ def make_ocp_dims_consistent(acados_ocp):
 
     ## constraints
     # initial
-    if (constraints.lbx_0 == [] and constraints.ubx_0 == []):
+    if (len(constraints.lbx_0) == 0 and len(constraints.ubx_0) == 0):
         dims.nbx_0 = 0
     else:
         this_shape = constraints.lbx_0.shape
